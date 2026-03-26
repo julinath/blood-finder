@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="bloodfinder.controller.DashboardController"
+            prefWidth="1050" prefHeight="700">
+
+    <!-- Header -->
+    <top>
+        <HBox styleClass="header" spacing="15" alignment="CENTER_LEFT">
+            <padding><Insets top="12" right="20" bottom="12" left="20"/></padding>
+            <Label text="🩸 Blood Finder" styleClass="header-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblUserName" styleClass="header-user"/>
+            <Button text="Search Donors" onAction="#goToSearch"
+                    style="-fx-background-color: rgba(255,255,255,0.15); -fx-text-fill: white;
+                           -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16;
+                           -fx-border-color: rgba(255,255,255,0.4); -fx-border-radius: 6;"/>
+            <Button text="Logout" onAction="#handleLogout"
+                    style="-fx-background-color: rgba(0,0,0,0.2); -fx-text-fill: white;
+                           -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16;"/>
+        </HBox>
+    </top>
+
+    <!-- Tab Content -->
+    <center>
+        <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE"
+                 style="-fx-background-color: #F5F5F5;">
+
+            <!-- Tab 1: Overview -->
+            <Tab text="  Overview  " fx:id="tabOverview">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;">
+                    <VBox spacing="18" style="-fx-background-color: #F5F5F5;">
+                        <padding><Insets top="25" right="30" bottom="25" left="30"/></padding>
+                        <Label text="Dashboard" styleClass="label-title"/>
+                        <HBox fx:id="hboxStats" spacing="15"/>
+                        <VBox styleClass="card" spacing="12">
+                            <Label text="Quick Actions" styleClass="label-section"/>
+                            <HBox spacing="12">
+                                <Button text="🔍  Search Donors" onAction="#goToSearch"
+                                        style="-fx-padding: 10 20;"/>
+                                <Button fx:id="btnBecomeDonor" text="🩸  Become a Donor"
+                                        onAction="#goToBecomeDonor"
+                                        style="-fx-background-color: white; -fx-text-fill: #C0392B;
+                                               -fx-border-color: #C0392B; -fx-border-radius: 6;
+                                               -fx-background-radius: 6; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                            </HBox>
+                        </VBox>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Tab 2: My Requests -->
+            <Tab text="  My Requests  " fx:id="tabMyRequests">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;">
+                    <VBox spacing="12" style="-fx-background-color: #F5F5F5;">
+                        <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+                        <Label text="My Sent Blood Requests" styleClass="label-section"/>
+                        <VBox fx:id="vboxMyRequests" spacing="10"/>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Tab 3: Notifications (donor only) -->
+            <Tab text="  Notifications  " fx:id="tabNotifications">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;">
+                    <VBox spacing="12" style="-fx-background-color: #F5F5F5;">
+                        <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+                        <Label text="Incoming Pending Blood Requests" styleClass="label-section"/>
+                        <VBox fx:id="vboxNotifications" spacing="10"/>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Tab 4: Donation History (donor only) -->
+            <Tab text="  Donation History  " fx:id="tabDonationHistory">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;">
+                    <VBox spacing="12" style="-fx-background-color: #F5F5F5;">
+                        <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+                        <Label text="My Donation History" styleClass="label-section"/>
+                        <VBox fx:id="vboxHistory" spacing="10"/>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Tab 5: My Profile -->
+            <Tab text="  My Profile  " fx:id="tabProfile">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;">
+                    <VBox spacing="18" style="-fx-background-color: #F5F5F5;">
+                        <padding><Insets top="25" right="30" bottom="25" left="30"/></padding>
+                        <Label text="My Profile" styleClass="label-section"/>
+                        <VBox fx:id="vboxProfile" spacing="15"/>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+        </TabPane>
+    </center>
+</BorderPane>

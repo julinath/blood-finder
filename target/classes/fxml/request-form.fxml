@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<StackPane xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="bloodfinder.controller.RequestController"
+           prefWidth="720" prefHeight="560"
+           style="-fx-background-color: #F5F5F5;">
+
+    <VBox alignment="CENTER">
+        <VBox styleClass="card" maxWidth="500" spacing="15">
+            <padding><Insets top="35" right="40" bottom="35" left="40"/></padding>
+
+            <!-- Title row -->
+            <HBox alignment="CENTER_LEFT" spacing="12">
+                <Button text="← Back" onAction="#goBack"
+                        style="-fx-background-color: #F0F0F0; -fx-background-radius: 6;
+                               -fx-cursor: hand; -fx-padding: 7 14;"/>
+                <Label text="Send Blood Request" styleClass="label-title"/>
+            </HBox>
+
+            <!-- Donor info banner -->
+            <VBox style="-fx-background-color: #FADBD8; -fx-background-radius: 8;
+                         -fx-border-color: #C0392B; -fx-border-radius: 8; -fx-border-width: 0 0 0 4;"
+                  spacing="4">
+                <padding><Insets top="12" right="15" bottom="12" left="15"/></padding>
+                <Label text="Requesting from:" style="-fx-text-fill: #7F8C8D; -fx-font-size: 11px;"/>
+                <Label fx:id="lblDonorInfo"
+                       style="-fx-font-weight: bold; -fx-text-fill: #C0392B; -fx-font-size: 14px;"
+                       wrapText="true"/>
+            </VBox>
+
+            <VBox spacing="6">
+                <Label text="Hospital Name *" style="-fx-font-weight: bold;"/>
+                <TextField fx:id="hospitalField" promptText="Hospital এর নাম ও ঠিকানা"/>
+            </VBox>
+
+            <VBox spacing="6">
+                <Label text="When is it needed? *" style="-fx-font-weight: bold;"/>
+                <DatePicker fx:id="neededDatePicker" maxWidth="Infinity"/>
+            </VBox>
+
+            <VBox spacing="6">
+                <Label text="Reason (optional)" style="-fx-font-weight: bold;"/>
+                <TextArea fx:id="reasonArea" promptText="Reason for needing blood..."
+                          prefRowCount="3" wrapText="true"/>
+            </VBox>
+
+            <Label fx:id="statusLabel" wrapText="true" maxWidth="420"/>
+
+            <HBox spacing="12">
+                <Button text="Send Request" onAction="#handleSendRequest"
+                        HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                        style="-fx-font-size: 14px; -fx-padding: 11 0;"/>
+                <Button text="Cancel" onAction="#goBack"
+                        style="-fx-background-color: #95A5A6; -fx-text-fill: white;
+                               -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 11 20;"/>
+            </HBox>
+        </VBox>
+    </VBox>
+</StackPane>
