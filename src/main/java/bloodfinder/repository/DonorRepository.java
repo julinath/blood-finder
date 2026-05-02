@@ -29,8 +29,8 @@ public class DonorRepository implements Repository<Donor> {
 
     @Override
     public boolean save(Donor donor) {
-        String sql = "INSERT INTO donors (user_id, blood_type, last_donation_date, is_temporarily_unavailable) " +
-                     "VALUES (?, ?, ?, ?)";
+        String sql = "INSERT INTO donors (user_id, blood_type, last_donation_date, is_temporarily_unavailable, is_approved) " +
+                     "VALUES (?, ?, ?, ?, 0)";
         try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             ps.setInt(1, donor.getId());   // users.id
             ps.setString(2, donor.getBloodType().name());
