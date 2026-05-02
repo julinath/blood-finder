@@ -40,6 +40,11 @@ public class User {
     public String getCreatedAt() { return createdAt; }
     public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
 
+    private String role;
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+    public boolean isAdmin() { return "ADMIN".equals(role); }
+
     @Override
     public String toString() {
         return "User{id=" + id + ", name='" + name + "', email='" + email + "'}";

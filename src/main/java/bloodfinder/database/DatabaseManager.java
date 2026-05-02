@@ -84,6 +84,24 @@ public class DatabaseManager {
                     requester_name TEXT NOT NULL
                 )
             """);
+
+            // Migration: add role column to users (existing users default to 'USER')
+            try {
+                stmt.execute("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'USER'");
+            } catch (SQLException ignored) {}
+
+            // Migration: add is_approved to donors (DEFAULT 1 keeps existing donors visible)
+            try {
+                stmt.execute("ALTER TABLE donors ADD COLUMN is_approved INTEGER DEFAULT 1");
+            } catch (SQLException ignored) {}
+
+            // Seed primary admin — INSERT OR IGNORE is idempotent via UNIQUE email constraint
+            stmt.execute("""
+                INSERT OR IGNORE INTO users (name, email, password, mobile, location, role)
+                VALUES ('Juli Nath', 'julinath@gmail.com', '0112358', '0000000000', 'System', 'ADMIN')
+            """);
+            // If julinath@gmail.com already existed as a regular user, upgrade to ADMIN
+            stmt.execute("UPDATE users SET role = 'ADMIN' WHERE email = 'julinath@gmail.com'");
         }
     }
 }

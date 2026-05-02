@@ -34,6 +34,7 @@ public class SearchService {
         List<Donor> all = donorRepository.findAll();
 
         return all.stream()
+                .filter(Donor::isApproved)
                 .filter(d -> bloodType == null || d.getBloodType() == bloodType)
                 .filter(d -> location == null || location.isBlank() ||
                         d.getLocation().toLowerCase().contains(location.trim().toLowerCase()))
@@ -42,6 +43,8 @@ public class SearchService {
     }
 
     public List<Donor> getAllDonors() {
-        return donorRepository.findAll();
+        return donorRepository.findAll().stream()
+                .filter(Donor::isApproved)
+                .collect(Collectors.toList());
     }
 }

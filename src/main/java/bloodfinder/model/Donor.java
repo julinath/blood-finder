@@ -65,6 +65,10 @@ public class Donor extends User {
         this.temporarilyUnavailable = temporarilyUnavailable;
     }
 
+    private boolean approved;
+    public boolean isApproved() { return approved; }
+    public void setApproved(boolean approved) { this.approved = approved; }
+
     @Override
     public String toString() {
         return "Donor{donorId=" + donorId + ", userId=" + getId() +

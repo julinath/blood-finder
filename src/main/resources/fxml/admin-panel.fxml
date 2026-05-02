@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="bloodfinder.controller.AdminPanelController"
+            prefWidth="1100" prefHeight="720">
+
+    <!-- Header -->
+    <top>
+        <HBox styleClass="header" spacing="15" alignment="CENTER_LEFT">
+            <padding><Insets top="12" right="20" bottom="12" left="20"/></padding>
+            <Label text="🩸 Blood Finder — Admin Panel" styleClass="header-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="lblAdminName" styleClass="header-user"/>
+            <Button text="Logout" onAction="#handleLogout"
+                    style="-fx-background-color: rgba(0,0,0,0.2); -fx-text-fill: white;
+                           -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16;"/>
+        </HBox>
+    </top>
+
+    <!-- Tab Content -->
+    <center>
+        <TabPane tabClosingPolicy="UNAVAILABLE"
+                 style="-fx-background-color: #F5F5F5;">
+
+            <!-- Tab 1: Dashboard -->
+            <Tab text="  Dashboard  ">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;">
+                    <VBox spacing="18" style="-fx-background-color: #F5F5F5;">
+                        <padding><Insets top="25" right="30" bottom="25" left="30"/></padding>
+                        <Label text="System Statistics" styleClass="label-title"/>
+                        <VBox fx:id="vboxStats" spacing="15"/>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Tab 2: Donor Management -->
+            <Tab text="  Donor Management  ">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;">
+                    <VBox spacing="18" style="-fx-background-color: #F5F5F5;">
+                        <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+
+                        <Label text="Pending Approval" styleClass="label-section"/>
+                        <VBox fx:id="vboxPendingDonors" spacing="10"/>
+
+                        <Label text="All Approved Donors" styleClass="label-section"
+                               style="-fx-padding: 10 0 0 0;"/>
+                        <VBox fx:id="vboxAllDonors" spacing="10"/>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Tab 3: Blood Requests -->
+            <Tab text="  Blood Requests  ">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;">
+                    <VBox spacing="12" style="-fx-background-color: #F5F5F5;">
+                        <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+                        <Label text="All Blood Requests" styleClass="label-section"/>
+                        <VBox fx:id="vboxAllRequests" spacing="10"/>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+            <!-- Tab 4: User Management -->
+            <Tab text="  User Management  ">
+                <ScrollPane fitToWidth="true" style="-fx-background-color: #F5F5F5; -fx-background: #F5F5F5;">
+                    <VBox spacing="12" style="-fx-background-color: #F5F5F5;">
+                        <padding><Insets top="20" right="25" bottom="20" left="25"/></padding>
+                        <Label text="All Users" styleClass="label-section"/>
+                        <VBox fx:id="vboxUsers" spacing="10"/>
+                    </VBox>
+                </ScrollPane>
+            </Tab>
+
+        </TabPane>
+    </center>
+</BorderPane>

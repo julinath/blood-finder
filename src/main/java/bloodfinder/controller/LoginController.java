@@ -21,7 +21,11 @@ public class LoginController {
         errorLabel.setText("");
         try {
             User user = authService.login(emailField.getText(), passwordField.getText());
-            App.navigateTo("dashboard", emailField);
+            if (user.isAdmin()) {
+                App.navigateTo("admin-panel", emailField);
+            } else {
+                App.navigateTo("dashboard", emailField);
+            }
         } catch (IllegalArgumentException e) {
             showError(e.getMessage());
         }

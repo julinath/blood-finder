@@ -47,7 +47,9 @@ public class BecomeDonorController {
 
         try {
             donorService.becomeDonor(authService.getLoggedInUser(), bloodType, lastDate);
-            AlertUtil.showSuccess("Success!", "You are now registered as a Blood Donor!");
+            AlertUtil.showSuccess("Application Submitted",
+                    "Your donor application has been submitted!\nAdmin approval pending — " +
+                    "you will appear in search results once approved.");
             App.navigateTo("dashboard", cmbBloodType);
         } catch (IllegalStateException e) {
             showError(e.getMessage());

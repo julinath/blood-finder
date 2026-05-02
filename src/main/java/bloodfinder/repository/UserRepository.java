@@ -123,6 +123,7 @@ public class UserRepository implements Repository<User> {
         u.setMobile(rs.getString("mobile"));
         u.setLocation(rs.getString("location"));
         u.setCreatedAt(rs.getString("created_at"));
+        try { u.setRole(rs.getString("role")); } catch (SQLException ignored) {}
         return u;
     }
 }

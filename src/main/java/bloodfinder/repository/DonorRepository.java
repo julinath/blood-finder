@@ -19,7 +19,8 @@ public class DonorRepository implements Repository<Donor> {
 
     private static final String JOIN_SQL =
             "SELECT u.id, u.name, u.email, u.password, u.mobile, u.location, u.created_at, " +
-            "       d.id AS donor_id, d.blood_type, d.last_donation_date, d.is_temporarily_unavailable " +
+            "       d.id AS donor_id, d.blood_type, d.last_donation_date, " +
+            "       d.is_temporarily_unavailable, d.is_approved " +
             "FROM donors d JOIN users u ON d.user_id = u.id ";
 
     public DonorRepository() {
@@ -148,6 +149,29 @@ public class DonorRepository implements Repository<Donor> {
                 rs.getString("last_donation_date"));
         donor.setDonorId(rs.getInt("donor_id"));
         donor.setTemporarilyUnavailable(rs.getInt("is_temporarily_unavailable") == 1);
+        try { donor.setApproved(rs.getInt("is_approved") == 1); } catch (SQLException ignored) { donor.setApproved(true); }
         return donor;
+    }
+
+    public boolean approveDonor(int donorId) {
+        String sql = "UPDATE donors SET is_approved = 1 WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, donorId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public List<Donor> findPendingApproval() {
+        List<Donor> list = new ArrayList<>();
+        try (PreparedStatement ps = conn.prepareStatement(JOIN_SQL + "WHERE d.is_approved = 0")) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) list.add(mapDonor(rs));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return list;
     }
 }
