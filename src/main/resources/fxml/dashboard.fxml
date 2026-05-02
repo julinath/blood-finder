@@ -18,6 +18,11 @@
                     style="-fx-background-color: rgba(255,255,255,0.15); -fx-text-fill: white;
                            -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16;
                            -fx-border-color: rgba(255,255,255,0.4); -fx-border-radius: 6;"/>
+            <Button fx:id="btnAdminPanel" text="⚙ Admin Panel" onAction="#goToAdminPanel"
+                    visible="false" managed="false"
+                    style="-fx-background-color: #F39C12; -fx-text-fill: white;
+                           -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16;
+                           -fx-font-weight: bold;"/>
             <Button text="Logout" onAction="#handleLogout"
                     style="-fx-background-color: rgba(0,0,0,0.2); -fx-text-fill: white;
                            -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16;"/>

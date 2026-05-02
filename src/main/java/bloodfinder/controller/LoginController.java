@@ -20,12 +20,8 @@ public class LoginController {
     public void handleLogin() {
         errorLabel.setText("");
         try {
-            User user = authService.login(emailField.getText(), passwordField.getText());
-            if (user.isAdmin()) {
-                App.navigateTo("admin-panel", emailField);
-            } else {
-                App.navigateTo("dashboard", emailField);
-            }
+            authService.login(emailField.getText(), passwordField.getText());
+            App.navigateTo("dashboard", emailField);
         } catch (IllegalArgumentException e) {
             showError(e.getMessage());
         }

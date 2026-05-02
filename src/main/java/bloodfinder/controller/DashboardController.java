@@ -24,6 +24,7 @@ public class DashboardController {
 
     // Header
     @FXML private Label lblUserName;
+    @FXML private Button btnAdminPanel;
 
     // Overview tab
     @FXML private HBox hboxStats;
@@ -59,6 +60,12 @@ public class DashboardController {
         }
 
         lblUserName.setText("👋 " + user.getName());
+
+        if (user.isAdmin()) {
+            btnAdminPanel.setVisible(true);
+            btnAdminPanel.setManaged(true);
+        }
+
         donor = donorService.getDonorByUserId(user.getId());
 
         setupOverviewTab();
@@ -345,6 +352,8 @@ public class DashboardController {
     @FXML public void goToSearch() { App.navigateTo("donor-search", lblUserName); }
 
     @FXML public void goToBecomeDonor() { App.navigateTo("become-donor", lblUserName); }
+
+    @FXML public void goToAdminPanel() { App.navigateTo("admin-panel", lblUserName); }
 
     @FXML
     public void handleLogout() {

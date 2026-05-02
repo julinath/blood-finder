@@ -30,8 +30,12 @@ public class AdminPanelController {
     @FXML
     public void initialize() {
         User admin = authService.getLoggedInUser();
-        if (admin == null || !admin.isAdmin()) {
+        if (admin == null) {
             App.navigateTo("login");
+            return;
+        }
+        if (!admin.isAdmin()) {
+            App.navigateTo("dashboard");
             return;
         }
         lblAdminName.setText("Admin: " + admin.getName());
@@ -207,6 +211,11 @@ public class AdminPanelController {
     }
 
     // ===== NAVIGATION =====
+
+    @FXML
+    public void goToDashboard() {
+        App.navigateTo("dashboard", lblAdminName);
+    }
 
     @FXML
     public void handleLogout() {
