@@ -20,7 +20,7 @@ public class DonorRepository implements Repository<Donor> {
     private static final String JOIN_SQL =
             "SELECT u.id, u.name, u.email, u.password, u.mobile, u.location, u.created_at, " +
             "       d.id AS donor_id, d.blood_type, d.last_donation_date, " +
-            "       d.is_temporarily_unavailable, d.is_approved " +
+            "       d.is_temporarily_unavailable, d.is_approved, d.approval_notified " +
             "FROM donors d JOIN users u ON d.user_id = u.id ";
 
     public DonorRepository() {
@@ -150,11 +150,23 @@ public class DonorRepository implements Repository<Donor> {
         donor.setDonorId(rs.getInt("donor_id"));
         donor.setTemporarilyUnavailable(rs.getInt("is_temporarily_unavailable") == 1);
         try { donor.setApproved(rs.getInt("is_approved") == 1); } catch (SQLException ignored) { donor.setApproved(true); }
+        try { donor.setApprovalNotified(rs.getInt("approval_notified") == 1); } catch (SQLException ignored) { donor.setApprovalNotified(true); }
         return donor;
     }
 
     public boolean approveDonor(int donorId) {
         String sql = "UPDATE donors SET is_approved = 1 WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, donorId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean markApprovalNotified(int donorId) {
+        String sql = "UPDATE donors SET approval_notified = 1 WHERE id = ?";
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, donorId);
             return ps.executeUpdate() > 0;

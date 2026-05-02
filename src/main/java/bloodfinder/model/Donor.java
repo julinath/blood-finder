@@ -69,6 +69,10 @@ public class Donor extends User {
     public boolean isApproved() { return approved; }
     public void setApproved(boolean approved) { this.approved = approved; }
 
+    private boolean approvalNotified;
+    public boolean isApprovalNotified() { return approvalNotified; }
+    public void setApprovalNotified(boolean approvalNotified) { this.approvalNotified = approvalNotified; }
+
     @Override
     public String toString() {
         return "Donor{donorId=" + donorId + ", userId=" + getId() +

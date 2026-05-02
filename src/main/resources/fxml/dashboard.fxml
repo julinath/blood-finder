@@ -41,6 +41,7 @@
                         <padding><Insets top="25" right="30" bottom="25" left="30"/></padding>
                         <Label text="Dashboard" styleClass="label-title"/>
                         <HBox fx:id="hboxStats" spacing="15"/>
+                        <VBox fx:id="vboxPendingNotice" visible="false" managed="false" spacing="0"/>
                         <VBox styleClass="card" spacing="12">
                             <Label text="Quick Actions" styleClass="label-section"/>
                             <HBox spacing="12">

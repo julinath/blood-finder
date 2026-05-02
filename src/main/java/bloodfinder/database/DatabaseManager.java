@@ -95,6 +95,13 @@ public class DatabaseManager {
                 stmt.execute("ALTER TABLE donors ADD COLUMN is_approved INTEGER DEFAULT 1");
             } catch (SQLException ignored) {}
 
+            // Migration: track whether approval notification has been shown to the donor
+            try {
+                stmt.execute("ALTER TABLE donors ADD COLUMN approval_notified INTEGER DEFAULT 0");
+            } catch (SQLException ignored) {}
+            // Existing approved donors don't need a notification — mark them as already notified
+            stmt.execute("UPDATE donors SET approval_notified = 1 WHERE is_approved = 1 AND approval_notified = 0");
+
             // Seed primary admin — INSERT OR IGNORE is idempotent via UNIQUE email constraint
             stmt.execute("""
                 INSERT OR IGNORE INTO users (name, email, password, mobile, location, role)

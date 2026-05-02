@@ -28,6 +28,7 @@ public class DashboardController {
 
     // Overview tab
     @FXML private HBox hboxStats;
+    @FXML private VBox vboxPendingNotice;
     @FXML private Button btnBecomeDonor;
 
     // My Requests tab
@@ -71,12 +72,24 @@ public class DashboardController {
         setupOverviewTab();
         loadMyRequests();
 
-        if (donor != null) {
+        if (donor != null && donor.isApproved()) {
+            // Show approval notification once (first login after approval)
+            if (!donor.isApprovalNotified()) {
+                donorService.markApprovalNotified(donor.getDonorId());
+                AlertUtil.showSuccess("Donor Approved!",
+                    "Congratulations! Your donor application has been approved.\n" +
+                    "You are now visible in the donor search list.");
+            }
             loadNotifications();
             loadDonationHistory();
             loadProfile();
+        } else if (donor != null) {
+            // Pending approval — donor tabs not available yet
+            tabNotifications.setDisable(true);
+            tabDonationHistory.setDisable(true);
+            loadProfile();
         } else {
-            // disable tabs that require donor status
+            // Not a donor at all
             tabNotifications.setDisable(true);
             tabDonationHistory.setDisable(true);
             loadProfile();
@@ -87,13 +100,15 @@ public class DashboardController {
 
     private void setupOverviewTab() {
         hboxStats.getChildren().clear();
+        vboxPendingNotice.getChildren().clear();
+        vboxPendingNotice.setVisible(false);
+        vboxPendingNotice.setManaged(false);
 
-        // User info card
         VBox userCard = createStatCard(user.getName(), "Account Name", "#2C3E50");
         VBox locationCard = createStatCard(user.getLocation(), "Location", "#2980B9");
         hboxStats.getChildren().addAll(userCard, locationCard);
 
-        if (donor != null) {
+        if (donor != null && donor.isApproved()) {
             VBox bloodCard = createStatCard(donor.getBloodType().getDisplayName(), "Blood Type", "#C0392B");
             String availText = donor.isAvailable() ? "Available" :
                                (donor.isTemporarilyUnavailable() ? "Temp. Unavailable" :
@@ -102,10 +117,30 @@ public class DashboardController {
                     donor.isAvailable() ? "#27AE60" : "#E67E22");
             int count = donorService.getDonationCount(donor.getDonorId());
             VBox countCard = createStatCard(String.valueOf(count), "Total Donations", "#8E44AD");
-
             hboxStats.getChildren().addAll(bloodCard, availCard, countCard);
             btnBecomeDonor.setVisible(false);
             btnBecomeDonor.setManaged(false);
+
+        } else if (donor != null) {
+            // Pending approval — hide "Become a Donor" and show a pending notice
+            btnBecomeDonor.setVisible(false);
+            btnBecomeDonor.setManaged(false);
+
+            VBox noticeCard = new VBox(8);
+            noticeCard.setStyle("-fx-background-color: #FEF9E7; -fx-border-color: #F39C12; " +
+                                "-fx-border-radius: 8; -fx-background-radius: 8; -fx-padding: 16;");
+            Label title = new Label("⏳  Donor Application Pending");
+            title.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #E67E22;");
+            Label msg = new Label(
+                "Your donor application is waiting for admin approval.\n" +
+                "You will receive a notification here once it is approved.");
+            msg.setStyle("-fx-text-fill: #7F8C8D;");
+            msg.setWrapText(true);
+            noticeCard.getChildren().addAll(title, msg);
+
+            vboxPendingNotice.getChildren().add(noticeCard);
+            vboxPendingNotice.setVisible(true);
+            vboxPendingNotice.setManaged(true);
         }
     }
 
@@ -313,37 +348,59 @@ public class DashboardController {
 
         Label bloodLabel = new Label("Blood Type: " + donor.getBloodType().getDisplayName());
         bloodLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #C0392B;");
+        donorCard.getChildren().add(bloodLabel);
 
-        AvailabilityStatus avail = donor.getAvailabilityStatus();
-        Label availLabel = new Label("Status: " + avail.getDisplayName());
-        availLabel.setStyle("-fx-text-fill: " + availColor(avail) + ";");
+        if (!donor.isApproved()) {
+            // Pending state — show status and cancel option only
+            Label statusLabel = new Label("Approval Status: Pending Admin Review");
+            statusLabel.setStyle("-fx-text-fill: #E67E22; -fx-font-weight: bold;");
 
-        String lastDon = donor.getLastDonationDate();
-        Label lastDonLabel = grayLabel("Last Donation: " + (lastDon == null || lastDon.isBlank() ? "N/A" : lastDon));
+            Button cancelAppBtn = new Button("Cancel Application");
+            cancelAppBtn.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white; " +
+                                  "-fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 18;");
+            cancelAppBtn.setOnAction(e -> {
+                if (AlertUtil.showConfirmation("Cancel Application",
+                        "Withdraw your donor application?")) {
+                    donorService.removeDonorStatus(donor.getDonorId());
+                    donor = null;
+                    AlertUtil.showSuccess("Done", "Your donor application has been withdrawn.");
+                    initialize();
+                }
+            });
+            donorCard.getChildren().addAll(statusLabel, cancelAppBtn);
+        } else {
+            // Approved — show full donor controls
+            AvailabilityStatus avail = donor.getAvailabilityStatus();
+            Label availLabel = new Label("Status: " + avail.getDisplayName());
+            availLabel.setStyle("-fx-text-fill: " + availColor(avail) + ";");
 
-        // Toggle temp unavailable
-        CheckBox tempUnavailCheck = new CheckBox("Temporarily Unavailable");
-        tempUnavailCheck.setSelected(donor.isTemporarilyUnavailable());
-        tempUnavailCheck.setOnAction(e -> {
-            donorService.setTemporarilyUnavailable(donor, tempUnavailCheck.isSelected());
-            donor = donorService.getDonorByUserId(user.getId());
-            setupOverviewTab();
-            loadProfile();
-        });
+            String lastDon = donor.getLastDonationDate();
+            Label lastDonLabel = grayLabel("Last Donation: " + (lastDon == null || lastDon.isBlank() ? "N/A" : lastDon));
 
-        // Remove donor
-        Button removeBtn = new Button("Remove Donor Status");
-        removeBtn.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 18;");
-        removeBtn.setOnAction(e -> {
-            if (AlertUtil.showConfirmation("Confirm", "Remove your donor status?")) {
-                donorService.removeDonorStatus(donor.getDonorId());
-                donor = null;
-                AlertUtil.showSuccess("Done", "Donor status has been removed.");
-                initialize();
-            }
-        });
+            CheckBox tempUnavailCheck = new CheckBox("Temporarily Unavailable");
+            tempUnavailCheck.setSelected(donor.isTemporarilyUnavailable());
+            tempUnavailCheck.setOnAction(e -> {
+                donorService.setTemporarilyUnavailable(donor, tempUnavailCheck.isSelected());
+                donor = donorService.getDonorByUserId(user.getId());
+                setupOverviewTab();
+                loadProfile();
+            });
 
-        donorCard.getChildren().addAll(bloodLabel, availLabel, lastDonLabel, tempUnavailCheck, removeBtn);
+            Button removeBtn = new Button("Remove Donor Status");
+            removeBtn.setStyle("-fx-background-color: #E74C3C; -fx-text-fill: white; " +
+                               "-fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 18;");
+            removeBtn.setOnAction(e -> {
+                if (AlertUtil.showConfirmation("Confirm", "Remove your donor status?")) {
+                    donorService.removeDonorStatus(donor.getDonorId());
+                    donor = null;
+                    AlertUtil.showSuccess("Done", "Donor status has been removed.");
+                    initialize();
+                }
+            });
+
+            donorCard.getChildren().addAll(availLabel, lastDonLabel, tempUnavailCheck, removeBtn);
+        }
+
         vboxProfile.getChildren().add(donorCard);
     }
 

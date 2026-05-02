@@ -44,6 +44,10 @@ public class DonorService {
         donorRepository.delete(donorId);
     }
 
+    public void markApprovalNotified(int donorId) {
+        donorRepository.markApprovalNotified(donorId);
+    }
+
     public Donor getDonorByUserId(int userId) {
         return donorRepository.findByUserId(userId);
     }
