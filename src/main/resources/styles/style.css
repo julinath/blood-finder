@@ -1,6 +1,6 @@
 /* =====================================================
    Blood Finder — style.css
-   Primary: #C0392B  |  Background: #F5F5F5
+   Primary: #1A3A6B  |  Background: #F5F5F5
    ===================================================== */
 
 /* ===== GLOBAL ===== */
@@ -12,7 +12,7 @@
 
 /* ===== BUTTONS (default override) ===== */
 .button {
-    -fx-background-color: #C0392B;
+    -fx-background-color: #1A3A6B;
     -fx-text-fill: white;
     -fx-font-weight: bold;
     -fx-background-radius: 6;
@@ -33,7 +33,7 @@
     -fx-font-size: 13px;
 }
 .text-field:focused, .password-field:focused {
-    -fx-border-color: #C0392B;
+    -fx-border-color: #1A3A6B;
     -fx-effect: dropshadow(gaussian, rgba(192,57,43,0.18), 5, 0, 0, 0);
 }
 
@@ -47,7 +47,7 @@
     -fx-font-size: 13px;
 }
 .text-area:focused {
-    -fx-border-color: #C0392B;
+    -fx-border-color: #1A3A6B;
 }
 .text-area .content {
     -fx-background-color: white;
@@ -62,7 +62,7 @@
     -fx-background-radius: 6;
     -fx-padding: 4 8;
 }
-.combo-box:focused { -fx-border-color: #C0392B; }
+.combo-box:focused { -fx-border-color: #1A3A6B; }
 .combo-box .list-cell { -fx-padding: 5 10; }
 
 /* ===== DATE PICKER ===== */
@@ -76,13 +76,13 @@
     -fx-border-color: transparent;
     -fx-background-color: transparent;
 }
-.date-picker:focused { -fx-border-color: #C0392B; }
+.date-picker:focused { -fx-border-color: #1A3A6B; }
 
 /* ===== LABELS ===== */
 .label-title {
     -fx-font-size: 24px;
     -fx-font-weight: bold;
-    -fx-text-fill: #C0392B;
+    -fx-text-fill: #1A3A6B;
 }
 .label-subtitle {
     -fx-font-size: 14px;
@@ -108,7 +108,7 @@
 
 /* ===== HEADER (Top nav bar) ===== */
 .header {
-    -fx-background-color: #C0392B;
+    -fx-background-color: #1A3A6B;
 }
 .header-title {
     -fx-font-size: 18px;
@@ -122,14 +122,14 @@
 
 /* ===== LOGIN PANELS ===== */
 .login-left {
-    -fx-background-color: linear-gradient(to bottom, #C0392B, #7B241C);
+    -fx-background-color: linear-gradient(to bottom, #1A3A6B, #7B241C);
     -fx-pref-width: 300;
     -fx-min-width: 260;
 }
 
 /* ===== BLOOD TYPE BADGE ===== */
 .badge-blood {
-    -fx-background-color: #C0392B;
+    -fx-background-color: #1A3A6B;
     -fx-text-fill: white;
     -fx-background-radius: 25;
     -fx-padding: 6 16;
@@ -200,7 +200,7 @@
 }
 .donor-card:hover {
     -fx-effect: dropshadow(gaussian, rgba(192,57,43,0.18), 12, 0, 0, 3);
-    -fx-border-color: #C0392B;
+    -fx-border-color: #1A3A6B;
 }
 .donor-name {
     -fx-font-size: 15px;
@@ -233,7 +233,7 @@
 
 /* ===== PROFILE HEADER ===== */
 .profile-header {
-    -fx-background-color: linear-gradient(to right, #C0392B, #7B241C);
+    -fx-background-color: linear-gradient(to right, #1A3A6B, #7B241C);
 }
 .profile-name {
     -fx-font-size: 22px;
@@ -269,11 +269,11 @@
 }
 .tab:selected {
     -fx-background-color: white;
-    -fx-border-color: #C0392B;
+    -fx-border-color: #1A3A6B;
     -fx-border-width: 0 0 2 0;
 }
 .tab:selected .tab-label {
-    -fx-text-fill: #C0392B;
+    -fx-text-fill: #1A3A6B;
 }
 .tab:hover .tab-label { -fx-text-fill: #2C3E50; }
 .tab:disabled .tab-label { -fx-text-fill: #CCCCCC; }
@@ -288,7 +288,7 @@
     -fx-background-radius: 4;
 }
 .scroll-bar:vertical .thumb:hover {
-    -fx-background-color: #C0392B;
+    -fx-background-color: #1A3A6B;
 }
 .scroll-bar:vertical .track { -fx-background-color: transparent; }
 .scroll-bar:vertical .increment-button,
@@ -296,7 +296,7 @@
 
 /* ===== HYPERLINK ===== */
 .hyperlink {
-    -fx-text-fill: #C0392B;
+    -fx-text-fill: #1A3A6B;
     -fx-underline: false;
     -fx-border-color: transparent;
 }
@@ -315,8 +315,8 @@
     -fx-background-radius: 3;
 }
 .check-box:selected .box {
-    -fx-background-color: #C0392B;
-    -fx-border-color: #C0392B;
+    -fx-background-color: #1A3A6B;
+    -fx-border-color: #1A3A6B;
 }
 .check-box:selected .mark {
     -fx-background-color: white;
