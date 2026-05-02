@@ -149,7 +149,7 @@ public class DonorRepository implements Repository<Donor> {
                 rs.getString("last_donation_date"));
         donor.setDonorId(rs.getInt("donor_id"));
         donor.setTemporarilyUnavailable(rs.getInt("is_temporarily_unavailable") == 1);
-        try { donor.setApproved(rs.getInt("is_approved") == 1); } catch (SQLException ignored) { donor.setApproved(true); }
+        try { donor.setApproved(rs.getInt("is_approved") == 1); } catch (SQLException ignored) { donor.setApproved(false); }
         try { donor.setApprovalNotified(rs.getInt("approval_notified") == 1); } catch (SQLException ignored) { donor.setApprovalNotified(true); }
         return donor;
     }
