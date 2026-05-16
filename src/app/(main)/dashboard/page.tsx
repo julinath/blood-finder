@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import Link from 'next/link'
 import { BLOOD_TYPE_LABELS, type BloodType, type RequestStatus } from '@/types'
 
@@ -33,6 +34,14 @@ export default async function DashboardPage() {
         .order('created_at', { ascending: false })
     : { data: [] }
 
+  const { data: donationHistory } = donor
+    ? await supabase
+        .from('donation_records')
+        .select('*, requester:profiles(full_name)')
+        .eq('donor_id', donor.id)
+        .order('donation_date', { ascending: false })
+    : { data: [] }
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-10">
       <div className="flex items-center justify-between mb-8">
@@ -63,13 +72,11 @@ export default async function DashboardPage() {
                 <p className="text-sm text-gray-500">{donor.location}</p>
               </div>
             </div>
-            <div className="text-right">
+            <div className="flex items-center gap-3">
               <span className={`text-xs px-3 py-1 rounded-full font-medium ${donor.is_approved ? 'bg-green-200 text-green-800' : 'bg-amber-200 text-amber-800'}`}>
                 {donor.is_approved ? 'Approved' : 'Pending Approval'}
               </span>
-              <p className="text-xs text-gray-400 mt-1">
-                {donor.availability_status === 'AVAILABLE' ? 'Available' : 'Unavailable'}
-              </p>
+              <AvailabilityToggle donorId={donor.id} currentStatus={donor.availability_status} />
             </div>
           </div>
           {!donor.is_approved && (
@@ -142,7 +149,53 @@ export default async function DashboardPage() {
           </div>
         )}
       </div>
+
+      {/* Donation History */}
+      {donor && !!donationHistory?.length && (
+        <div className="bg-white rounded-2xl border border-gray-200 shadow-sm mt-6">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">Donation History</h2>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {donationHistory.map((record: any) => (
+              <div key={record.id} className="px-6 py-4 flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Donated to {record.requester?.full_name ?? 'User'}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{new Date(record.donation_date).toLocaleDateString()}</p>
+                </div>
+                <span className="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-medium">Completed</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
+  )
+}
+
+function AvailabilityToggle({ donorId, currentStatus }: { donorId: string; currentStatus: string }) {
+  const isAvailable = currentStatus === 'AVAILABLE'
+  return (
+    <form action={async () => {
+      'use server'
+      const { createClient } = await import('@/lib/supabase/server')
+      const supabase = await createClient()
+      const newStatus = isAvailable ? 'UNAVAILABLE' : 'AVAILABLE'
+      await supabase.from('donors').update({ availability_status: newStatus }).eq('id', donorId)
+      revalidatePath('/dashboard')
+    }}>
+      <button
+        type="submit"
+        className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
+          isAvailable
+            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+        }`}
+      >
+        <span className={`w-2 h-2 rounded-full ${isAvailable ? 'bg-green-500' : 'bg-gray-400'}`} />
+        {isAvailable ? 'Available' : 'Unavailable'}
+      </button>
+    </form>
   )
 }
 

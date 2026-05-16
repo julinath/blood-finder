@@ -58,6 +58,9 @@ export default function Navbar() {
               <Link href="/dashboard" className="text-gray-600 hover:text-red-600 text-sm font-medium transition-colors">
                 Dashboard
               </Link>
+              <Link href="/profile" className="text-gray-600 hover:text-red-600 text-sm font-medium transition-colors">
+                Profile
+              </Link>
               {isAdmin && (
                 <Link href="/admin" className="text-gray-600 hover:text-red-600 text-sm font-medium transition-colors">
                   Admin
@@ -106,6 +109,7 @@ export default function Navbar() {
           {user ? (
             <>
               <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="text-sm text-gray-700 py-1">Dashboard</Link>
+              <Link href="/profile" onClick={() => setMenuOpen(false)} className="text-sm text-gray-700 py-1">Profile</Link>
               {isAdmin && (
                 <Link href="/admin" onClick={() => setMenuOpen(false)} className="text-sm text-gray-700 py-1">Admin</Link>
               )}
