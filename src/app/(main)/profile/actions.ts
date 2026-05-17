@@ -26,12 +26,24 @@ export async function updateProfile(
   const location =
     ((formData.get('location') as string | null) ?? '').trim() || null
 
-  const { error } = await supabase
-    .from('profiles')
-    .update({ full_name, mobile, location })
-    .eq('id', user.id)
+  // Upsert (not update) so we self-heal if the row is missing — e.g. legacy
+  // users who signed up before `handle_new_user` existed, or a Google OAuth
+  // user whose trigger insert raced with a stale session.
+  const { error } = await supabase.from('profiles').upsert(
+    {
+      id: user.id,
+      email: user.email ?? '',
+      full_name,
+      mobile,
+      location,
+    },
+    { onConflict: 'id' },
+  )
 
-  if (error) return { ok: false, message: 'Could not save profile. Please try again.' }
+  if (error) {
+    console.error('[updateProfile] upsert failed:', error.message)
+    return { ok: false, message: 'Could not save profile. Please try again.' }
+  }
 
   revalidatePath('/profile')
   revalidatePath('/dashboard')

@@ -73,8 +73,40 @@ export default function BecomeDonorPage() {
       return
     }
 
-    if (mobile) {
-      await supabase.from('profiles').update({ mobile }).eq('id', user.id)
+    // Pull existing profile so we don't clobber a name the user already set
+    // (e.g. via /profile), and so the upsert satisfies `full_name NOT NULL`.
+    const { data: existingProfile } = await supabase
+      .from('profiles')
+      .select('full_name, mobile, location')
+      .eq('id', user.id)
+      .maybeSingle()
+
+    const meta = user.user_metadata ?? {}
+    const fullNameFromMeta =
+      (typeof meta.full_name === 'string' && meta.full_name) ||
+      (typeof meta.name === 'string' && meta.name) ||
+      ''
+
+    const { error: profileError } = await supabase.from('profiles').upsert(
+      {
+        id: user.id,
+        email: user.email ?? '',
+        full_name:
+          existingProfile?.full_name && existingProfile.full_name.trim() !== ''
+            ? existingProfile.full_name
+            : fullNameFromMeta,
+        // Sync donor location + mobile into the profile so /profile shows them.
+        mobile: mobile || existingProfile?.mobile || null,
+        location: location || existingProfile?.location || null,
+      },
+      { onConflict: 'id' },
+    )
+
+    if (profileError) {
+      console.error('[become-donor] profile sync failed:', profileError.message)
+      setError('Could not save your profile. Please try again.')
+      setLoading(false)
+      return
     }
 
     const { error: insertError } = await supabase.from('donors').insert({

@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import BloodTypeBadge from '@/components/BloodTypeBadge'
@@ -16,40 +16,71 @@ const MAX_RESULTS = 60
 export default function DonorSearch() {
   const supabase = useMemo(() => createClient(), [])
   const [donors, setDonors] = useState<DonorCard[]>([])
-  const [loading, setLoading] = useState(false)
+  // Start in the loading/searched state so the initial fetch (below) renders
+  // the skeleton immediately instead of the "enter criteria" placeholder.
+  const [loading, setLoading] = useState(true)
   const [filters, setFilters] = useState({ blood_type: '', location: '' })
-  const [searched, setSearched] = useState(false)
 
-  const search = async () => {
-    setLoading(true)
-    setSearched(true)
+  const search = useCallback(
+    async (currentFilters: { blood_type: string; location: string }) => {
+      setLoading(true)
 
-    let query = supabase
+      let query = supabase
+        .from('donors')
+        .select('*, profile:profiles(full_name, location)')
+        .eq('is_approved', true)
+        .eq('availability_status', 'AVAILABLE')
+
+      if (currentFilters.blood_type) {
+        query = query.eq('blood_type', currentFilters.blood_type)
+      }
+      const location = currentFilters.location.trim()
+      if (location) query = query.ilike('location', `%${location}%`)
+
+      const { data, error } = await query
+        .order('created_at', { ascending: false })
+        .limit(MAX_RESULTS)
+
+      if (error) {
+        console.error('[donor-search] query failed:', error.message)
+        setDonors([])
+      } else {
+        setDonors((data ?? []) as unknown as DonorCard[])
+      }
+      setLoading(false)
+    },
+    [supabase],
+  )
+
+  // Auto-load all available donors on first visit. Inlined here (rather than
+  // calling `search()`) so the effect itself doesn't synchronously setState.
+  useEffect(() => {
+    let cancelled = false
+    supabase
       .from('donors')
       .select('*, profile:profiles(full_name, location)')
       .eq('is_approved', true)
       .eq('availability_status', 'AVAILABLE')
-
-    if (filters.blood_type) query = query.eq('blood_type', filters.blood_type)
-    const location = filters.location.trim()
-    if (location) query = query.ilike('location', `%${location}%`)
-
-    const { data, error } = await query
       .order('created_at', { ascending: false })
       .limit(MAX_RESULTS)
-
-    if (error) {
-      console.error('[donor-search] query failed:', error.message)
-      setDonors([])
-    } else {
-      setDonors((data ?? []) as unknown as DonorCard[])
+      .then(({ data, error }) => {
+        if (cancelled) return
+        if (error) {
+          console.error('[donor-search] initial load failed:', error.message)
+          setDonors([])
+        } else {
+          setDonors((data ?? []) as unknown as DonorCard[])
+        }
+        setLoading(false)
+      })
+    return () => {
+      cancelled = true
     }
-    setLoading(false)
-  }
+  }, [supabase])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    search()
+    search(filters)
   }
 
   return (
@@ -119,7 +150,7 @@ export default function DonorSearch() {
         </div>
       )}
 
-      {!loading && searched && donors.length === 0 && (
+      {!loading && donors.length === 0 && (
         <div className="text-center py-16">
           <p className="text-gray-400 text-lg">No donors found matching your criteria.</p>
           <p className="text-gray-400 text-sm mt-1">Try changing your filters.</p>
@@ -182,11 +213,6 @@ export default function DonorSearch() {
         </div>
       )}
 
-      {!searched && !loading && (
-        <div className="text-center py-16 text-gray-400">
-          <p>Enter search criteria above to find donors.</p>
-        </div>
-      )}
     </div>
   )
 }

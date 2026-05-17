@@ -1,45 +1,31 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { User } from '@supabase/supabase-js'
 
 export default function Navbar() {
   const router = useRouter()
+  const pathname = usePathname()
   const supabase = useMemo(() => createClient(), [])
   const [user, setUser] = useState<User | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Auth + admin lookup
+  // Auth subscription — runs once.
   useEffect(() => {
     let cancelled = false
 
-    const loadAdmin = async (uid: string) => {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', uid)
-        .maybeSingle()
-      if (!cancelled) setIsAdmin(profile?.is_admin ?? false)
-    }
-
     supabase.auth.getUser().then(({ data }) => {
-      if (cancelled) return
-      setUser(data.user)
-      if (data.user) loadAdmin(data.user.id)
+      if (!cancelled) setUser(data.user)
     })
 
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (cancelled) return
       setUser(session?.user ?? null)
-      if (!session?.user) {
-        setIsAdmin(false)
-      } else {
-        loadAdmin(session.user.id)
-      }
+      if (!session?.user) setIsAdmin(false)
     })
 
     return () => {
@@ -47,6 +33,27 @@ export default function Navbar() {
       listener.subscription.unsubscribe()
     }
   }, [supabase])
+
+  // Re-check admin status whenever the user changes OR the route changes.
+  // Route-change refresh covers the case where another admin (or the SQL
+  // editor) promoted this user mid-session — without it, the admin link
+  // would never appear without a hard reload. (`isAdmin` is reset to false
+  // by the auth listener above on logout, so no synchronous reset here.)
+  useEffect(() => {
+    if (!user) return
+    let cancelled = false
+    supabase
+      .from('profiles')
+      .select('is_admin')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setIsAdmin(data?.is_admin ?? false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [supabase, user, pathname])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
