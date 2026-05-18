@@ -51,13 +51,13 @@ export default function Footer() {
             <ul className="space-y-2.5 text-sm text-gray-400">
               <li>
                 <a
-                  href="mailto:contact@bloodfinder.bd"
+                  href="mailto:julinath2006@gmail.com"
                   className="hover:text-white transition-colors"
                 >
-                  📧 contact@bloodfinder.bd
+                  📧 julinath2006@gmail.com
                 </a>
               </li>
-              <li>📍 Dhaka, Bangladesh</li>
+              <li>📍 Rangamati, Chittagong, Bangladesh</li>
             </ul>
           </div>
         </div>
