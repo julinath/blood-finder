@@ -84,18 +84,17 @@ export default function DonorSearch() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-10">
-      {/* Hero */}
-      <div className="text-center mb-10">
-        <div
-          className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-2xl mb-4"
-          aria-hidden="true"
-        >
-          <span className="text-3xl">🩸</span>
-        </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-3">Find Blood Donors</h1>
-        <p className="text-gray-500 text-lg max-w-xl mx-auto">
-          Search for verified blood donors near you. Every donation saves a life.
+    <div className="max-w-6xl mx-auto px-4 pt-12 pb-10">
+      {/* Section heading (page-level Hero lives in app/page.tsx) */}
+      <div className="text-center mb-6">
+        <p className="text-xs uppercase tracking-wider text-red-600 font-semibold mb-2">
+          Browse donors
+        </p>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          Search Available Donors
+        </h2>
+        <p className="text-gray-500 mt-1 text-sm">
+          Filter by blood type and location to find a match.
         </p>
       </div>
 
