@@ -73,7 +73,7 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-6">
-          <NavLink href="/">Find Donors</NavLink>
+          <NavLink href="/donors">Find Donors</NavLink>
           {user ? (
             <>
               <NavLink href="/dashboard">Dashboard</NavLink>
@@ -130,7 +130,7 @@ export default function Navbar() {
           id="mobile-menu"
           className="md:hidden border-t border-gray-100 bg-white px-4 py-3 flex flex-col gap-3"
         >
-          <MobileLink href="/" onClick={closeMenu}>Find Donors</MobileLink>
+          <MobileLink href="/donors" onClick={closeMenu}>Find Donors</MobileLink>
           {user ? (
             <>
               <MobileLink href="/dashboard" onClick={closeMenu}>Dashboard</MobileLink>

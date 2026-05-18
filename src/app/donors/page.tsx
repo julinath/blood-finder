@@ -1,0 +1,33 @@
+import type { Metadata } from 'next'
+import DonorSearch from '@/components/DonorSearch'
+
+export const metadata: Metadata = {
+  title: 'All Donors — Blood Finder',
+  description:
+    'Browse and search all verified blood donors across Bangladesh by blood type and location.',
+}
+
+export default function DonorsPage() {
+  return (
+    <>
+      <section className="bg-gradient-to-b from-red-50 via-white to-white">
+        <div className="max-w-6xl mx-auto px-4 pt-12 pb-10 text-center">
+          <p className="text-xs uppercase tracking-wider text-red-600 font-semibold mb-2">
+            Browse
+          </p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3">
+            All Donors
+          </h1>
+          <p className="text-gray-500 max-w-xl mx-auto">
+            Search verified blood donors across Bangladesh. Filter by blood
+            type and location to find a match near you.
+          </p>
+        </div>
+      </section>
+
+      <div className="pt-8">
+        <DonorSearch />
+      </div>
+    </>
+  )
+}

@@ -30,7 +30,23 @@ export default async function Home() {
         donorCount={donorRes.count ?? 0}
         availableCount={availableRes.count ?? 0}
       />
-      <DonorSearch />
+
+      {/* Browse donors preview section */}
+      <section className="max-w-6xl mx-auto px-4 pt-14 pb-2">
+        <div className="text-center mb-6">
+          <p className="text-xs uppercase tracking-wider text-red-600 font-semibold mb-2">
+            Browse donors
+          </p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Featured Donors
+          </h2>
+          <p className="text-gray-500 mt-1 text-sm">
+            A glimpse of verified donors — search the full list any time.
+          </p>
+        </div>
+      </section>
+      <DonorSearch preview />
+
       <HowItWorks />
       <WhyDonate />
     </>

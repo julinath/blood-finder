@@ -11,10 +11,12 @@ import {
 } from '@/types'
 import { calculateEligibility } from '@/lib/eligibility'
 
-const MAX_RESULTS = 60
+const PREVIEW_LIMIT = 6
+const FULL_LIMIT = 60
 
-export default function DonorSearch() {
+export default function DonorSearch({ preview = false }: { preview?: boolean }) {
   const supabase = useMemo(() => createClient(), [])
+  const max = preview ? PREVIEW_LIMIT : FULL_LIMIT
   const [donors, setDonors] = useState<DonorCard[]>([])
   // Start in the loading/searched state so the initial fetch (below) renders
   // the skeleton immediately instead of the "enter criteria" placeholder.
@@ -39,7 +41,7 @@ export default function DonorSearch() {
 
       const { data, error } = await query
         .order('created_at', { ascending: false })
-        .limit(MAX_RESULTS)
+        .limit(max)
 
       if (error) {
         console.error('[donor-search] query failed:', error.message)
@@ -49,7 +51,7 @@ export default function DonorSearch() {
       }
       setLoading(false)
     },
-    [supabase],
+    [supabase, max],
   )
 
   // Auto-load all available donors on first visit. Inlined here (rather than
@@ -62,7 +64,7 @@ export default function DonorSearch() {
       .eq('is_approved', true)
       .eq('availability_status', 'AVAILABLE')
       .order('created_at', { ascending: false })
-      .limit(MAX_RESULTS)
+      .limit(max)
       .then(({ data, error }) => {
         if (cancelled) return
         if (error) {
@@ -76,7 +78,7 @@ export default function DonorSearch() {
     return () => {
       cancelled = true
     }
-  }, [supabase])
+  }, [supabase, max])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,20 +86,7 @@ export default function DonorSearch() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-4 pt-12 pb-10">
-      {/* Section heading (page-level Hero lives in app/page.tsx) */}
-      <div className="text-center mb-6">
-        <p className="text-xs uppercase tracking-wider text-red-600 font-semibold mb-2">
-          Browse donors
-        </p>
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          Search Available Donors
-        </h2>
-        <p className="text-gray-500 mt-1 text-sm">
-          Filter by blood type and location to find a match.
-        </p>
-      </div>
-
+    <div className="max-w-6xl mx-auto px-4 pb-10">
       {/* Search Form */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
@@ -158,10 +147,12 @@ export default function DonorSearch() {
 
       {!loading && donors.length > 0 && (
         <div>
-          <p className="text-sm text-gray-500 mb-4">
-            {donors.length === MAX_RESULTS ? `${MAX_RESULTS}+` : donors.length} donor
-            {donors.length !== 1 ? 's' : ''} found
-          </p>
+          {!preview && (
+            <p className="text-sm text-gray-500 mb-4">
+              {donors.length === FULL_LIMIT ? `${FULL_LIMIT}+` : donors.length} donor
+              {donors.length !== 1 ? 's' : ''} found
+            </p>
+          )}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {donors.map((donor) => {
               const eligibility = calculateEligibility(donor.last_donation_date)
@@ -209,9 +200,20 @@ export default function DonorSearch() {
               )
             })}
           </div>
+
+          {preview && (
+            <div className="text-center mt-8">
+              <Link
+                href="/donors"
+                className="inline-flex items-center gap-2 bg-white border border-gray-300 text-gray-800 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors"
+              >
+                Browse all donors
+                <span aria-hidden="true">→</span>
+              </Link>
+            </div>
+          )}
         </div>
       )}
-
     </div>
   )
 }

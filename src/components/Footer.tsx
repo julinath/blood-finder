@@ -1,10 +1,10 @@
 import Link from 'next/link'
 
 const QUICK_LINKS = [
-  { href: '/', label: 'Find Donors' },
+  { href: '/', label: 'Home' },
+  { href: '/donors', label: 'Find Donors' },
   { href: '/become-donor', label: 'Become a Donor' },
   { href: '/request', label: 'Request Blood' },
-  { href: '/login', label: 'Login' },
 ] as const
 
 export default function Footer() {
