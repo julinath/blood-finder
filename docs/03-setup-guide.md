@@ -1,241 +1,265 @@
-# 03 — Setup Guide: Project কীভাবে Run করবে
+# 03 — Setup Guide (একদম শূন্য থেকে)
+
+এই guide-এ ধরে নিচ্ছি তোমার laptop-এ Node.js, Git কিছু install নেই। সবকিছু step-by-step শুরু থেকে দেখাব।
+
+> **Estimated time:** ৩০-৪৫ মিনিট (প্রথমবার)
 
 ---
 
-## প্রয়োজনীয় জিনিস (Prerequisites)
+## Checklist (যা যা লাগবে)
 
-Project run করার আগে নিচের জিনিসগুলো install থাকতে হবে:
-
-1. **Java 17 বা তার উপরে** (আমরা Java 21 use করেছি)
-2. **Apache Maven** (build tool)
-3. **IntelliJ IDEA** বা যেকোনো Java IDE (optional, কিন্তু recommended)
-
----
-
-## Step 1: Java Install করা
-
-### Windows-এ:
-
-1. [https://adoptium.net](https://adoptium.net) — এই website-এ যাও
-2. "Temurin 21 (LTS)" download করো
-3. Installer চালাও, সব default রেখে Next দাও
-4. Install শেষে verify করো:
-
-```bash
-java -version
-```
-
-Output এরকম আসবে:
-```
-openjdk version "21.0.3" 2024-04-16
-OpenJDK Runtime Environment Temurin-21.0.3+9
-```
-
-### Linux (Ubuntu/Debian)-এ:
-
-```bash
-sudo apt update
-sudo apt install openjdk-21-jdk
-java -version
-```
-
-### macOS-এ:
-
-```bash
-brew install openjdk@21
-java -version
-```
+- [ ] একটা laptop (Windows / Mac / Linux যেকোনোটা চলবে)
+- [ ] Internet connection
+- [ ] একটা email account (GitHub + Supabase + Vercel signup-এর জন্য)
+- [ ] একটু ধৈর্য — প্রথমবার অনেক tool install হবে
 
 ---
 
-## Step 2: Maven Install করা
+## Step 1 — Node.js install
 
-### Windows-এ:
+**Node.js কী?** — JavaScript-কে browser-এর বাইরে (terminal-এ) চালানোর runtime। Next.js চালাতে Node দরকার।
 
-1. [https://maven.apache.org/download.cgi](https://maven.apache.org/download.cgi) — এখান থেকে "Binary zip archive" download করো
-2. Extract করো (যেমন: `C:\Program Files\Maven\`)
-3. System Environment Variables-এ `MAVEN_HOME` set করো
-4. `Path`-এ `%MAVEN_HOME%\bin` যোগ করো
-5. Verify করো:
+### Windows / Mac
+1. https://nodejs.org যাও
+2. **LTS version** (Long Term Support — stable) download করো — currently Node 20+
+3. Installer চালাও, default options সব OK
 
+### Linux (Ubuntu/Debian)
 ```bash
-mvn -version
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
 ```
 
-### Linux-এ:
-
+### Verify
+Terminal/Command Prompt-এ:
 ```bash
-sudo apt install maven
-mvn -version
+node --version    # v20.x.x বা higher দেখাবে
+npm --version     # 10.x.x বা higher দেখাবে
 ```
 
-### macOS-এ:
+> **npm** হল Node-এর package manager (C/C++ -এ যেমন library link করো, এখানে npm দিয়ে library install হয়)।
 
+---
+
+## Step 2 — Git install
+
+**Git কী?** — Code-এর history রাখার tool।
+
+### Windows
+https://git-scm.com/download/win → installer download করো
+
+### Mac
 ```bash
-brew install maven
-mvn -version
+brew install git
+```
+(`brew` না থাকলে: https://brew.sh)
+
+### Linux
+```bash
+sudo apt install git
 ```
 
-**Verify output:**
+### Verify
+```bash
+git --version    # git version 2.x.x
 ```
-Apache Maven 3.9.x
-Java version: 21.0.3
+
+### Git-এ নাম/email set করো (একবার)
+```bash
+git config --global user.name "Juli Nath"
+git config --global user.email "তোমার@email.com"
 ```
 
 ---
 
-## Step 3: Project Download করা
+## Step 3 — Code editor (VS Code)
 
-### Git থাকলে:
+কোনো plain text editor (Notepad ইত্যাদি) দিয়ে কাজ করবে না। আমরা **VS Code** ব্যবহার করি।
+
+1. https://code.visualstudio.com → Download
+2. Install করো
+3. Extensions install করো (left sidebar-এর icon থেকে):
+   - **ESLint**
+   - **Tailwind CSS IntelliSense**
+   - **TypeScript** (already built-in, কিছু করতে হবে না)
+
+---
+
+## Step 4 — GitHub repo clone
 
 ```bash
-git clone https://github.com/your-repo/blood-finder.git
+# তুমি যেই folder-এ project রাখতে চাও সেখানে যাও, যেমন:
+cd ~/Projects
+
+# Repo clone করো
+git clone https://github.com/julinath/blood-finder.git
+
+# Project folder-এ ঢোকো
 cd blood-finder
 ```
 
-### Zip file থাকলে:
+এখন `ls` (Mac/Linux) বা `dir` (Windows) দিলে অনেক files দেখবে। VS Code-এ open করতে:
+```bash
+code .
+```
 
-1. Zip extract করো
-2. Terminal/Command Prompt খোলো
-3. Project folder-এ যাও:
+---
+
+## Step 5 — npm packages install
+
+`package.json` file-এ লেখা আছে কোন কোন library দরকার। সব একসাথে install করতে:
 
 ```bash
-cd path/to/blood-finder
+npm install
 ```
+
+> এটা প্রথমবার ১-৩ মিনিট সময় নিবে। একটা `node_modules/` folder তৈরি হবে — এখানেই সব library থাকবে। এটা git-এ যায় না (gitignored)।
 
 ---
 
-## Step 4: Project Run করা
+## Step 6 — Supabase project তৈরি
 
-Project folder-এ গিয়ে এই command দাও:
+আমাদের database আর auth এই Supabase-এ। নিজের একটা Supabase project তৈরি করতে হবে।
+
+### 6.1 Account তৈরি
+1. https://supabase.com → Start your project → Sign up (GitHub দিয়ে sign in সহজ)
+
+### 6.2 নতুন project create
+1. Dashboard-এ "New Project" → name দাও (যেমন `blood-finder-test`)
+2. Database password — শক্ত একটা পাসওয়ার্ড দিয়ে কোথাও save রাখো
+3. Region — `Singapore (Southeast Asia)` বেছে নাও (Bangladesh-এর কাছে)
+4. Plan: Free
+5. Create — ১-২ মিনিট wait
+
+### 6.3 API keys নাও
+Project ready হলে: left sidebar → **Settings** → **API**
+
+দুটো জিনিস copy করতে হবে:
+- **Project URL** (`https://xxxxx.supabase.co`)
+- **anon public key** (লম্বা `eyJ...` token)
+
+### 6.4 Database schema চালাও
+
+Left sidebar → **SQL Editor** → "New query"
+
+`supabase-schema.sql` file-টা open করে পুরো content copy করো (project folder-এর root-এ আছে), Supabase SQL editor-এ paste করো, **Run** চাপো।
+
+> Success message দেখলেই সব tables + RLS policies তৈরি। কোনো error হলে দেখো error message কী বলছে।
+
+---
+
+## Step 7 — `.env.local` file তৈরি
+
+Project root-এ একটা new file বানাও — name: `.env.local`
+
+ভিতরে এই দুটো line দাও (তোমার নিজের values দিয়ে replace করো):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...
+```
+
+> **Important:**
+> - `.env.local` git-এ commit হয় না (gitignored) — secret data এটাই rule
+> - কোনো quote (`"`) দিও না value-র পাশে
+> - `NEXT_PUBLIC_` prefix দিলে value browser-এও access পাবে (এই দুটো safe — anon key public-এ থাকার জন্যই বানানো)
+
+---
+
+## Step 8 — Dev server চালাও
 
 ```bash
-mvn javafx:run
+npm run dev
 ```
 
-### প্রথমবার Run করলে কী হয়?
+কিছুক্ষণ পর terminal-এ দেখাবে:
+```
+▲ Next.js 16.x.x (Turbopack)
+- Local:   http://localhost:3000
+✓ Ready in 1.2s
+```
 
-```
-1. Maven → pom.xml পড়ে
-2. Maven → Internet থেকে JavaFX ও sqlite-jdbc download করে
-           (এটা একবারই হয়, cache হয়ে যায়)
-3. Project compile হয়
-4. App.java-র main() method call হয়
-5. DatabaseManager.getInstance() call হয়
-6. blood_finder.db file তৈরি হয় (যদি না থাকে)
-7. 4টা table তৈরি হয়: users, donors, blood_requests, donation_records
-8. Login screen দেখা যায়
-```
+Browser-এ http://localhost:3000 open করো — Blood Finder home page দেখবে!
 
 ---
 
-## Step 5: IntelliJ IDEA দিয়ে Open করা (Optional, কিন্তু সহজ)
+## Step 9 — প্রথম user বানাও (test)
 
-1. IntelliJ IDEA খোলো
-2. `File → Open` → blood-finder folder select করো
-3. Maven project automatically detect হবে
-4. নিচে Maven sync হবে (কিছুক্ষণ অপেক্ষা করো)
-5. Run করতে: `App.java` খোলো → `main()` method-এর পাশে green arrow-এ click করো
+1. Site-এ "Register" → email + password দাও
+2. Supabase dashboard-এ Authentication → Users → তোমার user দেখবে
+3. Site-এ login করো
+4. Become a Donor → blood type + location + mobile দিয়ে register
+5. Supabase dashboard → Table editor → `donors` table → তোমার row দেখবে (is_approved = false)
+6. নিজেকে admin বানাতে — Supabase SQL editor-এ:
+   ```sql
+   UPDATE profiles SET is_admin = true WHERE email = 'তোমার@email.com';
+   ```
+7. Site-এ logout করে আবার login করো → navbar-এ "Admin" link দেখবে
+8. /admin → তোমার pending donor approve করো
+9. Home page-এ গিয়ে refresh — তোমাকে donor list-এ দেখবে
 
-অথবা Maven panel থেকে:
-```
-Maven → Plugins → javafx → javafx:run
-```
-
----
-
-## pom.xml কী? (সংক্ষেপে)
-
-`pom.xml` হলো Maven-এর configuration file। এখানে লেখা থাকে:
-
-```xml
-<!-- Project info -->
-<groupId>com.bloodfinder</groupId>
-<artifactId>blood-finder</artifactId>
-<version>1.0-SNAPSHOT</version>
-
-<!-- Dependencies — কোন library use করব -->
-<dependencies>
-
-    <!-- JavaFX Controls (Button, TextField, etc.) -->
-    <dependency>
-        <groupId>org.openjfx</groupId>
-        <artifactId>javafx-controls</artifactId>
-        <version>21</version>
-    </dependency>
-
-    <!-- JavaFX FXML (FXML file load করতে) -->
-    <dependency>
-        <groupId>org.openjfx</groupId>
-        <artifactId>javafx-fxml</artifactId>
-        <version>21</version>
-    </dependency>
-
-    <!-- SQLite JDBC Driver -->
-    <dependency>
-        <groupId>org.xerial</groupId>
-        <artifactId>sqlite-jdbc</artifactId>
-        <version>3.45.1.0</version>
-    </dependency>
-
-</dependencies>
-```
-
-**ব্যাখ্যা:**
-- `<dependency>` মানে "এই library টা আমার project-এ দরকার"
-- Maven automatically internet থেকে download করে নেয়
-- C++ এ যেমন manually `.h` file include করতে হতো, Maven সেটা automatically করে
+🎉 **Setup complete!**
 
 ---
 
-## Common Error ও সমাধান
+## Step 10 (Optional) — Google OAuth setup
 
-### Error 1: `JAVA_HOME not set`
+Google দিয়ে login enable করতে চাইলে:
+
+1. Supabase dashboard → Authentication → Providers → Google → Enable
+2. Google Cloud Console-এ গিয়ে OAuth client বানাতে হবে (একটু complex — কেউ help নিও)
+3. Redirect URL দাও: `https://xxxxx.supabase.co/auth/v1/callback`
+4. Client ID + Secret Supabase-এ paste করো
+
+> এটা না করলেও email/password login চলবে — Google login button কাজ করবে না, এতটুকুই।
+
+---
+
+## Common সমস্যা ও সমাধান
+
+### "Cannot find module" error
 ```bash
-# Windows
-set JAVA_HOME=C:\Program Files\Java\jdk-21
-set PATH=%PATH%;%JAVA_HOME%\bin
-
-# Linux/Mac
-export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-export PATH=$PATH:$JAVA_HOME/bin
+rm -rf node_modules package-lock.json
+npm install
 ```
 
-### Error 2: `Could not find or load main class`
-- IntelliJ IDEA-তে: `File → Invalidate Caches → Invalidate and Restart`
-- Terminal-এ: `mvn clean javafx:run`
-
-### Error 3: `No suitable driver found for SQLite`
-- `pom.xml`-এ sqlite-jdbc dependency আছে কিনা দেখো
-- `mvn clean install` চালাও
-
-### Error 4: JavaFX module error
+### Port 3000 already in use
+আগে কোনো dev server চলছে। `Ctrl+C` দিয়ে close করো, বা different port:
+```bash
+npm run dev -- -p 3001
 ```
-Error: JavaFX runtime components are missing
-```
-সমাধান: সরাসরি `java` দিয়ে run না করে `mvn javafx:run` use করো।
+
+### "Connect timeout to Supabase"
+- Internet check করো
+- `.env.local`-এর URL ঠিক আছে কিনা verify করো
+- Network IPv6 issue হলে:
+  ```bash
+  NODE_OPTIONS="--dns-result-order=ipv4first" npm run dev
+  ```
+
+### Supabase SQL editor-এ "policy already exists"
+Schema-টা **idempotent** — re-run safe। কিন্তু কখনো কখনো `drop policy if exists` missing থাকলে error হয়। ওই specific policy drop করে আবার run।
+
+### Page load slow (১০+ second)
+Network/Supabase issue। Production (Vercel)-এ এই issue হবে না। উপরের IPv4-first workaround try করো।
 
 ---
 
-## Database File কোথায় থাকে?
+## কোন command কখন
 
-Project run করার পরে project-এর root folder-এ `blood_finder.db` নামে একটা file তৈরি হবে।
-
-```
-blood-finder/
-├── blood_finder.db    ← এটা database file
-├── pom.xml
-└── src/
-```
-
-এই file delete করলে সব data মুছে যাবে এবং পরের run-এ নতুন empty database তৈরি হবে।
+| Command | কখন |
+|---|---|
+| `npm install` | প্রথমবার, বা package.json change হলে |
+| `npm run dev` | Development-এ — code change করলে auto reload |
+| `npm run build` | Production build (Vercel auto করে) |
+| `npm run lint` | Code-এ ESLint check |
+| `git pull` | GitHub থেকে নতুন changes নিয়ে আসা |
+| `git add .` | সব changed file stage করা |
+| `git commit -m "message"` | Local-এ commit করা |
+| `git push` | GitHub-এ পাঠানো (Vercel auto-deploy চালু হবে) |
 
 ---
 
-## Database দেখার Tool
+## পরবর্তী পড়া
 
-Database-এর contents দেখতে চাইলে:
-- **DB Browser for SQLite** — [https://sqlitebrowser.org](https://sqlitebrowser.org) — free tool
-- `blood_finder.db` file open করো, সব table ও data দেখতে পাবে
-
-এটা development-এর সময় অনেক কাজে আসে — data ঠিকমতো save হচ্ছে কিনা verify করা যায়।
+Setup হয়ে গেছে। এখন code-এর ভিতরে কী আছে দেখো — [04-project-structure.md](04-project-structure.md)
