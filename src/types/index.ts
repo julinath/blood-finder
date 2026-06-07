@@ -17,6 +17,7 @@ export interface Donor {
   user_id: string
   blood_type: BloodType
   location: string
+  district: string | null
   availability_status: AvailabilityStatus
   last_donation_date: string | null
   is_approved: boolean
@@ -81,6 +82,88 @@ export type DonationHistoryRecord = DonationRecord & {
 }
 
 export type AdminUser = Pick<Profile, 'id' | 'full_name' | 'email' | 'is_admin' | 'created_at'>
+
+// ---- Emergency request board ----
+
+export type EmergencyStatus = 'OPEN' | 'FULFILLED' | 'CANCELLED' | 'EXPIRED'
+export type EmergencyUrgency = 'URGENT' | 'HIGH' | 'NORMAL'
+export type OfferStatus = 'OFFERED' | 'CONFIRMED' | 'DONATED' | 'DECLINED'
+
+export interface EmergencyRequest {
+  id: string
+  requester_id: string
+  requester_name: string
+  patient_problem: string
+  blood_type: BloodType
+  units_needed: number
+  hemoglobin: number | null
+  needed_on: string | null
+  district: string
+  hospital: string
+  urgency: EmergencyUrgency
+  status: EmergencyStatus
+  created_at: string
+}
+
+export interface EmergencyOffer {
+  id: string
+  request_id: string
+  donor_id: string
+  status: OfferStatus
+  created_at: string
+}
+
+export const URGENCY_LABELS: Record<EmergencyUrgency, string> = {
+  URGENT: 'জরুরি রক্ত দরকার',
+  HIGH: 'দ্রুত প্রয়োজন',
+  NORMAL: 'রক্ত প্রয়োজন',
+}
+
+export const URGENCY_STYLES: Record<EmergencyUrgency, string> = {
+  URGENT: 'bg-red-100 text-red-700',
+  HIGH: 'bg-amber-100 text-amber-700',
+  NORMAL: 'bg-gray-100 text-gray-600',
+}
+
+export const EMERGENCY_STATUS_STYLES: Record<EmergencyStatus, string> = {
+  OPEN: 'bg-red-100 text-red-700',
+  FULFILLED: 'bg-green-100 text-green-700',
+  CANCELLED: 'bg-gray-100 text-gray-500',
+  EXPIRED: 'bg-gray-100 text-gray-500',
+}
+
+// An emergency offer joined with the offering donor's profile (requester's view).
+export type EmergencyOfferWithDonor = EmergencyOffer & {
+  donor: { full_name: string; mobile: string | null } | null
+}
+
+// ---- Reports (safety / abuse) ----
+
+export type ReportReason =
+  | 'NO_SHOW'
+  | 'ASKED_FOR_PAYMENT'
+  | 'FAKE_REQUEST'
+  | 'ABUSIVE'
+  | 'OTHER'
+
+export const REPORT_REASON_LABELS: Record<ReportReason, string> = {
+  NO_SHOW: 'ডোনার আসেনি (No-show)',
+  ASKED_FOR_PAYMENT: 'টাকা চেয়েছে (Paid donor)',
+  FAKE_REQUEST: 'ভুয়া রিকোয়েস্ট (Fake request)',
+  ABUSIVE: 'খারাপ আচরণ (Abusive)',
+  OTHER: 'অন্যান্য (Other)',
+}
+
+export type AdminReport = {
+  id: string
+  reason: ReportReason
+  details: string | null
+  status: string
+  created_at: string
+  reporter: { full_name: string } | null
+  reported: { full_name: string } | null
+  request: { patient_problem: string; blood_type: BloodType } | null
+}
 
 // ---- Display constants ----
 

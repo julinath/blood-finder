@@ -73,3 +73,30 @@ export async function declineRequest(requestId: string) {
   revalidatePath('/dashboard')
   redirect('/dashboard?flash=request-declined')
 }
+
+// ---- Emergency requests (the public needs board) ----
+// RLS confines these updates to the requester's own rows.
+
+export async function fulfillEmergencyRequest(requestId: string) {
+  const supabase = await createClient()
+  await supabase
+    .from('emergency_requests')
+    .update({ status: 'FULFILLED' })
+    .eq('id', requestId)
+  revalidatePath('/dashboard')
+  revalidatePath('/emergency')
+  revalidatePath('/')
+  redirect('/dashboard?flash=emergency-fulfilled')
+}
+
+export async function cancelEmergencyRequest(requestId: string) {
+  const supabase = await createClient()
+  await supabase
+    .from('emergency_requests')
+    .update({ status: 'CANCELLED' })
+    .eq('id', requestId)
+  revalidatePath('/dashboard')
+  revalidatePath('/emergency')
+  revalidatePath('/')
+  redirect('/dashboard?flash=emergency-cancelled')
+}

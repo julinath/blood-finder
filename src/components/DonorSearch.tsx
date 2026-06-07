@@ -9,10 +9,23 @@ import {
   BLOOD_TYPE_LABELS,
   type DonorCard,
 } from '@/types'
+import { DISTRICTS } from '@/lib/districts'
 import { calculateEligibility } from '@/lib/eligibility'
 
 const PREVIEW_LIMIT = 6
 const FULL_LIMIT = 60
+
+type Filters = { blood_type: string; district: string; location: string }
+
+const EMPTY_FILTERS: Filters = { blood_type: '', district: '', location: '' }
+
+/** Build a readable place string, avoiding "Dhaka, Dhaka" when area == district. */
+function placeOf(donor: DonorCard): string {
+  if (donor.district && donor.location && donor.location !== donor.district) {
+    return `${donor.location}, ${donor.district}`
+  }
+  return donor.district || donor.location || '—'
+}
 
 export default function DonorSearch({ preview = false }: { preview?: boolean }) {
   const supabase = useMemo(() => createClient(), [])
@@ -21,10 +34,10 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
   // Start in the loading/searched state so the initial fetch (below) renders
   // the skeleton immediately instead of the "enter criteria" placeholder.
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState({ blood_type: '', location: '' })
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
 
   const search = useCallback(
-    async (currentFilters: { blood_type: string; location: string }) => {
+    async (currentFilters: Filters) => {
       setLoading(true)
 
       let query = supabase
@@ -35,6 +48,9 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
 
       if (currentFilters.blood_type) {
         query = query.eq('blood_type', currentFilters.blood_type)
+      }
+      if (currentFilters.district) {
+        query = query.eq('district', currentFilters.district)
       }
       const location = currentFilters.location.trim()
       if (location) query = query.ilike('location', `%${location}%`)
@@ -87,7 +103,8 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
 
   return (
     <div className="max-w-6xl mx-auto px-4 pb-10">
-      {/* Search Form */}
+      {/* Search Form — hidden in the home "featured" preview, shown on /donors */}
+      {!preview && (
       <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 mb-8">
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
           <label className="flex-1">
@@ -106,10 +123,25 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
             </select>
           </label>
           <label className="flex-1">
-            <span className="sr-only">Location</span>
+            <span className="sr-only">District</span>
+            <select
+              value={filters.district}
+              onChange={(e) => setFilters((f) => ({ ...f, district: e.target.value }))}
+              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white"
+            >
+              <option value="">Any District</option>
+              {DISTRICTS.map((district) => (
+                <option key={district} value={district}>
+                  {district}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="flex-1">
+            <span className="sr-only">Area</span>
             <input
               type="text"
-              placeholder="Location (e.g. Dhaka)"
+              placeholder="এলাকা / Area (e.g. Mohakhali)"
               value={filters.location}
               onChange={(e) => setFilters((f) => ({ ...f, location: e.target.value }))}
               className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
@@ -125,6 +157,7 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
           </button>
         </form>
       </div>
+      )}
 
       {/* Results */}
       {loading && (
@@ -188,7 +221,7 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
-                    <span className="truncate">{donor.location}</span>
+                    <span className="truncate">{placeOf(donor)}</span>
                   </p>
                   {donor.last_donation_date && (
                     <p className="text-xs text-gray-400 mt-2">

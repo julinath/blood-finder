@@ -25,7 +25,8 @@ export async function proxy(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser()
 
-  const protectedRoutes = ['/dashboard', '/become-donor', '/request', '/admin', '/profile']
+  // Note: '/emergency' (the public board) stays open; only posting requires login.
+  const protectedRoutes = ['/dashboard', '/become-donor', '/request', '/admin', '/profile', '/emergency/new']
   const authRoutes = ['/login', '/register']
   const path = request.nextUrl.pathname
 

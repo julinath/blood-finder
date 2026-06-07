@@ -4,18 +4,25 @@ import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { registerAsDonor, type FormState } from './actions'
 import { BLOOD_TYPES, BLOOD_TYPE_LABELS } from '@/types'
+import { DISTRICTS } from '@/lib/districts'
 
 type Defaults = {
   mobile: string
   location: string
+  district: string
 }
+
+const FIELD_CLASS =
+  'w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent'
 
 export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
   const [state, action] = useActionState<FormState, FormData>(
     registerAsDonor,
     null,
   )
-  const prefilledFromProfile = Boolean(defaults.mobile || defaults.location)
+  const prefilledFromProfile = Boolean(
+    defaults.mobile || defaults.location || defaults.district,
+  )
 
   return (
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8">
@@ -46,7 +53,7 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
             name="blood_type"
             required
             defaultValue=""
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white"
+            className={`${FIELD_CLASS} bg-white`}
           >
             <option value="">Select blood type</option>
             {BLOOD_TYPES.map((bt) => (
@@ -59,15 +66,36 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
 
         <label className="block">
           <span className="block text-sm font-medium text-gray-700 mb-1.5">
-            Location
+            District (জেলা)
+          </span>
+          <select
+            name="district"
+            required
+            defaultValue={defaults.district}
+            className={`${FIELD_CLASS} bg-white`}
+          >
+            <option value="">জেলা নির্বাচন করুন</option>
+            {DISTRICTS.map((district) => (
+              <option key={district} value={district}>
+                {district}
+              </option>
+            ))}
+          </select>
+          <span className="block text-xs text-gray-400 mt-1">
+            আপনার জেলার রোগীরা আপনাকে সহজে খুঁজে পাবে।
+          </span>
+        </label>
+
+        <label className="block">
+          <span className="block text-sm font-medium text-gray-700 mb-1.5">
+            এলাকা / Area <span className="text-gray-400">(optional)</span>
           </span>
           <input
             name="location"
             type="text"
-            required
             defaultValue={defaults.location}
-            placeholder="e.g. Dhaka, Chittagong"
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            placeholder="যেমন: মহাখালী, বনানী"
+            className={FIELD_CLASS}
           />
         </label>
 
@@ -81,7 +109,7 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
             inputMode="numeric"
             defaultValue={defaults.mobile}
             placeholder="01XXXXXXXXX"
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+            className={FIELD_CLASS}
           />
           <span className="block text-xs text-gray-400 mt-1">
             Optional. 11 digits starting with 01.

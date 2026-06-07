@@ -40,3 +40,10 @@ export async function setUserAdmin(userId: string, makeAdmin: boolean) {
   revalidatePath('/admin')
   redirect(`/admin?flash=${makeAdmin ? 'admin-granted' : 'admin-revoked'}`)
 }
+
+export async function resolveReport(reportId: string) {
+  const { supabase } = await requireAdmin()
+  await supabase.from('reports').update({ status: 'RESOLVED' }).eq('id', reportId)
+  revalidatePath('/admin')
+  redirect('/admin?flash=report-resolved')
+}

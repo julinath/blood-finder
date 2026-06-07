@@ -30,6 +30,12 @@ export default async function DonorProfilePage({
     ? new Date(donor.last_donation_date).toLocaleDateString()
     : 'Never'
 
+  // Readable place, avoiding "Dhaka, Dhaka" when the area equals the district.
+  const place =
+    donor.district && donor.location && donor.location !== donor.district
+      ? `${donor.location}, ${donor.district}`
+      : donor.district || donor.location
+
   const canRequest =
     donor.availability_status === 'AVAILABLE' && eligibility.isEligible
 
@@ -70,7 +76,7 @@ export default async function DonorProfilePage({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 </svg>
-                {donor.location}
+                {place}
               </p>
               <div className="mt-2">
                 {canRequest ? (
@@ -93,7 +99,7 @@ export default async function DonorProfilePage({
         <div className="px-8 py-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <InfoTile label="Blood Type" value={BLOOD_TYPE_LABELS[donor.blood_type]} />
-            <InfoTile label="Location" value={donor.location} />
+            <InfoTile label="District" value={donor.district ?? donor.location} />
             <InfoTile label="Last Donated" value={lastDonationLabel} />
             <InfoTile
               label="Eligibility"

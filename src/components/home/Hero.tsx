@@ -10,24 +10,26 @@ export default function Hero() {
         >
           <span className="text-3xl">🩸</span>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 tracking-tight">
-          রক্ত দিন, <span className="text-red-600">জীবন বাঁচান</span>
+        <h1 className="text-3xl sm:text-5xl font-bold text-gray-900 mb-4 tracking-tight leading-tight">
+          আপনার কি রক্তের প্রয়োজন?{' '}
+          <span className="text-red-600">রক্তদাতা খুঁজছেন?</span>
         </h1>
         <p className="text-gray-600 text-base sm:text-lg max-w-xl mx-auto mb-7">
-          Find verified blood donors near you in seconds. Every donation can save up to three lives.
+          নিজের রক্তের গ্রুপের তথ্য দিন এবং প্রয়োজনে রক্তদাতার তথ্য নিন। এক ব্যাগ
+          রক্ত বাঁচাতে পারে একটি মূল্যবান জীবন।
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
           <Link
             href="/become-donor"
             className="bg-red-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors shadow-sm"
           >
-            Become a Donor
+            Be a Donor
           </Link>
           <Link
-            href="/request"
+            href="/donors"
             className="bg-white border border-gray-300 text-gray-800 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors"
           >
-            Request Blood
+            Search Donor
           </Link>
         </div>
       </div>

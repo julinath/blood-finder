@@ -54,6 +54,22 @@ const FLASH_MESSAGES: Record<string, { type: 'success' | 'info'; text: string }>
     type: 'success',
     text: 'You are now marked as unavailable.',
   },
+  'emergency-posted': {
+    type: 'success',
+    text: 'রিকোয়েস্ট পোস্ট হয়েছে। আপনার এলাকার donor রা এটি দেখতে পাবে।',
+  },
+  'emergency-fulfilled': {
+    type: 'success',
+    text: 'ধন্যবাদ! রিকোয়েস্ট সম্পন্ন হিসেবে চিহ্নিত হয়েছে।',
+  },
+  'emergency-cancelled': {
+    type: 'success',
+    text: 'রিকোয়েস্ট বাতিল করা হয়েছে।',
+  },
+  'report-resolved': {
+    type: 'success',
+    text: 'Report marked as resolved.',
+  },
 }
 
 const AUTO_DISMISS_MS = 4000

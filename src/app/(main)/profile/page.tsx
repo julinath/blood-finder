@@ -10,12 +10,12 @@ export default async function ProfilePage() {
   const [profileRes, donorRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('full_name, email, mobile, location')
+      .select('full_name, email, mobile, location, district')
       .eq('id', user.id)
       .maybeSingle(),
     supabase
       .from('donors')
-      .select('location')
+      .select('location, district')
       .eq('user_id', user.id)
       .maybeSingle(),
   ])
@@ -31,8 +31,13 @@ export default async function ProfilePage() {
           email: profile?.email ?? user.email ?? '',
           mobile: profile?.mobile ?? '',
           location: profile?.location ?? '',
+          district: profile?.district ?? '',
         }}
-        donor={donor ? { location: donor.location ?? '' } : null}
+        donor={
+          donor
+            ? { location: donor.location ?? '', district: donor.district ?? '' }
+            : null
+        }
       />
     </div>
   )

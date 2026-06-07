@@ -73,7 +73,14 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-6">
+          <Link
+            href="/emergency"
+            className="text-red-600 hover:text-red-700 text-sm font-semibold transition-colors flex items-center gap-1"
+          >
+            <span aria-hidden="true">🚑</span> Emergency
+          </Link>
           <NavLink href="/donors">Find Donors</NavLink>
+          <NavLink href="/stats">Stats</NavLink>
           {user ? (
             <>
               <NavLink href="/dashboard">Dashboard</NavLink>
@@ -130,7 +137,15 @@ export default function Navbar() {
           id="mobile-menu"
           className="md:hidden border-t border-gray-100 bg-white px-4 py-3 flex flex-col gap-3"
         >
+          <Link
+            href="/emergency"
+            onClick={closeMenu}
+            className="text-sm text-red-600 font-semibold py-1 flex items-center gap-1"
+          >
+            <span aria-hidden="true">🚑</span> Emergency
+          </Link>
           <MobileLink href="/donors" onClick={closeMenu}>Find Donors</MobileLink>
+          <MobileLink href="/stats" onClick={closeMenu}>Stats</MobileLink>
           {user ? (
             <>
               <MobileLink href="/dashboard" onClick={closeMenu}>Dashboard</MobileLink>

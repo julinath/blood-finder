@@ -4,11 +4,17 @@ import BloodTypeBadge from '@/components/BloodTypeBadge'
 import StatusBadge from '@/components/StatusBadge'
 import {
   BLOOD_TYPE_LABELS,
+  REPORT_REASON_LABELS,
+  type AdminReport,
   type AdminRequest,
   type AdminUser,
   type PendingDonor,
 } from '@/types'
-import { DonorApprovalActions, UserAdminToggle } from './_components'
+import {
+  DonorApprovalActions,
+  ResolveReportButton,
+  UserAdminToggle,
+} from './_components'
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -22,29 +28,38 @@ export default async function AdminPage() {
     .maybeSingle()
   if (!profile?.is_admin) redirect('/dashboard')
 
-  const [pendingDonorsRes, allRequestsRes, allUsersRes] = await Promise.all([
-    supabase
-      .from('donors')
-      .select('*, profile:profiles(full_name, email, mobile)')
-      .eq('is_approved', false)
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('blood_requests')
-      .select(
-        '*, requester:profiles(full_name), donor:donors(blood_type, location, profile:profiles(full_name))'
-      )
-      .order('created_at', { ascending: false })
-      .limit(20),
-    supabase
-      .from('profiles')
-      .select('id, full_name, email, is_admin, created_at')
-      .order('created_at', { ascending: false })
-      .limit(100),
-  ])
+  const [pendingDonorsRes, allRequestsRes, allUsersRes, reportsRes] =
+    await Promise.all([
+      supabase
+        .from('donors')
+        .select('*, profile:profiles(full_name, email, mobile)')
+        .eq('is_approved', false)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('blood_requests')
+        .select(
+          '*, requester:profiles(full_name), donor:donors(blood_type, location, profile:profiles(full_name))'
+        )
+        .order('created_at', { ascending: false })
+        .limit(20),
+      supabase
+        .from('profiles')
+        .select('id, full_name, email, is_admin, created_at')
+        .order('created_at', { ascending: false })
+        .limit(100),
+      supabase
+        .from('reports')
+        .select(
+          'id, reason, details, status, created_at, reporter:profiles!reports_reporter_id_fkey(full_name), reported:profiles!reports_reported_user_id_fkey(full_name), request:emergency_requests!reports_request_id_fkey(patient_problem, blood_type)'
+        )
+        .order('created_at', { ascending: false })
+        .limit(50),
+    ])
 
   const pendingDonors = (pendingDonorsRes.data ?? []) as PendingDonor[]
   const allRequests = (allRequestsRes.data ?? []) as AdminRequest[]
   const allUsers = (allUsersRes.data ?? []) as AdminUser[]
+  const reports = (reportsRes.data ?? []) as unknown as AdminReport[]
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
@@ -90,6 +105,58 @@ export default async function AdminPage() {
                   donorId={donor.id}
                   donorName={donor.profile?.full_name ?? 'this donor'}
                 />
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Reports */}
+      <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900">Reports</h2>
+          <span className="text-xs text-gray-400">
+            {reports.filter((r) => r.status === 'OPEN').length} open
+          </span>
+        </div>
+        {reports.length === 0 ? (
+          <Empty text="No reports." />
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {reports.map((r) => (
+              <div
+                key={r.id}
+                className="px-6 py-4 flex flex-wrap items-start justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900">
+                    {REPORT_REASON_LABELS[r.reason] ?? r.reason}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {r.reporter?.full_name ?? 'User'} reported
+                    {r.reported ? ` ${r.reported.full_name}` : ''}
+                    {r.request
+                      ? ` · ${r.request.patient_problem} (${BLOOD_TYPE_LABELS[r.request.blood_type]})`
+                      : ''}
+                    {' · '}
+                    {new Date(r.created_at).toLocaleDateString()}
+                  </p>
+                  {r.details && (
+                    <p className="text-xs text-gray-500 italic mt-1">{r.details}</p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 whitespace-nowrap">
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full ${
+                      r.status === 'OPEN'
+                        ? 'bg-red-100 text-red-700'
+                        : 'bg-gray-100 text-gray-500'
+                    }`}
+                  >
+                    {r.status}
+                  </span>
+                  {r.status === 'OPEN' && <ResolveReportButton reportId={r.id} />}
+                </div>
               </div>
             ))}
           </div>

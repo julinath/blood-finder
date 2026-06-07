@@ -14,7 +14,7 @@ export default async function BecomeDonorPage() {
   const [profileRes, donorRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('mobile, location')
+      .select('mobile, location, district')
       .eq('id', user.id)
       .maybeSingle(),
     supabase
@@ -64,6 +64,7 @@ export default async function BecomeDonorPage() {
         defaults={{
           mobile: profileRes.data?.mobile ?? '',
           location: profileRes.data?.location ?? '',
+          district: profileRes.data?.district ?? '',
         }}
       />
     </div>

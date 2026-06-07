@@ -4,8 +4,10 @@ import { useFormStatus } from 'react-dom'
 import type { AvailabilityStatus } from '@/types'
 import {
   acceptRequest,
+  cancelEmergencyRequest,
   cancelRequest,
   declineRequest,
+  fulfillEmergencyRequest,
   toggleAvailability,
 } from './actions'
 
@@ -108,6 +110,27 @@ export function RequestActions({
         <ActionButton
           label="Decline"
           pendingLabel="Declining…"
+          className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+        />
+      </form>
+    </div>
+  )
+}
+
+export function EmergencyRequestActions({ requestId }: { requestId: string }) {
+  return (
+    <div className="flex gap-2 mt-1">
+      <form action={fulfillEmergencyRequest.bind(null, requestId)}>
+        <ActionButton
+          label="✓ সম্পন্ন হয়েছে"
+          pendingLabel="…"
+          className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 transition-colors font-medium"
+        />
+      </form>
+      <form action={cancelEmergencyRequest.bind(null, requestId)}>
+        <ActionButton
+          label="বাতিল"
+          pendingLabel="…"
           className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors font-medium"
         />
       </form>

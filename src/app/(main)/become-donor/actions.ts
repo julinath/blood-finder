@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { isBloodType, type BloodType } from '@/types'
+import { isDistrict } from '@/lib/districts'
 import { isValidBangladeshMobile, normalizeMobile } from '@/lib/validation'
 
 export type FormState = { ok: false; message: string } | null
@@ -21,10 +22,15 @@ export async function registerAsDonor(
     return { ok: false, message: 'Please select a valid blood type.' }
   }
 
-  const location = ((formData.get('location') as string | null) ?? '').trim()
-  if (!location) {
-    return { ok: false, message: 'Location is required.' }
+  const district = ((formData.get('district') as string | null) ?? '').trim()
+  if (!isDistrict(district)) {
+    return { ok: false, message: 'District (জেলা) নির্বাচন করুন।' }
   }
+
+  // Area is optional extra detail; fall back to the district so the NOT NULL
+  // `location` column always has a value.
+  const area = ((formData.get('location') as string | null) ?? '').trim()
+  const location = area || district
 
   const mobileRaw = ((formData.get('mobile') as string | null) ?? '').trim()
   const mobile = mobileRaw ? normalizeMobile(mobileRaw) : ''
@@ -71,6 +77,7 @@ export async function registerAsDonor(
           : fullNameFromMeta,
       mobile: mobile || existingProfile?.mobile || null,
       location,
+      district,
     },
     { onConflict: 'id' },
   )
@@ -87,6 +94,7 @@ export async function registerAsDonor(
     user_id: user.id,
     blood_type: blood_type satisfies BloodType,
     location,
+    district,
     availability_status: 'AVAILABLE',
     is_approved: false,
   })

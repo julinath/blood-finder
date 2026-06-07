@@ -1,7 +1,7 @@
 'use client'
 
 import { useFormStatus } from 'react-dom'
-import { approveDonor, rejectDonor, setUserAdmin } from './actions'
+import { approveDonor, rejectDonor, resolveReport, setUserAdmin } from './actions'
 
 function PendingButton({
   label,
@@ -98,6 +98,18 @@ export function UserAdminToggle({
             : 'text-xs bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg hover:bg-purple-200 font-medium transition-colors'
         }
         onClick={confirmRevoke}
+      />
+    </form>
+  )
+}
+
+export function ResolveReportButton({ reportId }: { reportId: string }) {
+  return (
+    <form action={resolveReport.bind(null, reportId)}>
+      <PendingButton
+        label="Mark resolved"
+        pendingLabel="…"
+        className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium transition-colors"
       />
     </form>
   )

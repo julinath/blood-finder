@@ -7,12 +7,19 @@ import {
   updateProfile,
   type FormState,
 } from './actions'
+import { DISTRICTS } from '@/lib/districts'
 
 type ProfileDefaults = {
   full_name: string
   email: string
   mobile: string
   location: string
+  district: string
+}
+
+type DonorDefaults = {
+  location: string
+  district: string
 }
 
 export function ProfileSection({
@@ -20,7 +27,7 @@ export function ProfileSection({
   donor,
 }: {
   profile: ProfileDefaults
-  donor: { location: string } | null
+  donor: DonorDefaults | null
 }) {
   const [editing, setEditing] = useState(false)
 
@@ -60,7 +67,10 @@ export function ProfileSection({
         {donor && (
           <div className="border-t border-gray-100 pt-6">
             <h3 className="text-sm font-semibold text-gray-700 mb-4">Donor Location</h3>
-            <DonorLocationForm defaultLocation={donor.location} />
+            <DonorLocationForm
+              defaultLocation={donor.location}
+              defaultDistrict={donor.district}
+            />
           </div>
         )}
       </div>
@@ -89,7 +99,11 @@ function ProfileView({ profile }: { profile: ProfileDefaults }) {
         }
       />
       <ViewRow
-        label="Location"
+        label="District"
+        value={profile.district || <span className="text-gray-400">Not set</span>}
+      />
+      <ViewRow
+        label="Area"
         value={profile.location || <span className="text-gray-400">Not set</span>}
       />
     </dl>
@@ -194,12 +208,26 @@ export function ProfileForm({
           className={inputClass}
         />
       </Field>
-      <Field label="Location">
+      <Field label="District (জেলা)">
+        <select
+          name="district"
+          defaultValue={defaults.district}
+          className={`${inputClass} bg-white`}
+        >
+          <option value="">জেলা নির্বাচন করুন</option>
+          {DISTRICTS.map((district) => (
+            <option key={district} value={district}>
+              {district}
+            </option>
+          ))}
+        </select>
+      </Field>
+      <Field label="এলাকা / Area">
         <input
           name="location"
           type="text"
           defaultValue={defaults.location}
-          placeholder="e.g. Dhaka"
+          placeholder="যেমন: মহাখালী, বনানী"
           className={inputClass}
         />
       </Field>
@@ -224,7 +252,13 @@ export function ProfileForm({
   )
 }
 
-export function DonorLocationForm({ defaultLocation }: { defaultLocation: string }) {
+export function DonorLocationForm({
+  defaultLocation,
+  defaultDistrict,
+}: {
+  defaultLocation: string
+  defaultDistrict: string
+}) {
   const [state, action] = useActionState<FormState, FormData>(
     updateDonorLocation,
     null,
@@ -233,13 +267,25 @@ export function DonorLocationForm({ defaultLocation }: { defaultLocation: string
   return (
     <form action={action} className="space-y-3">
       <FeedbackBanner state={state} />
+      <select
+        name="donor_district"
+        defaultValue={defaultDistrict}
+        required
+        className={`${inputClass} bg-white`}
+      >
+        <option value="">জেলা নির্বাচন করুন</option>
+        {DISTRICTS.map((district) => (
+          <option key={district} value={district}>
+            {district}
+          </option>
+        ))}
+      </select>
       <div className="flex gap-3">
         <input
           name="donor_location"
           type="text"
           defaultValue={defaultLocation}
-          required
-          placeholder="Donor location"
+          placeholder="এলাকা / Area (optional)"
           className={`flex-1 ${inputClass}`}
         />
         <SaveButton

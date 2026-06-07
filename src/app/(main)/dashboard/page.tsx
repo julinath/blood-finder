@@ -3,16 +3,22 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BloodTypeBadge from '@/components/BloodTypeBadge'
 import StatusBadge from '@/components/StatusBadge'
+import ReportButton from '@/components/ReportButton'
+import { formatBnDate, toBnDigits } from '@/lib/bn'
 import {
   BLOOD_TYPE_LABELS,
+  EMERGENCY_STATUS_STYLES,
   type Donor,
   type DonationHistoryRecord,
+  type EmergencyOfferWithDonor,
+  type EmergencyRequest,
   type ReceivedRequest,
   type SentRequest,
 } from '@/types'
 import {
   AvailabilityToggle,
   CancelRequestButton,
+  EmergencyRequestActions,
   RequestActions,
 } from './_components'
 
@@ -53,6 +59,27 @@ export default async function DashboardPage() {
     ])
     receivedRequests = (received.data ?? []) as ReceivedRequest[]
     donationHistory = (history.data ?? []) as DonationHistoryRecord[]
+  }
+
+  // Emergency requests the user posted, plus who offered to help on each.
+  const { data: myEmergenciesData } = await supabase
+    .from('emergency_requests')
+    .select('*')
+    .eq('requester_id', user.id)
+    .order('created_at', { ascending: false })
+  const myEmergencies = (myEmergenciesData ?? []) as EmergencyRequest[]
+
+  const offersByRequest: Record<string, EmergencyOfferWithDonor[]> = {}
+  if (myEmergencies.length > 0) {
+    const ids = myEmergencies.map((r) => r.id)
+    const { data: offersData } = await supabase
+      .from('emergency_offers')
+      .select('*, donor:profiles(full_name, mobile)')
+      .in('request_id', ids)
+      .order('created_at', { ascending: false })
+    for (const offer of (offersData ?? []) as EmergencyOfferWithDonor[]) {
+      ;(offersByRequest[offer.request_id] ??= []).push(offer)
+    }
   }
 
   return (
@@ -197,6 +224,92 @@ export default async function DashboardPage() {
           </section>
         )}
       </div>
+
+      {/* My Emergency Requests */}
+      {myEmergencies.length > 0 && (
+        <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mt-6">
+          <div className="px-6 py-4 border-b border-gray-100">
+            <h2 className="font-semibold text-gray-900">আমার Emergency Request</h2>
+          </div>
+          <div className="divide-y divide-gray-50">
+            {myEmergencies.map((req) => {
+              const offers = offersByRequest[req.id] ?? []
+              return (
+                <div key={req.id} className="px-6 py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-medium text-gray-900 text-sm">
+                        {req.patient_problem}{' '}
+                        <span className="text-red-600 font-bold">
+                          {BLOOD_TYPE_LABELS[req.blood_type]}
+                        </span>
+                      </p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {toBnDigits(req.units_needed)} ব্যাগ · {req.hospital},{' '}
+                        {req.district}
+                        {req.needed_on ? ` · ${formatBnDate(req.needed_on)}` : ''}
+                      </p>
+                    </div>
+                    <span
+                      className={`text-xs px-2.5 py-1 rounded-full font-medium whitespace-nowrap ${EMERGENCY_STATUS_STYLES[req.status]}`}
+                    >
+                      {req.status}
+                    </span>
+                  </div>
+
+                  <div className="mt-3">
+                    {offers.length === 0 ? (
+                      <p className="text-xs text-gray-400">এখনো কেউ সাড়া দেয়নি।</p>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-gray-600">
+                          {toBnDigits(offers.length)} জন এগিয়ে এসেছে:
+                        </p>
+                        {offers.map((offer) => (
+                          <div
+                            key={offer.id}
+                            className="bg-gray-50 rounded-lg px-3 py-2"
+                          >
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="min-w-0">
+                                <p className="text-sm text-gray-800 truncate">
+                                  {offer.donor?.full_name ?? 'Donor'}
+                                </p>
+                                {offer.donor?.mobile ? (
+                                  <a
+                                    href={`tel:${offer.donor.mobile}`}
+                                    className="text-xs text-red-600 hover:underline"
+                                  >
+                                    {offer.donor.mobile}
+                                  </a>
+                                ) : (
+                                  <span className="text-xs text-gray-400">
+                                    নম্বর নেই — donor আপনাকে কল করবে
+                                  </span>
+                                )}
+                              </div>
+                              <ReportButton
+                                requestId={req.id}
+                                reportedUserId={offer.donor_id}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {req.status === 'OPEN' && (
+                    <div className="mt-3">
+                      <EmergencyRequestActions requestId={req.id} />
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Donation History */}
       {donor && donationHistory.length > 0 && (
