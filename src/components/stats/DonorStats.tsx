@@ -57,18 +57,9 @@ export default function DonorStats({ data }: { data: DonorStatsData }) {
   const chartGroups = activeStat ? activeStat.byGroup : data.byGroup
   const chartTitle = activeDistrict ?? 'সারা বাংলাদেশ'
   const chartMax = Math.max(1, ...BLOOD_TYPES.map((bt) => chartGroups[bt]))
-  const districtsCovered = Object.keys(data.byDistrict).length
 
   return (
     <div>
-      {/* Animated stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-8">
-        <StatCard value={data.total} label="মোট রক্তদাতা" accent="text-red-600" />
-        <StatCard value={data.available} label="এখন available" accent="text-green-600" />
-        <StatCard value={districtsCovered} label="জেলায় donor" accent="text-amber-600" />
-        <StatCard value={BLOOD_TYPES.length} label="Blood Group" accent="text-blue-600" />
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
         {/* Map */}
         <div
@@ -199,44 +190,4 @@ export default function DonorStats({ data }: { data: DonorStatsData }) {
       </div>
     </div>
   )
-}
-
-function StatCard({
-  value,
-  label,
-  accent,
-}: {
-  value: number
-  label: string
-  accent: string
-}) {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 px-3 py-5 text-center shadow-sm">
-      <p className={`text-2xl sm:text-3xl font-bold ${accent}`}>
-        <CountUp value={value} />
-      </p>
-      <p className="text-[11px] sm:text-xs text-gray-500 mt-1 leading-tight">{label}</p>
-    </div>
-  )
-}
-
-function CountUp({ value }: { value: number }) {
-  const [display, setDisplay] = useState(0)
-
-  useEffect(() => {
-    let raf = 0
-    let startTs: number | null = null
-    const duration = 900
-    const tick = (ts: number) => {
-      if (startTs === null) startTs = ts
-      const progress = Math.min(1, (ts - startTs) / duration)
-      const eased = 1 - Math.pow(1 - progress, 3)
-      setDisplay(Math.round(eased * value))
-      if (progress < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [value])
-
-  return <>{toBnDigits(display)}</>
 }

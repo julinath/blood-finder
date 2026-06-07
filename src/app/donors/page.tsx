@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { Suspense } from 'react'
 import DonorSearch from '@/components/DonorSearch'
 
 export const metadata: Metadata = {
@@ -26,7 +27,22 @@ export default function DonorsPage() {
       </section>
 
       <div className="pt-8">
-        <DonorSearch />
+        <Suspense
+          fallback={
+            <div className="max-w-6xl mx-auto px-4 pb-10">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl border border-gray-200 p-5 h-36 animate-pulse"
+                  />
+                ))}
+              </div>
+            </div>
+          }
+        >
+          <DonorSearch />
+        </Suspense>
       </div>
     </>
   )

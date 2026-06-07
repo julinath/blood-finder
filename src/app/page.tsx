@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import DonorSearch from '@/components/DonorSearch'
 import Hero from '@/components/home/Hero'
 import StatsStrip from '@/components/home/StatsStrip'
 import EmergencyPreview from '@/components/home/EmergencyPreview'
@@ -8,6 +7,8 @@ import DonationGuide from '@/components/home/DonationGuide'
 import Misconceptions from '@/components/home/Misconceptions'
 import HowItWorks from '@/components/home/HowItWorks'
 import WhyDonate from '@/components/home/WhyDonate'
+import BloodAvailability from '@/components/home/BloodAvailability'
+import SectionHeading from '@/components/home/SectionHeading'
 import DonorMapSection from '@/components/stats/DonorMapSection'
 
 // Stats are cheap aggregations — refresh once a minute, not on every visit.
@@ -28,53 +29,41 @@ export default async function Home() {
       .eq('availability_status', 'AVAILABLE'),
   ])
 
+  const donorCount = donorRes.count ?? 0
+  const availableCount = availableRes.count ?? 0
+
   return (
     <>
+      {/* 1 — Hero + 2 — live stats (the single home for the numbers) */}
       <Hero />
-      <StatsStrip
-        donorCount={donorRes.count ?? 0}
-        availableCount={availableRes.count ?? 0}
-      />
+      <StatsStrip donorCount={donorCount} availableCount={availableCount} />
 
+      {/* 3 — urgent: live emergency requests */}
       <EmergencyPreview />
 
-      {/* Browse donors preview section */}
-      <section className="max-w-6xl mx-auto px-4 pt-14 pb-2">
-        <div className="text-center mb-6">
-          <p className="text-xs uppercase tracking-wider text-red-600 font-semibold mb-2">
-            Browse donors
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Featured Donors
-          </h2>
-          <p className="text-gray-500 mt-1 text-sm">
-            A glimpse of verified donors — search the full list any time.
-          </p>
-        </div>
-      </section>
-      <DonorSearch preview />
-
-      <CallToDonate />
+      {/* 4 — how the platform works */}
       <HowItWorks />
-      <DonationGuide />
-      <Misconceptions />
 
-      <section className="max-w-6xl mx-auto px-4 py-14">
-        <div className="text-center mb-8">
-          <p className="text-xs uppercase tracking-wider text-red-600 font-semibold mb-2">
-            Live Data
-          </p>
-          <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            বাংলাদেশে রক্তদাতার চিত্র
-          </h2>
-          <p className="text-gray-500 mt-1 text-sm">
-            কোন জেলায় কতজন রক্তদাতা — ইন্টারেক্টিভ ম্যাপে দেখুন।
-          </p>
-        </div>
+      {/* 5 — interactive blood-group availability board */}
+      <BloodAvailability />
+
+      {/* 6 — interactive map (centerpiece) */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <SectionHeading
+          eyebrow="Live Data"
+          title="বাংলাদেশে রক্তদাতার চিত্র"
+          subtitle="কোন জেলায় কতজন রক্তদাতা — ইন্টারেক্টিভ ম্যাপে দেখুন।"
+        />
         <DonorMapSection />
       </section>
 
+      {/* 7-9 — awareness → myth-busting → who can donate (right before CTA) */}
       <WhyDonate />
+      <Misconceptions />
+      <DonationGuide />
+
+      {/* 10 — closing call to action */}
+      <CallToDonate />
     </>
   )
 }

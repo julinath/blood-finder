@@ -7,6 +7,8 @@ import {
   type EmergencyRequest,
 } from '@/types'
 import { toBnDigits } from '@/lib/bn'
+import SectionHeading from './SectionHeading'
+import Reveal from '@/components/ui/Reveal'
 
 const PREVIEW_COLUMNS =
   'id, requester_name, patient_problem, blood_type, units_needed, hemoglobin, needed_on, district, hospital, urgency, status, created_at'
@@ -27,18 +29,21 @@ export default async function EmergencyPreview() {
   const requests = (error ? [] : (data ?? [])) as unknown as EmergencyRequest[]
 
   return (
-    <section className="max-w-6xl mx-auto px-4 pt-14 pb-2">
-      <div className="text-center mb-6">
-        <p className="text-xs uppercase tracking-wider text-red-600 font-semibold mb-2">
-          Emergency
-        </p>
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          ইমার্জেন্সি রক্তের রিকোয়েস্ট
-        </h2>
-        <p className="text-gray-500 mt-1 text-sm">
-          এই মুহূর্তে যেসব রোগী জরুরি রক্তের অপেক্ষায় আছে।
-        </p>
-      </div>
+    <section className="max-w-6xl mx-auto px-4 pt-16 pb-2">
+      <SectionHeading
+        eyebrow={
+          <span className="inline-flex items-center gap-1.5">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75 animate-ping" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-600" />
+            </span>
+            Live · Emergency
+          </span>
+        }
+        title="ইমার্জেন্সি রক্তের রিকোয়েস্ট"
+        subtitle="এই মুহূর্তে যেসব রোগী জরুরি রক্তের অপেক্ষায় আছে।"
+        className="mb-6"
+      />
 
       {requests.length === 0 ? (
         <div className="bg-white rounded-2xl border border-gray-200 p-8 text-center">
@@ -53,38 +58,39 @@ export default async function EmergencyPreview() {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {requests.map((request) => (
-              <Link
-                key={request.id}
-                href="/emergency"
-                className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-red-200 transition-all block"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <span
-                    className={`text-xs font-semibold px-2.5 py-1 rounded-full ${URGENCY_STYLES[request.urgency]}`}
-                  >
-                    {URGENCY_LABELS[request.urgency]}
-                  </span>
-                  <span className="text-xl font-extrabold text-red-600">
-                    {BLOOD_TYPE_LABELS[request.blood_type]}
-                  </span>
-                </div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">
-                  {request.patient_problem}
-                </h3>
-                <p className="text-sm text-gray-600">
-                  প্রয়োজন:{' '}
-                  <strong className="text-gray-800">
-                    {toBnDigits(request.units_needed)} ব্যাগ
-                  </strong>
-                </p>
-                <p className="text-sm text-gray-600 mt-1">
-                  স্থান:{' '}
-                  <strong className="text-gray-800">
-                    {request.hospital}, {request.district}
-                  </strong>
-                </p>
-              </Link>
+            {requests.map((request, i) => (
+              <Reveal key={request.id} delay={i * 100}>
+                <Link
+                  href="/emergency"
+                  className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-red-200 hover:-translate-y-0.5 transition-all block h-full"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <span
+                      className={`text-xs font-semibold px-2.5 py-1 rounded-full ${URGENCY_STYLES[request.urgency]}`}
+                    >
+                      {URGENCY_LABELS[request.urgency]}
+                    </span>
+                    <span className="text-xl font-extrabold text-red-600">
+                      {BLOOD_TYPE_LABELS[request.blood_type]}
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">
+                    {request.patient_problem}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    প্রয়োজন:{' '}
+                    <strong className="text-gray-800">
+                      {toBnDigits(request.units_needed)} ব্যাগ
+                    </strong>
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">
+                    স্থান:{' '}
+                    <strong className="text-gray-800">
+                      {request.hospital}, {request.district}
+                    </strong>
+                  </p>
+                </Link>
+              </Reveal>
             ))}
           </div>
 

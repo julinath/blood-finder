@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import BloodTypeBadge from '@/components/BloodTypeBadge'
 import {
@@ -30,11 +31,27 @@ function placeOf(donor: DonorCard): string {
 export default function DonorSearch({ preview = false }: { preview?: boolean }) {
   const supabase = useMemo(() => createClient(), [])
   const max = preview ? PREVIEW_LIMIT : FULL_LIMIT
+
+  // Seed filters from the URL so hero/quick-search deep links (e.g.
+  // /donors?blood_type=O_POS) land pre-filtered. Ignored in preview mode.
+  const searchParams = useSearchParams()
+  const initialFilters = useMemo<Filters>(
+    () =>
+      preview
+        ? EMPTY_FILTERS
+        : {
+            blood_type: searchParams.get('blood_type') ?? '',
+            district: searchParams.get('district') ?? '',
+            location: searchParams.get('location') ?? '',
+          },
+    [preview, searchParams],
+  )
+
   const [donors, setDonors] = useState<DonorCard[]>([])
   // Start in the loading/searched state so the initial fetch (below) renders
   // the skeleton immediately instead of the "enter criteria" placeholder.
   const [loading, setLoading] = useState(true)
-  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
+  const [filters, setFilters] = useState<Filters>(initialFilters)
 
   const search = useCallback(
     async (currentFilters: Filters) => {
@@ -70,15 +87,28 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
     [supabase, max],
   )
 
-  // Auto-load all available donors on first visit. Inlined here (rather than
-  // calling `search()`) so the effect itself doesn't synchronously setState.
+  // Auto-load donors on first visit, honouring any URL filters. Inlined here
+  // (rather than calling `search()`) so the effect itself doesn't synchronously
+  // setState, and re-runs if the deep-linked filters change.
   useEffect(() => {
     let cancelled = false
-    supabase
+
+    let query = supabase
       .from('donors')
       .select('*, profile:profiles(full_name, location)')
       .eq('is_approved', true)
       .eq('availability_status', 'AVAILABLE')
+
+    if (initialFilters.blood_type) {
+      query = query.eq('blood_type', initialFilters.blood_type)
+    }
+    if (initialFilters.district) {
+      query = query.eq('district', initialFilters.district)
+    }
+    const location = initialFilters.location.trim()
+    if (location) query = query.ilike('location', `%${location}%`)
+
+    query
       .order('created_at', { ascending: false })
       .limit(max)
       .then(({ data, error }) => {
@@ -94,7 +124,7 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
     return () => {
       cancelled = true
     }
-  }, [supabase, max])
+  }, [supabase, max, initialFilters])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
