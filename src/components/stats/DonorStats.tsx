@@ -54,14 +54,14 @@ export default function DonorStats({ data }: { data: DonorStatsData }) {
             setTooltip(null)
           }}
         >
-          <svg
-            viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-            className="w-full block h-auto"
-            style={{ aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}` }}
-            preserveAspectRatio="xMidYMid meet"
-            role="img"
-            aria-label="বাংলাদেশের জেলা-ভিত্তিক রক্তদাতার মানচিত্র"
-          >
+          <div className="relative w-full aspect-[460/640]">
+            <svg
+              viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+              className="absolute inset-0 h-full w-full"
+              preserveAspectRatio="xMidYMid meet"
+              role="img"
+              aria-label="বাংলাদেশের জেলা-ভিত্তিক রক্তদাতার মানচিত্র"
+            >
             {features.map((feature, i) => {
               const name = canonicalDistrict(String(feature.properties?.ADM2_EN ?? ''))
               const count = data.byDistrict[name]?.count ?? 0
@@ -92,7 +92,8 @@ export default function DonorStats({ data }: { data: DonorStatsData }) {
                 />
               )
             })}
-          </svg>
+            </svg>
+          </div>
 
           {tooltip && (
             <div
