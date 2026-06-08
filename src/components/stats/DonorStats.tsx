@@ -1,42 +1,26 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { geoMercator, geoPath } from 'd3-geo'
-import type { Feature, FeatureCollection, Geometry } from 'geojson'
 import { BLOOD_TYPES, BLOOD_TYPE_LABELS } from '@/types'
-import { BD_GEOJSON_URL, canonicalDistrict, type DonorStatsData } from '@/lib/bdGeo'
+import { canonicalDistrict, type DonorStatsData } from '@/lib/bdGeo'
+import { BD_DISTRICTS } from '@/data/bdDistricts'
 import { toBnDigits } from '@/lib/bn'
 
 const MAP_WIDTH = 460
 const MAP_HEIGHT = 640
 
-type DistrictProps = { ADM2_EN?: string }
-
 export default function DonorStats({ data }: { data: DonorStatsData }) {
-  const [geo, setGeo] = useState<FeatureCollection<Geometry, DistrictProps> | null>(null)
   const [hovered, setHovered] = useState<string | null>(null)
   const [selected, setSelected] = useState<string | null>(null)
   const [tooltip, setTooltip] = useState<{ x: number; y: number; name: string; count: number } | null>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    fetch(BD_GEOJSON_URL)
-      .then((r) => r.json())
-      .then((json) => {
-        if (!cancelled) setGeo(json as FeatureCollection<Geometry, DistrictProps>)
-      })
-      .catch((err) => console.error('[donor-map] geojson load failed:', err))
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
+  // District polygons are bundled (no runtime fetch) → project once.
   const { pathGen, features } = useMemo(() => {
-    if (!geo) return { pathGen: null, features: [] as Feature<Geometry, DistrictProps>[] }
-    const projection = geoMercator().fitSize([MAP_WIDTH, MAP_HEIGHT], geo)
-    return { pathGen: geoPath(projection), features: geo.features }
-  }, [geo])
+    const projection = geoMercator().fitSize([MAP_WIDTH, MAP_HEIGHT], BD_DISTRICTS)
+    return { pathGen: geoPath(projection), features: BD_DISTRICTS.features }
+  }, [])
 
   const maxCount = useMemo(() => {
     const counts = Object.values(data.byDistrict).map((d) => d.count)
@@ -70,48 +54,43 @@ export default function DonorStats({ data }: { data: DonorStatsData }) {
             setTooltip(null)
           }}
         >
-          {!geo ? (
-            <div className="aspect-[460/640] w-full animate-pulse bg-gray-100 rounded-xl" />
-          ) : (
-            <svg
-              viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-              className="w-full h-auto"
-              role="img"
-              aria-label="বাংলাদেশের জেলা-ভিত্তিক রক্তদাতার মানচিত্র"
-            >
-              {pathGen &&
-                features.map((feature, i) => {
-                  const name = canonicalDistrict(String(feature.properties?.ADM2_EN ?? ''))
-                  const count = data.byDistrict[name]?.count ?? 0
-                  const d = pathGen(feature) ?? undefined
-                  const isActive = activeDistrict === name
-                  return (
-                    <path
-                      key={name || i}
-                      d={d}
-                      fill={fillFor(count)}
-                      stroke={isActive ? '#111827' : '#ffffff'}
-                      strokeWidth={isActive ? 1.4 : 0.5}
-                      className="cursor-pointer transition-colors"
-                      onMouseEnter={() => setHovered(name)}
-                      onMouseMove={(e) => {
-                        const rect = wrapRef.current?.getBoundingClientRect()
-                        if (!rect) return
-                        setTooltip({
-                          x: e.clientX - rect.left,
-                          y: e.clientY - rect.top,
-                          name,
-                          count,
-                        })
-                      }}
-                      onClick={() =>
-                        setSelected((cur) => (cur === name ? null : name))
-                      }
-                    />
-                  )
-                })}
-            </svg>
-          )}
+          <svg
+            viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
+            className="w-full h-auto"
+            role="img"
+            aria-label="বাংলাদেশের জেলা-ভিত্তিক রক্তদাতার মানচিত্র"
+          >
+            {features.map((feature, i) => {
+              const name = canonicalDistrict(String(feature.properties?.ADM2_EN ?? ''))
+              const count = data.byDistrict[name]?.count ?? 0
+              const d = pathGen(feature) ?? undefined
+              const isActive = activeDistrict === name
+              return (
+                <path
+                  key={name || i}
+                  d={d}
+                  fill={fillFor(count)}
+                  stroke={isActive ? '#111827' : '#ffffff'}
+                  strokeWidth={isActive ? 1.4 : 0.5}
+                  className="cursor-pointer transition-colors"
+                  onMouseEnter={() => setHovered(name)}
+                  onMouseMove={(e) => {
+                    const rect = wrapRef.current?.getBoundingClientRect()
+                    if (!rect) return
+                    setTooltip({
+                      x: e.clientX - rect.left,
+                      y: e.clientY - rect.top,
+                      name,
+                      count,
+                    })
+                  }}
+                  onClick={() =>
+                    setSelected((cur) => (cur === name ? null : name))
+                  }
+                />
+              )
+            })}
+          </svg>
 
           {tooltip && (
             <div

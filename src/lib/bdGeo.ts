@@ -53,9 +53,6 @@ export function resolveDistrict(
   return null
 }
 
-/** Static asset path (kept out of the JS bundle, fetched at runtime). */
-export const BD_GEOJSON_URL = '/bd-districts.json'
-
 export type DistrictStat = { count: number; byGroup: Record<BloodType, number> }
 
 export type DonorStatsData = {
