@@ -19,3 +19,5 @@ Contact:
 - julinath2006@gmail.com
 - +880 1623-384742
 - Rangamati, Chittagong, Bangladesh
+
+map-এর design আরও polish, SMS/push notification, বা Bangla/English AI chatbot (Free API - Gemini, ... ) — যেটা ধরতে চান বলবেন! 🩸
