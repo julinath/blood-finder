@@ -81,7 +81,7 @@ export default async function BloodAvailability() {
                     <p className="text-2xl font-bold text-gray-900">
                       <CountUp value={count} />
                     </p>
-                    <p className="text-[11px] text-gray-400 mt-1">জন</p>
+                    <p className="text-[11px] text-gray-500 mt-1">জন</p>
                   </div>
                 </div>
 

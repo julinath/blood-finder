@@ -55,9 +55,10 @@ export function resolveDistrict(
 
 export type DistrictStat = { count: number; byGroup: Record<BloodType, number> }
 
-export type DonorStatsData = {
-  total: number
-  available: number
-  byDistrict: Record<string, DistrictStat>
+/** A district ready to render: server-projected SVG path + its donor stats. */
+export type MapDistrict = {
+  name: string
+  d: string
+  count: number
   byGroup: Record<BloodType, number>
 }
