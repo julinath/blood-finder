@@ -56,7 +56,9 @@ export default function DonorStats({ data }: { data: DonorStatsData }) {
         >
           <svg
             viewBox={`0 0 ${MAP_WIDTH} ${MAP_HEIGHT}`}
-            className="w-full h-auto"
+            className="w-full block h-auto"
+            style={{ aspectRatio: `${MAP_WIDTH} / ${MAP_HEIGHT}` }}
+            preserveAspectRatio="xMidYMid meet"
             role="img"
             aria-label="বাংলাদেশের জেলা-ভিত্তিক রক্তদাতার মানচিত্র"
           >
