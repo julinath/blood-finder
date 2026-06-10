@@ -1,77 +1,123 @@
 # Blood Finder — Project Documentation
 
-> **লেখক:** Julie এবং Team
-> **Course:** CSE 2nd Year — Object Oriented Programming
-> **Technology:** JavaFX 21 + SQLite + Maven
+> বাংলাদেশের জন্য একটি বিশ্বাসযোগ্য রক্তদাতা খোঁজার প্ল্যাটফর্ম।
+> Next.js 16 (App Router) + TypeScript + Tailwind CSS v4 + Supabase, deployed on Vercel.
 
----
-
-## এই Documentation কেন?
-
-এই documentation folder-এ Blood Finder project-এর সব কিছু বাংলায় ব্যাখ্যা করা আছে। যেকোনো teammate বা teacher-এর সামনে project explain করতে এই files পড়লেই হবে। Technical terms (যেমন: `class`, `method`, `interface`, `return`) English-এ রাখা হয়েছে কারণ এগুলো Java-র actual keywords। বাকি সব explanation বাংলায়।
-
----
-
-## Documentation Index (Table of Contents)
+**Docs index**
 
 | File | বিষয় |
 |------|-------|
-| [01-project-overview.md](01-project-overview.md) | Project কী, কী কী feature আছে, কে কে use করবে |
-| [02-architecture.md](02-architecture.md) | MVC pattern কী, folder structure, data কীভাবে flow করে |
-| [03-setup-guide.md](03-setup-guide.md) | Project কীভাবে install ও run করতে হবে step by step |
-| [04-oop-concepts.md](04-oop-concepts.md) | OOP-এর সব concept — code সহ বাংলায় ব্যাখ্যা |
-| [05-models.md](05-models.md) | Model class গুলো — User, Donor, BloodRequest, DonationRecord, Enum |
-| [06-database.md](06-database.md) | SQLite কী, JDBC কী, DatabaseManager, সব SQL table ব্যাখ্যা |
-| [07-repositories.md](07-repositories.md) | Repository pattern, সব Repository class ও তাদের method |
-| [08-services.md](08-services.md) | Service layer কী, AuthService, DonorService, SearchService, RequestService |
-| [09-controllers-javafx.md](09-controllers-javafx.md) | JavaFX কী, FXML কী, Controller কীভাবে কাজ করে, সব Controller |
-| [10-complete-flow.md](10-complete-flow.md) | Register থেকে Blood Request পর্যন্ত — পুরো flow code সহ |
+| [README.md](README.md) (this file) | App কী, architecture, routes, data model |
+| [SETUP.md](SETUP.md) | Env vars, Supabase setup, local dev, deploy |
+| [RESEARCH.md](RESEARCH.md) | Product vision ও বাজার-গবেষণা (বড় ফাইল) |
+| [../feature.md](../feature.md) | Feature checklist (বাংলা/English, টেস্ট-স্ট্যাটাস সহ) |
+| [../CLAUDE.md](../CLAUDE.md) | AI-assistant instructions + directory map |
+
+> পুরোনো JavaFX desktop app-এর docs ও কোড `desktop-app` branch-এ সংরক্ষিত আছে।
 
 ---
 
-## Project সংক্ষেপ
+## What is Blood Finder?
 
-**Blood Finder** একটি Desktop Application যেটা দিয়ে Blood Donor খোঁজা যায়। কেউ Blood Donor হতে পারে, আবার কেউ Blood Request পাঠাতে পারে।
+জরুরি মুহূর্তে দ্রুত, নিরাপদ ও বিশ্বাসযোগ্য রক্তদাতা খুঁজে দেওয়াই এই প্ল্যাটফর্মের কাজ। মূল ফ্লো তিনটি:
 
-### মূল Features:
-- User Registration ও Login
-- Donor হিসেবে নিজেকে Register করা
-- Blood Type এবং Location দিয়ে Donor Search করা
-- Donor-কে Blood Request পাঠানো
-- Donor Request Accept বা Cancel করতে পারে
-- Donation Record automatically save হয়
+1. **Find Donors** — blood group / জেলা / এলাকা দিয়ে verified রক্তদাতা খোঁজা, প্রোফাইল দেখা, donation request পাঠানো।
+2. **Emergency board** — "এখনই রক্ত লাগবে" ধরনের public রিকোয়েস্ট পোস্ট করা; রক্তদাতারা *"আমি রক্ত দিতে পারবো"* চেপে সাড়া দেন; রিকোয়েস্টকারী সাড়াদাতার নম্বর দেখে নিজে যোগাযোগ করেন (donor-first privacy)।
+3. **Become a Donor** — প্রোফাইল থেকে pre-fill হওয়া ফর্মে রক্তদাতা হিসেবে আবেদন; admin অনুমোদনের পর search-এ দেখা যায়।
 
-### Technology Stack:
+**Trust & safety primitives:** admin approval gate, ৯০-দিনের eligibility rule (UI + server + search জুড়ে), donation count (DB trigger-এ রক্ষিত), abuse reports queue, per-case contact privacy, RLS + column-level grants।
+
+---
+
+## Architecture
+
 ```
-Language    : Java 21
-UI          : JavaFX 21 (FXML)
-Database    : SQLite (file-based, কোনো server লাগে না)
-JDBC Driver : sqlite-jdbc
-Build Tool  : Maven
-Pattern     : MVC (Model-View-Controller)
-```
-
----
-
-## কীভাবে পড়বে?
-
-1. প্রথমে **01-project-overview.md** পড়ো — project সম্পর্কে general ধারণা পাবে
-2. তারপর **02-architecture.md** — কোড কীভাবে organize করা আছে বুঝবে
-3. **03-setup-guide.md** — project নিজে run করে দেখো
-4. **04-oop-concepts.md** — এটা সবচেয়ে important, teacher এখান থেকে জিজ্ঞেস করবে
-5. বাকি files গুলো specific topic-এর জন্য reference হিসেবে রাখো
-
----
-
-## Quick Start
-
-```bash
-# Project folder-এ গিয়ে এই command দাও:
-mvn javafx:run
+Browser (React 19 client components)
+   │  @supabase/ssr browser client (anon key only)
+   ▼
+Next.js 16 App Router  ──  src/proxy.ts (route protection; Next 16 renamed
+   │                        middleware → proxy — the file IS executed)
+   │  Server Components + Server Actions (@supabase/ssr server client)
+   ▼
+Supabase (PostgreSQL + Auth)
+   • RLS on every table; single consolidated policy per table/action
+   • anon role: column-level SELECT grants only (no email/mobile/health data)
+   • SECURITY DEFINER helpers: is_admin, donor_user_id, emergency_requester,
+     has_offered, emergency_is_open (RLS helpers — intentionally executable)
+   • RPCs with internal gates: admin_delete_user, record_emergency_donation,
+     complete_blood_request
+   • Triggers: handle_new_user (profile auto-create),
+     bump_donation_count (+ last_donation_date), emergency offer rate limit
 ```
 
-প্রথমবার run করলে automatically `blood_finder.db` নামে একটা SQLite database file তৈরি হবে।
+Key conventions:
 
----
+- **Server actions own all writes** for protected flows; each one re-checks
+  `auth.getUser()`, filters by ownership, and reports failures via
+  `?flash=<key>` (catalog in `src/components/Flash.tsx`).
+- **Public reads** (donor search, emergency feed) go straight from client
+  components to Supabase with the anon key — safe because of RLS + column
+  grants. Queries must select **explicit columns**
+  (`DONOR_CARD_SELECT` in `src/types/index.ts`); `select('*')` fails for anon.
+- **Language policy:** যেখানে বাংলা মানানসই সেখানে বাংলা (instructions,
+  empty states, success/error messages); universal terms English (blood
+  groups, Login, Register, Emergency, district names). Bengali font: Hind
+  Siliguri (loaded in `src/app/layout.tsx`).
+- The 700 KB district GeoJSON (`src/data/bd-districts.json`) is **server-only**
+  — the map is projected to SVG paths on the server.
 
-> **Note:** এই project-এ কোনো internet connection লাগে না। সব data local SQLite file-এ save হয়।
+## Routes
+
+| Route | Access | What it does |
+|-------|--------|--------------|
+| `/` | public | Home: hero + quick search, emergency preview, availability board, stats, map, awareness sections |
+| `/donors` | public | Donor search (filters: blood group, district, area) |
+| `/donor/[id]` | public | Donor public profile; contact number only when signed in |
+| `/emergency` | public | Emergency needs board + filters; offering requires login |
+| `/emergency/new` | login | Post an emergency request (contact goes to RLS-protected `emergency_contacts`) |
+| `/login`, `/register` | guest | Email/password (mobile-number signup supported) + Google OAuth |
+| `/auth/callback` | — | OAuth code exchange + profile self-heal |
+| `/profile` | login | Profile hub: personal info, donor details, sent/received requests, my emergencies + offers, donation history |
+| `/dashboard` | login | Legacy — permanent redirect to `/profile` |
+| `/become-donor` | login | Donor application (pre-fills from profile; saving syncs back) |
+| `/request` | login | Send a donation request to a donor (server-validated) |
+| `/stats` | public | District map + blood-group statistics |
+| `/about` | public | Team / project info |
+| `/admin` | admin | Donor approvals, users, requests, emergencies, reports queue |
+
+`src/proxy.ts` protects `/profile`, `/become-donor`, `/request`, `/admin`,
+`/emergency/new` (and bounces signed-in users away from `/login`/`/register`).
+Admin = `profiles.is_admin`; the admin link lives in the footer (admins only).
+
+## Data model
+
+Schema lives in two idempotent SQL files (run in order in the Supabase SQL editor):
+`supabase-schema.sql` → `supabase-emergency.sql`. Demo data: `supabase-seed-demo.sql`
+(rows with `user_id IS NULL`; delete before real launch).
+
+| Table | Purpose | Notable rules |
+|-------|---------|---------------|
+| `profiles` | extends `auth.users` (name, email, mobile, location, district, is_admin) | auto-created by trigger; anon may read only id/full_name/location/district/created_at of approved donors |
+| `donors` | donor record (blood_type, location/district, availability, last_donation_date, sex/age/weight/health, donation_count, is_approved) | one per user; anon cannot read sex/age/weight/health; CHECK constraints mirror app validation |
+| `blood_requests` | direct requests requester→donor | `PENDING → ACCEPTED → COMPLETED` (or `CANCELLED`); partial unique index blocks duplicate PENDING; COMPLETED only via `complete_blood_request` RPC which also writes the donation record |
+| `donation_records` | immutable donation log | insert bumps `donation_count` + `last_donation_date` via trigger; `request_id` null for emergency donations |
+| `emergency_requests` | public needs board | snapshot `requester_name`; status OPEN/FULFILLED/CANCELLED/EXPIRED |
+| `emergency_contacts` | per-request contact phone | readable only by requester + admins (donor-first privacy) |
+| `emergency_offers` | "আমি রক্ত দিতে পারবো" responses | unique per donor+request; insert allowed only while OPEN; rate-limited by trigger |
+| `reports` | abuse/no-show reports → admin queue | reporter must be involved in the request; statuses OPEN/REVIEWED/RESOLVED |
+
+## Request lifecycle (direct requests)
+
+```
+requester ──send──▶ PENDING ──donor declines / requester cancels──▶ CANCELLED
+                       │
+                  donor accepts          (requester sees donor's mobile)
+                       ▼
+                   ACCEPTED ──donor taps "রক্ত দিয়েছি"──▶ COMPLETED
+                                                  └─ donation_record inserted
+                                                     (count + last date bumped)
+```
+
+Emergency flow: post → donors offer → requester calls a donor → requester
+taps **"ইনি রক্ত দিয়েছেন"** (credits that donor, closes the request) or marks
+it fulfilled/cancelled. Admins can additionally mark stale requests EXPIRED.
