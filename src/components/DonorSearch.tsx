@@ -13,6 +13,7 @@ import {
 } from '@/types'
 import { DISTRICTS } from '@/lib/districts'
 import { calculateEligibility } from '@/lib/eligibility'
+import { formatBnDate } from '@/lib/bn'
 
 const PREVIEW_LIMIT = 6
 const FULL_LIMIT = 60
@@ -293,8 +294,7 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
                   <div className="flex items-center justify-between gap-2 mt-2">
                     {donor.last_donation_date ? (
                       <p className="text-xs text-gray-400">
-                        Last donated:{' '}
-                        {new Date(donor.last_donation_date).toLocaleDateString()}
+                        শেষ রক্তদান: {formatBnDate(donor.last_donation_date)}
                       </p>
                     ) : (
                       <span />

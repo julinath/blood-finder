@@ -4,6 +4,7 @@ import Link from 'next/link'
 import BloodTypeBadge from '@/components/BloodTypeBadge'
 import { BLOOD_TYPE_LABELS, DONOR_CARD_SELECT, type DonorCard } from '@/types'
 import { calculateEligibility } from '@/lib/eligibility'
+import { formatBnDate } from '@/lib/bn'
 
 export default async function DonorProfilePage({
   params,
@@ -39,7 +40,7 @@ export default async function DonorProfilePage({
 
   const eligibility = calculateEligibility(donor.last_donation_date)
   const lastDonationLabel = donor.last_donation_date
-    ? new Date(donor.last_donation_date).toLocaleDateString()
+    ? formatBnDate(donor.last_donation_date)
     : 'Never'
 
   // Readable place, avoiding "Dhaka, Dhaka" when the area equals the district.

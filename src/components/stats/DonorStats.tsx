@@ -175,7 +175,7 @@ export default function DonorStats({
             >
               <span className="font-semibold">{tooltip.name}</span>
               {' — '}
-              {toBnDigits(tooltip.count)} জন donor
+              {toBnDigits(tooltip.count)} জন রক্তদাতা
             </div>
           )}
 
@@ -212,7 +212,7 @@ export default function DonorStats({
               <h3 className="text-lg font-bold text-gray-900">Blood Group বণ্টন</h3>
               <p className="text-sm text-gray-500">
                 {chartTitle} ·{' '}
-                {toBnDigits(activeStat ? activeStat.count : total)} জন donor
+                {toBnDigits(activeStat ? activeStat.count : total)} জন রক্তদাতা
               </p>
             </div>
             {selected && (

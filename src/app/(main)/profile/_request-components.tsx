@@ -157,7 +157,7 @@ export function CreditDonorButton({
   const confirmCredit = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (
       !confirm(
-        `"${donorName}" রক্ত দিয়েছেন — নিশ্চিত করছেন? রিকোয়েস্টটি সম্পন্ন হিসেবে বন্ধ হবে এবং donor-এর রক্তদানের হিসাবে যোগ হবে।`,
+        `"${donorName}" রক্ত দিয়েছেন — নিশ্চিত করছেন? রিকোয়েস্টটি সম্পন্ন হিসেবে বন্ধ হবে এবং রক্তদাতার রক্তদানের হিসাবে যোগ হবে।`,
       )
     ) {
       e.preventDefault()

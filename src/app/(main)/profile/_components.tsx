@@ -13,6 +13,7 @@ import { SEXES, SEX_LABELS, isSex } from '@/types'
 import { createClient } from '@/lib/supabase/client'
 import { BD_MOBILE_PATTERN } from '@/lib/validation'
 import { Field, FIELD_CLASS } from '@/components/ui/form'
+import { formatBnDate } from '@/lib/bn'
 
 type ProfileDefaults = {
   full_name: string
@@ -293,7 +294,7 @@ export function DonorDetailsSection({ donor }: { donor: DonorDefaults }) {
             label="Last Donation"
             value={
               donor.last_donation_date ? (
-                new Date(donor.last_donation_date).toLocaleDateString()
+                formatBnDate(donor.last_donation_date)
               ) : (
                 <span className="text-gray-400">Never</span>
               )

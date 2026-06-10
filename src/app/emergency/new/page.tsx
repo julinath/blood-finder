@@ -25,7 +25,7 @@ export default async function NewEmergencyRequestPage() {
         </div>
         <h1 className="text-3xl font-bold text-gray-900">রক্তের রিকোয়েস্ট দিন</h1>
         <p className="text-gray-500 mt-2 text-sm">
-          আপনার এলাকার donor রা এই রিকোয়েস্ট দেখতে পাবে এবং এগিয়ে আসবে।
+          আপনার এলাকার রক্তদাতারা এই রিকোয়েস্ট দেখতে পাবেন এবং এগিয়ে আসবেন।
         </p>
       </div>
 

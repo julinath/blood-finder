@@ -339,7 +339,7 @@ export default async function ProfilePage() {
                                   </a>
                                 ) : (
                                   <span className="text-xs text-gray-400">
-                                    নম্বর নেই — donor আপনাকে কল করবে
+                                    নম্বর নেই — রক্তদাতা আপনাকে কল করবেন
                                   </span>
                                 )}
                               </div>
@@ -392,7 +392,7 @@ export default async function ProfilePage() {
                     Donated to {record.requester?.full_name ?? 'User'}
                   </p>
                   <p className="text-xs text-gray-400 mt-0.5">
-                    {new Date(record.donation_date).toLocaleDateString()}
+                    {formatBnDate(record.donation_date)}
                   </p>
                 </div>
                 <span className="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-medium whitespace-nowrap">

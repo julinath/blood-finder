@@ -30,10 +30,10 @@ export default async function BecomeDonorPage() {
       <div className="max-w-lg mx-auto px-4 py-20 text-center">
         <div className="text-4xl mb-4" aria-hidden="true">✅</div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">
-          You are already registered as a donor
+          আপনি ইতিমধ্যে রক্তদাতা হিসেবে নিবন্ধিত
         </h2>
         <p className="text-gray-500 mb-6">
-          Go to your profile to manage your donor information.
+          আপনার রক্তদাতা তথ্য দেখতে ও পরিবর্তন করতে প্রোফাইলে যান।
         </p>
         <Link
           href="/profile"
