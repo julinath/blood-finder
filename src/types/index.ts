@@ -16,7 +16,9 @@ export interface Profile {
 
 export interface Donor {
   id: string
-  user_id: string
+  // Null for seeded demo donors (`supabase-seed-demo.sql`); real donors always
+  // have the owning user's id.
+  user_id: string | null
   blood_type: BloodType
   location: string
   district: string | null
@@ -44,26 +46,39 @@ export interface DonationRecord {
   id: string
   donor_id: string
   requester_id: string
-  request_id: string
+  // Null for donations recorded from the emergency board (no blood_request row).
+  request_id: string | null
   donation_date: string
   created_at: string
 }
 
 // ---- Query-specific joined types (mirror the select strings used in pages) ----
 
-export type DonorCard = Donor & {
-  profile: Pick<Profile, 'full_name'> & { location: string | null } | null
+// Public donor card — exactly the columns the public search/profile selects.
+// Keep in sync with the anon column grants in supabase-schema.sql: the anon
+// role can NOT read sex/age/weight/health_conditions or profile email/mobile.
+export type DonorCard = Pick<
+  Donor,
+  | 'id'
+  | 'user_id'
+  | 'blood_type'
+  | 'location'
+  | 'district'
+  | 'availability_status'
+  | 'last_donation_date'
+  | 'donation_count'
+> & {
+  profile: { full_name: string; location: string | null } | null
 }
 
-export type DonorWithProfile = Donor & {
-  profile: Pick<Profile, 'full_name' | 'email' | 'mobile' | 'location'> | null
-}
+export const DONOR_CARD_SELECT =
+  'id, user_id, blood_type, location, district, availability_status, last_donation_date, donation_count, profile:profiles(full_name, location)'
 
 export type SentRequest = BloodRequest & {
   donor: {
     blood_type: BloodType
     location: string
-    profile: { full_name: string } | null
+    profile: { full_name: string; mobile: string | null } | null
   } | null
 }
 

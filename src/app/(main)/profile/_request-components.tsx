@@ -6,6 +6,7 @@ import {
   acceptRequest,
   cancelEmergencyRequest,
   cancelRequest,
+  completeRequest,
   creditEmergencyDonor,
   declineRequest,
   fulfillEmergencyRequest,
@@ -40,8 +41,10 @@ export function AvailabilityToggle({
   currentStatus: AvailabilityStatus
 }) {
   const isAvailable = currentStatus === 'AVAILABLE'
+  // The action reads the current status server-side and flips it, so a stale
+  // tab can never push it the wrong way.
   return (
-    <form action={toggleAvailability.bind(null, donorId, currentStatus)}>
+    <form action={toggleAvailability.bind(null, donorId)}>
       <AvailabilityButton isAvailable={isAvailable} />
     </form>
   )
@@ -94,30 +97,49 @@ function ActionButton({
   )
 }
 
-export function RequestActions({
-  requestId,
-  donorId,
-}: {
-  requestId: string
-  donorId: string
-}) {
+export function RequestActions({ requestId }: { requestId: string }) {
   return (
     <div className="flex gap-2 mt-1">
-      <form action={acceptRequest.bind(null, requestId, donorId)}>
+      <form action={acceptRequest.bind(null, requestId)}>
         <ActionButton
-          label="Accept"
-          pendingLabel="Accepting…"
+          label="✓ গ্রহণ করুন"
+          pendingLabel="…"
           className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 transition-colors font-medium"
         />
       </form>
       <form action={declineRequest.bind(null, requestId)}>
         <ActionButton
-          label="Decline"
-          pendingLabel="Declining…"
+          label="ফিরিয়ে দিন"
+          pendingLabel="…"
           className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors font-medium"
         />
       </form>
     </div>
+  )
+}
+
+// Shown on an ACCEPTED received request: the donor confirms the donation
+// actually happened, which records it and closes the request.
+export function CompleteRequestButton({ requestId }: { requestId: string }) {
+  const confirmComplete = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (
+      !confirm(
+        'রক্তদান সম্পন্ন হয়েছে — নিশ্চিত করছেন? এটি আপনার রক্তদানের হিসাবে যোগ হবে এবং রিকোয়েস্টটি সম্পন্ন হিসেবে বন্ধ হবে।',
+      )
+    ) {
+      e.preventDefault()
+    }
+  }
+
+  return (
+    <form action={completeRequest.bind(null, requestId)}>
+      <ActionButton
+        label="🩸 রক্ত দিয়েছি"
+        pendingLabel="…"
+        className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-200 transition-colors font-medium whitespace-nowrap"
+        onClick={confirmComplete}
+      />
+    </form>
   )
 }
 

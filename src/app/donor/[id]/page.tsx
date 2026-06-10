@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import BloodTypeBadge from '@/components/BloodTypeBadge'
-import { BLOOD_TYPE_LABELS, type DonorWithProfile } from '@/types'
+import { BLOOD_TYPE_LABELS, DONOR_CARD_SELECT, type DonorCard } from '@/types'
 import { calculateEligibility } from '@/lib/eligibility'
 
 export default async function DonorProfilePage({
@@ -15,15 +15,27 @@ export default async function DonorProfilePage({
 
   const { data } = await supabase
     .from('donors')
-    .select('*, profile:profiles(full_name, email, mobile, location)')
+    .select(DONOR_CARD_SELECT)
     .eq('id', id)
     .eq('is_approved', true)
     .maybeSingle()
 
   if (!data) notFound()
-  const donor = data as unknown as DonorWithProfile
+  const donor = data as unknown as DonorCard
 
   const { data: { user } } = await supabase.auth.getUser()
+
+  // The contact number is only readable by signed-in users — the anon role
+  // has no column grant on profiles.mobile, so it never reaches visitors.
+  let donorMobile: string | null = null
+  if (user && donor.user_id) {
+    const { data: contact } = await supabase
+      .from('profiles')
+      .select('mobile')
+      .eq('id', donor.user_id)
+      .maybeSingle()
+    donorMobile = contact?.mobile ?? null
+  }
 
   const eligibility = calculateEligibility(donor.last_donation_date)
   const lastDonationLabel = donor.last_donation_date
@@ -122,11 +134,11 @@ export default async function DonorProfilePage({
           </div>
 
           {/* Contact */}
-          {user && donor.profile?.mobile && (
+          {user && donorMobile && (
             <div className="border-t border-gray-100 pt-4 space-y-3">
               <h3 className="font-medium text-gray-700 text-sm">Contact Info</h3>
               <a
-                href={`tel:${donor.profile.mobile}`}
+                href={`tel:${donorMobile}`}
                 className="flex items-center gap-3 text-sm text-gray-700 hover:text-red-600 transition-colors"
               >
                 <svg
@@ -138,7 +150,7 @@ export default async function DonorProfilePage({
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                 </svg>
-                {donor.profile.mobile}
+                {donorMobile}
               </a>
             </div>
           )}

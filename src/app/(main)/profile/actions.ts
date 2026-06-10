@@ -15,15 +15,18 @@ export async function updateProfile(
 ): Promise<FormState> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: 'You are not signed in.' }
+  if (!user) return { ok: false, message: 'আপনি সাইন ইন করা নেই।' }
 
   const full_name = ((formData.get('full_name') as string | null) ?? '').trim()
-  if (!full_name) return { ok: false, message: 'Full name is required.' }
+  if (!full_name) return { ok: false, message: 'পুরো নাম লিখুন।' }
 
   const mobileRaw = ((formData.get('mobile') as string | null) ?? '').trim()
   const mobile = mobileRaw ? normalizeMobile(mobileRaw) : null
   if (mobile && !isValidBangladeshMobile(mobile)) {
-    return { ok: false, message: 'Mobile must be 11 digits starting with 01.' }
+    return {
+      ok: false,
+      message: 'মোবাইল নম্বর সঠিক নয় — 01 দিয়ে শুরু, মোট ১১ সংখ্যা (যেমন 01712345678)।',
+    }
   }
 
   const location =
@@ -31,7 +34,7 @@ export async function updateProfile(
 
   const districtRaw = ((formData.get('district') as string | null) ?? '').trim()
   if (districtRaw && !isDistrict(districtRaw)) {
-    return { ok: false, message: 'Please select a valid district.' }
+    return { ok: false, message: 'জেলা (District) নির্বাচন করুন।' }
   }
   const district = districtRaw || null
 
@@ -52,7 +55,7 @@ export async function updateProfile(
 
   if (error) {
     console.error('[updateProfile] upsert failed:', error.message)
-    return { ok: false, message: 'Could not save profile. Please try again.' }
+    return { ok: false, message: 'প্রোফাইল সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।' }
   }
 
   // Keep the donor record's location/district in sync so search matching uses
@@ -68,11 +71,21 @@ export async function updateProfile(
     // old one. donors.location is NOT NULL, so only overwrite it when provided.
     const donorUpdate: { location?: string; district: string | null } = { district }
     if (location) donorUpdate.location = location
-    await supabase.from('donors').update(donorUpdate).eq('user_id', user.id)
+    const { error: donorSyncError } = await supabase
+      .from('donors')
+      .update(donorUpdate)
+      .eq('user_id', user.id)
+    if (donorSyncError) {
+      console.error('[updateProfile] donor sync failed:', donorSyncError.message)
+      return {
+        ok: false,
+        message: 'প্রোফাইল সংরক্ষণ হয়েছে, কিন্তু রক্তদাতার তথ্য আপডেট হয়নি। আবার চেষ্টা করুন।',
+      }
+    }
   }
 
   revalidatePath('/profile')
-  return { ok: true, message: 'Profile updated.' }
+  return { ok: true, message: 'প্রোফাইল আপডেট হয়েছে।' }
 }
 
 export async function updateDonorDetails(
@@ -81,11 +94,11 @@ export async function updateDonorDetails(
 ): Promise<FormState> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false, message: 'You are not signed in.' }
+  if (!user) return { ok: false, message: 'আপনি সাইন ইন করা নেই।' }
 
   const districtRaw = ((formData.get('donor_district') as string | null) ?? '').trim()
   if (!isDistrict(districtRaw)) {
-    return { ok: false, message: 'Please select a valid district.' }
+    return { ok: false, message: 'জেলা (District) নির্বাচন করুন।' }
   }
 
   // Area is optional; fall back to the district so NOT NULL `location` holds.
@@ -147,14 +160,24 @@ export async function updateDonorDetails(
     })
     .eq('user_id', user.id)
 
-  if (error) return { ok: false, message: 'Could not update donor details.' }
+  if (error) {
+    console.error('[updateDonorDetails] update failed:', error.message)
+    return { ok: false, message: 'রক্তদাতার তথ্য সংরক্ষণ করা যায়নি। আবার চেষ্টা করুন।' }
+  }
 
   // Mirror onto the profile so the two records stay aligned.
-  await supabase
+  const { error: profileSyncError } = await supabase
     .from('profiles')
     .update({ location, district: districtRaw })
     .eq('id', user.id)
+  if (profileSyncError) {
+    console.error('[updateDonorDetails] profile sync failed:', profileSyncError.message)
+    return {
+      ok: false,
+      message: 'রক্তদাতার তথ্য সংরক্ষণ হয়েছে, কিন্তু প্রোফাইলে মিলিয়ে নেওয়া যায়নি। আবার চেষ্টা করুন।',
+    }
+  }
 
   revalidatePath('/profile')
-  return { ok: true, message: 'Donor details updated.' }
+  return { ok: true, message: 'রক্তদাতার তথ্য আপডেট হয়েছে।' }
 }

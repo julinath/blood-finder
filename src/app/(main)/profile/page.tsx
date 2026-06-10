@@ -21,6 +21,7 @@ import { DonorDetailsSection, ProfileSection, SignOutButton } from './_component
 import {
   AvailabilityToggle,
   CancelRequestButton,
+  CompleteRequestButton,
   CreditDonorButton,
   EmergencyRequestActions,
   RequestActions,
@@ -40,7 +41,7 @@ export default async function ProfilePage() {
     supabase.from('donors').select('*').eq('user_id', user.id).maybeSingle(),
     supabase
       .from('blood_requests')
-      .select('*, donor:donors(blood_type, location, profile:profiles(full_name))')
+      .select('*, donor:donors(blood_type, location, profile:profiles(full_name, mobile))')
       .eq('requester_id', user.id)
       .order('created_at', { ascending: false }),
   ])
@@ -214,6 +215,17 @@ export default async function ProfilePage() {
                   {req.notes && (
                     <p className="text-xs text-gray-500 italic mt-2">{req.notes}</p>
                   )}
+                  {req.status === 'ACCEPTED' && req.donor?.profile?.mobile && (
+                    <p className="text-xs text-gray-600 mt-2">
+                      রক্তদাতা রাজি হয়েছেন — যোগাযোগ করুন:{' '}
+                      <a
+                        href={`tel:${req.donor.profile.mobile}`}
+                        className="text-red-600 font-medium hover:underline"
+                      >
+                        {req.donor.profile.mobile}
+                      </a>
+                    </p>
+                  )}
                   {req.status === 'PENDING' && (
                     <CancelRequestButton requestId={req.id} />
                   )}
@@ -255,7 +267,10 @@ export default async function ProfilePage() {
                       <p className="text-xs text-gray-500 italic mb-2">{req.notes}</p>
                     )}
                     {req.status === 'PENDING' && (
-                      <RequestActions requestId={req.id} donorId={donor.id} />
+                      <RequestActions requestId={req.id} />
+                    )}
+                    {req.status === 'ACCEPTED' && (
+                      <CompleteRequestButton requestId={req.id} />
                     )}
                   </div>
                 ))

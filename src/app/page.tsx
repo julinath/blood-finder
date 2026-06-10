@@ -17,14 +17,16 @@ export const revalidate = 60
 export default async function Home() {
   const supabase = await createClient()
 
+  // Count by `id` (not `*`) — anonymous visitors only have column-level
+  // SELECT grants on the public donor columns, so `*` would be rejected.
   const [donorRes, availableRes] = await Promise.all([
     supabase
       .from('donors')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('is_approved', true),
     supabase
       .from('donors')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: true })
       .eq('is_approved', true)
       .eq('availability_status', 'AVAILABLE'),
   ])

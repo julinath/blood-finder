@@ -59,7 +59,14 @@ export async function createEmergencyRequest(
     hemoglobin = value
   }
 
-  const needed_on = field(formData, 'needed_on') || null
+  const neededOnRaw = field(formData, 'needed_on')
+  let needed_on: string | null = null
+  if (neededOnRaw) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(neededOnRaw)) {
+      return { ok: false, message: 'কবে রক্ত লাগবে — তারিখটি সঠিক নয়।' }
+    }
+    needed_on = neededOnRaw
+  }
 
   const urgencyRaw = field(formData, 'urgency') || 'URGENT'
   const urgency = (URGENCIES as readonly string[]).includes(urgencyRaw)
@@ -120,6 +127,13 @@ export async function createEmergencyRequest(
 
   if (contactError) {
     console.error('[emergency] contact insert failed:', contactError.message)
+    // Don't leave a contactless request on the public board — cancel it so a
+    // retry doesn't create duplicates. (RLS: requester may update own rows.)
+    await supabase
+      .from('emergency_requests')
+      .update({ status: 'CANCELLED' })
+      .eq('id', created.id)
+      .eq('requester_id', user.id)
     return { ok: false, message: 'যোগাযোগের তথ্য সংরক্ষণ হয়নি। আবার চেষ্টা করুন।' }
   }
 

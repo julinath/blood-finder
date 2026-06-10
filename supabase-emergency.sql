@@ -99,11 +99,17 @@ create unique index if not exists emergency_offers_unique
 -- Lookup indexes for the board.
 create index if not exists emergency_requests_feed_idx
   on emergency_requests (status, district, blood_type, created_at desc);
+create index if not exists emergency_requests_requester_idx
+  on emergency_requests (requester_id);
 create index if not exists emergency_offers_request_idx
   on emergency_offers (request_id);
 create index if not exists emergency_offers_donor_idx
   on emergency_offers (donor_id, created_at desc);
 create index if not exists donors_district_idx on donors (district);
+-- Covering indexes for the report foreign keys (performance advisor).
+create index if not exists reports_reporter_idx on reports (reporter_id);
+create index if not exists reports_reported_user_idx on reports (reported_user_id);
+create index if not exists reports_request_idx on reports (request_id);
 
 -- ---- Helper functions (SECURITY DEFINER — bypass RLS to avoid recursion) ----
 create or replace function public.emergency_requester(req_id uuid)
@@ -139,69 +145,82 @@ alter table emergency_contacts enable row level security;
 alter table emergency_offers   enable row level security;
 alter table reports            enable row level security;
 
+-- Policy style: one permissive policy per table/action, auth fns wrapped in
+-- `(select auth.uid())` — see the notes in supabase-schema.sql.
+
 -- ---- emergency_requests ----
 drop policy if exists "Open requests are public" on emergency_requests;
 drop policy if exists "Logged-in users can create requests" on emergency_requests;
 drop policy if exists "Requesters and admins can update requests" on emergency_requests;
+drop policy if exists "emergency_requests_select" on emergency_requests;
+drop policy if exists "emergency_requests_insert" on emergency_requests;
+drop policy if exists "emergency_requests_update" on emergency_requests;
 
-create policy "Open requests are public"
-  on emergency_requests for select
-  using (status = 'OPEN' or auth.uid() = requester_id or public.is_admin(auth.uid()));
+create policy "emergency_requests_select" on emergency_requests for select using (
+  status = 'OPEN'
+  or (select auth.uid()) = requester_id
+  or public.is_admin((select auth.uid()))
+);
 
-create policy "Logged-in users can create requests"
-  on emergency_requests for insert
-  with check (auth.uid() = requester_id);
+create policy "emergency_requests_insert" on emergency_requests for insert
+  with check ((select auth.uid()) = requester_id);
 
-create policy "Requesters and admins can update requests"
-  on emergency_requests for update
-  using (auth.uid() = requester_id or public.is_admin(auth.uid()))
-  with check (auth.uid() = requester_id or public.is_admin(auth.uid()));
+create policy "emergency_requests_update" on emergency_requests for update
+  using (
+    (select auth.uid()) = requester_id
+    or public.is_admin((select auth.uid()))
+  )
+  with check (
+    (select auth.uid()) = requester_id
+    or public.is_admin((select auth.uid()))
+  );
 
 -- ---- emergency_contacts (donor-first privacy) ----
-drop policy if exists "Contact visible after offering" on emergency_contacts;
-drop policy if exists "Contact visible to requester and admins" on emergency_contacts;
-drop policy if exists "Requester can add contact" on emergency_contacts;
-
 -- Only the requester and admins can read the contact. Offering donors never
 -- see it — instead the requester sees the offering donor's number (profile
 -- page) and calls the donor. Donor privacy comes first.
-create policy "Contact visible to requester and admins"
-  on emergency_contacts for select
-  using (
-    public.emergency_requester(request_id) = auth.uid()
-    or public.is_admin(auth.uid())
-  );
+drop policy if exists "Contact visible after offering" on emergency_contacts;
+drop policy if exists "Contact visible to requester and admins" on emergency_contacts;
+drop policy if exists "Requester can add contact" on emergency_contacts;
+drop policy if exists "emergency_contacts_select" on emergency_contacts;
+drop policy if exists "emergency_contacts_insert" on emergency_contacts;
 
-create policy "Requester can add contact"
-  on emergency_contacts for insert
-  with check (public.emergency_requester(request_id) = auth.uid());
+create policy "emergency_contacts_select" on emergency_contacts for select using (
+  public.emergency_requester(request_id) = (select auth.uid())
+  or public.is_admin((select auth.uid()))
+);
+
+create policy "emergency_contacts_insert" on emergency_contacts for insert
+  with check (public.emergency_requester(request_id) = (select auth.uid()));
 
 -- ---- emergency_offers ----
 drop policy if exists "Offers visible to donor, requester, admin" on emergency_offers;
 drop policy if exists "Donors can offer" on emergency_offers;
 drop policy if exists "Donor, requester, admin can update offers" on emergency_offers;
+drop policy if exists "emergency_offers_select" on emergency_offers;
+drop policy if exists "emergency_offers_insert" on emergency_offers;
+drop policy if exists "emergency_offers_update" on emergency_offers;
 
-create policy "Offers visible to donor, requester, admin"
-  on emergency_offers for select
-  using (
-    auth.uid() = donor_id
-    or public.emergency_requester(request_id) = auth.uid()
-    or public.is_admin(auth.uid())
-  );
+create policy "emergency_offers_select" on emergency_offers for select using (
+  (select auth.uid()) = donor_id
+  or public.emergency_requester(request_id) = (select auth.uid())
+  or public.is_admin((select auth.uid()))
+);
 
 -- Can only offer on a request that exists AND is still OPEN. This (with the
 -- contacts policy above) stops one account from inserting offers against every
 -- request id to harvest contact numbers from closed/arbitrary requests.
-create policy "Donors can offer"
-  on emergency_offers for insert
-  with check (auth.uid() = donor_id and public.emergency_is_open(request_id));
+create policy "emergency_offers_insert" on emergency_offers for insert
+  with check (
+    (select auth.uid()) = donor_id
+    and public.emergency_is_open(request_id)
+  );
 
-create policy "Donor, requester, admin can update offers"
-  on emergency_offers for update
+create policy "emergency_offers_update" on emergency_offers for update
   using (
-    auth.uid() = donor_id
-    or public.emergency_requester(request_id) = auth.uid()
-    or public.is_admin(auth.uid())
+    (select auth.uid()) = donor_id
+    or public.emergency_requester(request_id) = (select auth.uid())
+    or public.is_admin((select auth.uid()))
   );
 
 -- Requester credits the donor who actually gave blood: records the donation
@@ -247,6 +266,7 @@ end;
 $$;
 
 revoke all on function public.record_emergency_donation(uuid, uuid) from public;
+revoke execute on function public.record_emergency_donation(uuid, uuid) from anon;
 grant execute on function public.record_emergency_donation(uuid, uuid) to authenticated;
 
 -- Defense-in-depth: cap how fast a single account can create offers, to slow
@@ -269,30 +289,35 @@ create trigger emergency_offers_rate_limit
   before insert on emergency_offers
   for each row execute function public.limit_emergency_offers();
 
+-- Trigger function — never callable via the API.
+revoke execute on function public.limit_emergency_offers() from public, anon, authenticated;
+
 -- ---- reports ----
 drop policy if exists "Reporters and admins can view reports" on reports;
 drop policy if exists "Logged-in users can report" on reports;
 drop policy if exists "Admins can update reports" on reports;
+drop policy if exists "reports_select" on reports;
+drop policy if exists "reports_insert" on reports;
+drop policy if exists "reports_update" on reports;
 
-create policy "Reporters and admins can view reports"
-  on reports for select
-  using (auth.uid() = reporter_id or public.is_admin(auth.uid()));
+create policy "reports_select" on reports for select using (
+  (select auth.uid()) = reporter_id
+  or public.is_admin((select auth.uid()))
+);
 
 -- You can only report in the context of a request you are involved in (you
 -- posted it, or you offered on it) — stops filing defamatory reports against
 -- arbitrary users / flooding the admin queue.
-create policy "Logged-in users can report"
-  on reports for insert
+create policy "reports_insert" on reports for insert
   with check (
-    auth.uid() = reporter_id
+    (select auth.uid()) = reporter_id
     and request_id is not null
     and (
-      public.emergency_requester(request_id) = auth.uid()
-      or public.has_offered(request_id, auth.uid())
+      public.emergency_requester(request_id) = (select auth.uid())
+      or public.has_offered(request_id, (select auth.uid()))
     )
   );
 
-create policy "Admins can update reports"
-  on reports for update
-  using (public.is_admin(auth.uid()))
-  with check (public.is_admin(auth.uid()));
+create policy "reports_update" on reports for update
+  using (public.is_admin((select auth.uid())))
+  with check (public.is_admin((select auth.uid())));

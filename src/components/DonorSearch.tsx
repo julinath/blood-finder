@@ -8,6 +8,7 @@ import BloodTypeBadge from '@/components/BloodTypeBadge'
 import {
   BLOOD_TYPES,
   BLOOD_TYPE_LABELS,
+  DONOR_CARD_SELECT,
   type DonorCard,
 } from '@/types'
 import { DISTRICTS } from '@/lib/districts'
@@ -64,9 +65,11 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
       setSearched(true)
       setLoading(true)
 
+      // Explicit columns only — the anon role has no SELECT grant on the
+      // donor's health fields (sex/age/weight/health_conditions), so `*` fails.
       let query = supabase
         .from('donors')
-        .select('*, profile:profiles(full_name, location)')
+        .select(DONOR_CARD_SELECT)
         .eq('is_approved', true)
         .eq('availability_status', 'AVAILABLE')
 
@@ -104,7 +107,7 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
 
     let query = supabase
       .from('donors')
-      .select('*, profile:profiles(full_name, location)')
+      .select(DONOR_CARD_SELECT)
       .eq('is_approved', true)
       .eq('availability_status', 'AVAILABLE')
 
