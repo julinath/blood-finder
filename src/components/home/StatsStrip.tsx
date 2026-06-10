@@ -67,7 +67,7 @@ export default function StatsStrip({
                   <CountUp value={item.value} />
                   {item.suffix}
                 </p>
-                <p className="text-[11px] sm:text-xs text-gray-500 mt-1.5 leading-tight">
+                <p className="text-xs text-gray-500 mt-1.5 leading-tight">
                   {item.label}
                 </p>
               </div>

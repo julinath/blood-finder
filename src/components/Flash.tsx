@@ -99,6 +99,10 @@ const FLASH_MESSAGES: Record<
     type: 'success',
     text: 'Report marked as resolved.',
   },
+  'report-reviewed': {
+    type: 'success',
+    text: 'Report marked as reviewed.',
+  },
   'emergency-expired': {
     type: 'success',
     text: 'Emergency request marked as expired.',

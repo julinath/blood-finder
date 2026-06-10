@@ -98,6 +98,23 @@ body {
   animation: drip 2.4s ease-in infinite;
 }
 
+/* Soft "live" pulse ring on emergency cards. Opacity-only (compositor-cheap);
+   the element's base opacity is 0, so under reduced motion it simply vanishes
+   instead of becoming a stuck ring. */
+@keyframes live-ring {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-live-ring {
+  animation: live-ring 2.8s ease-in-out infinite;
+}
+
 /* ---- Hero "living blood drop": liquid waves, bubbles, heartbeat ---- */
 
 @keyframes hero-wave-move {
@@ -165,11 +182,18 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  /* `animation: none` also discards any inline animation-delay, and none of
+     these elements rely on keyframes for their resting (visible) state —
+     fade-up content shows at full opacity, live-ring (base opacity-0) simply
+     disappears. Tailwind's animate-ping is included since it isn't
+     motion-guarded by default. */
   .animate-fade-up,
   .animate-float-slow,
   .animate-blob,
   .animate-pulse-ring,
   .animate-drip,
+  .animate-live-ring,
+  .animate-ping,
   .hero-wave,
   .hero-bubble,
   .hero-ecg {

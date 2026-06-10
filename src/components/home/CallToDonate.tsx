@@ -22,12 +22,13 @@ export default function CallToDonate() {
               Donate Blood
             </p>
             <h2 className="text-2xl sm:text-4xl font-bold text-white leading-snug max-w-3xl mx-auto mb-5">
-              রক্তদান ঐচ্ছিক বিষয় নয়, এটি দায়িত্বের চেয়েও বেশি কিছু।
+              আপনার এক ব্যাগ রক্ত হতে পারে কারো পুরো পৃথিবী।
             </h2>
             <p className="text-red-50/90 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed mb-8">
-              রক্ত কৃত্রিমভাবে তৈরি করা যায় না — শুধু একজন মানুষই পারে আরেকজনের
-              জীবন বাঁচাতে। আপনি <strong className="text-white">donor</strong>{' '}
-              হিসেবে register করুন; জরুরি প্রয়োজনে রোগীরাই আপনাকে খুঁজে নেবে।
+              রক্ত কৃত্রিমভাবে তৈরি করা যায় না — একজন মানুষই পারে আরেকজনের জীবন
+              বাঁচাতে। আজই <strong className="text-white">রক্তদাতা</strong>{' '}
+              হিসেবে নাম লেখান; জরুরি মুহূর্তে রোগীর পরিবার নিজেই আপনাকে খুঁজে
+              নেবে।
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 justify-center">

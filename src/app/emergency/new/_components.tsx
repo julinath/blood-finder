@@ -5,14 +5,13 @@ import { useFormStatus } from 'react-dom'
 import { createEmergencyRequest, type FormState } from './actions'
 import { BLOOD_TYPES, BLOOD_TYPE_LABELS } from '@/types'
 import { DISTRICTS } from '@/lib/districts'
+import { BD_MOBILE_PATTERN } from '@/lib/validation'
+import { FIELD_CLASS } from '@/components/ui/form'
 
 type Defaults = {
   district: string
   contact_phone: string
 }
-
-const FIELD_CLASS =
-  'w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent'
 
 export default function NewEmergencyForm({ defaults }: { defaults: Defaults }) {
   const [state, action] = useActionState<FormState, FormData>(
@@ -160,18 +159,20 @@ export default function NewEmergencyForm({ defaults }: { defaults: Defaults }) {
             type="tel"
             inputMode="numeric"
             required
+            pattern={BD_MOBILE_PATTERN}
             defaultValue={defaults.contact_phone}
             placeholder="01XXXXXXXXX"
             className={FIELD_CLASS}
           />
           <span className="block text-xs text-gray-400 mt-1">
-            যে donor সাহায্য করতে চাইবে শুধু সে-ই এই নম্বর দেখতে পাবে।
+            নম্বরটি সবার কাছে দেখা যাবে না — যে রক্তদাতা সাহায্য করতে এগিয়ে
+            আসবেন, আপনি তাঁর নম্বর দেখে নিজে যোগাযোগ করবেন।
           </span>
         </label>
 
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-800 leading-relaxed">
-          ⚠️ নিরাপত্তার জন্য: donor কে সরাসরি হাসপাতালের কেবিন/ওয়ার্ডে আসতে বলুন।
-          কখনো টাকার বিনিময়ে রক্ত চাইবেন না — এটি বেআইনি।
+          ⚠️ নিরাপত্তার জন্য: রক্তদাতাকে সরাসরি হাসপাতালের কেবিন/ওয়ার্ডে আসতে
+          বলুন। কখনো টাকার বিনিময়ে রক্ত নেবেন না — এটি বেআইনি।
         </div>
 
         <SubmitButton />

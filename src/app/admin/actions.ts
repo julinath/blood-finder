@@ -101,6 +101,20 @@ export async function resolveReport(reportId: string) {
   redirect('/admin?flash=report-resolved')
 }
 
+// Intermediate triage state: an admin has looked at the report but the case
+// isn't closed yet. DB check constraint allows OPEN/REVIEWED/RESOLVED.
+export async function reviewReport(reportId: string) {
+  const { supabase } = await requireAdmin()
+  const { data, error } = await supabase
+    .from('reports')
+    .update({ status: 'REVIEWED' })
+    .eq('id', reportId)
+    .select('id')
+  if (error || !data?.length) fail(`review report: ${error?.message ?? 'no row updated'}`)
+  revalidatePath('/admin')
+  redirect('/admin?flash=report-reviewed')
+}
+
 export async function deleteUser(userId: string) {
   const { supabase, user } = await requireAdmin()
   if (user.id === userId) {

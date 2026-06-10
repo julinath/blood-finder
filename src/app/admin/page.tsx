@@ -2,27 +2,32 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import BloodTypeBadge from '@/components/BloodTypeBadge'
 import StatusBadge from '@/components/StatusBadge'
+import { formatBnDate } from '@/lib/bn'
+import { checkDonorFitness, todayIsoDate } from '@/lib/eligibility'
 import {
   BLOOD_TYPE_LABELS,
   EMERGENCY_STATUS_STYLES,
-  REPORT_REASON_LABELS,
   SEX_LABELS,
+  URGENCY_LABELS,
+  URGENCY_STYLES,
   type AdminReport,
   type AdminRequest,
   type AdminUser,
   type EmergencyRequest,
   type PendingDonor,
 } from '@/types'
-import { checkDonorFitness } from '@/lib/eligibility'
 import {
   AdminCancelRequestButton,
   AdminEmergencyActions,
   ApprovedDonorActions,
-  DeleteUserButton,
   DonorApprovalActions,
-  ResolveReportButton,
-  UserAdminToggle,
+  ReportsSection,
+  UsersSection,
 } from './_components'
+
+// An OPEN emergency counts as stale once its needed-on date has passed, or —
+// when no date was given — once the post is over a week old.
+const STALE_OPEN_AFTER_MS = 7 * 24 * 60 * 60 * 1000
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -64,7 +69,7 @@ export default async function AdminPage() {
         .limit(20),
       supabase
         .from('profiles')
-        .select('id, full_name, email, is_admin, created_at')
+        .select('id, full_name, email, is_admin, created_at', { count: 'exact' })
         .order('created_at', { ascending: false })
         .limit(100),
       supabase
@@ -87,30 +92,57 @@ export default async function AdminPage() {
   const allUsers = (allUsersRes.data ?? []) as AdminUser[]
   const reports = (reportsRes.data ?? []) as unknown as AdminReport[]
   const emergencies = (emergenciesRes.data ?? []) as EmergencyRequest[]
+
+  const totalUsers = allUsersRes.count ?? allUsers.length
+  const openReports = reports.filter((r) => r.status === 'OPEN').length
   const openEmergencies = emergencies.filter((r) => r.status === 'OPEN').length
+
+  const today = todayIsoDate()
+  // Posts created before this instant (7 days ago) count as old.
+  const staleBeforeMs =
+    new Date(`${today}T00:00:00Z`).getTime() - STALE_OPEN_AFTER_MS
+  const isStaleOpen = (req: EmergencyRequest) =>
+    req.status === 'OPEN' &&
+    (req.needed_on
+      ? req.needed_on < today
+      : new Date(req.created_at).getTime() < staleBeforeMs)
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
+      {/* Header */}
       <div className="mb-8">
+        <p className="text-xs uppercase tracking-wider font-semibold text-red-600 mb-1">
+          Admin · Operations
+        </p>
         <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-        <p className="text-gray-500 mt-1">Manage donors, requests, and users.</p>
+        <p className="text-gray-500 mt-1">
+          Manage donors, reports, emergencies, and users.
+        </p>
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Pending Donors" value={pendingDonors.length} accent="amber" />
-        <StatCard label="Open Emergencies" value={openEmergencies} accent="red" />
-        <StatCard label="Recent Requests" value={allRequests.length} accent="blue" />
-        <StatCard label="Total Users" value={allUsers.length} accent="green" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-10">
+        <StatCard label="Pending donors" value={pendingDonors.length} accent="amber" />
+        <StatCard label="Open reports" value={openReports} accent="blue" />
+        <StatCard label="Open emergencies" value={openEmergencies} accent="red" />
+        <StatCard label="Total users" value={totalUsers} accent="green" />
       </div>
 
-      {/* Pending Donors */}
-      <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Pending Donor Approvals</h2>
-        </div>
+      {/* Pending Donors — amber treatment: this is the action queue */}
+      <section className="bg-white rounded-2xl border border-amber-200 shadow-sm mb-6">
+        <SectionHeader
+          dotClass="bg-amber-500"
+          title="Pending Donor Approvals"
+          subtitle="New donors waiting for review before they appear in public search."
+          badge={`${pendingDonors.length} waiting`}
+          badgeClass="bg-amber-100 text-amber-700"
+          className="border-amber-100 bg-amber-50/70"
+        />
         {pendingDonors.length === 0 ? (
-          <Empty text="No pending approvals." />
+          <Empty
+            title="No donors waiting for approval."
+            hint="New donor registrations will show up here for review."
+          />
         ) : (
           <div className="divide-y divide-gray-50">
             {pendingDonors.map((donor) => {
@@ -120,9 +152,9 @@ export default async function AdminPage() {
                 last_donation_date: donor.last_donation_date,
               })
               return (
-                <div key={donor.id} className="px-6 py-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-4 min-w-0">
+                <div key={donor.id} className="px-4 sm:px-6 py-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                       <BloodTypeBadge bloodType={donor.blood_type} size="sm" variant="soft" />
                       <div className="min-w-0">
                         <p className="font-medium text-gray-900 text-sm truncate">
@@ -178,22 +210,26 @@ export default async function AdminPage() {
 
       {/* Approved Donors */}
       <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">Approved Donors</h2>
-          <span className="text-xs text-gray-400">
-            Showing latest {approvedDonors.length}
-          </span>
-        </div>
+        <SectionHeader
+          dotClass="bg-green-500"
+          title="Approved Donors"
+          subtitle="Live in public search. Unapprove to hide, or remove the record entirely."
+          badge={`latest ${approvedDonors.length}`}
+          badgeClass="bg-green-100 text-green-700"
+        />
         {approvedDonors.length === 0 ? (
-          <Empty text="No approved donors yet." />
+          <Empty
+            title="No approved donors yet."
+            hint="Approve pending donors above to publish them in public search."
+          />
         ) : (
           <div className="divide-y divide-gray-50">
             {approvedDonors.map((donor) => (
               <div
                 key={donor.id}
-                className="px-6 py-4 flex flex-wrap items-center justify-between gap-3"
+                className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3"
               >
-                <div className="flex items-center gap-4 min-w-0">
+                <div className="flex items-center gap-3 sm:gap-4 min-w-0">
                   <BloodTypeBadge bloodType={donor.blood_type} size="sm" variant="soft" />
                   <div className="min-w-0">
                     <p className="font-medium text-gray-900 text-sm truncate">
@@ -206,7 +242,7 @@ export default async function AdminPage() {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3 whitespace-nowrap">
+                <div className="flex flex-wrap items-center gap-3">
                   <span
                     className={`flex items-center gap-1.5 text-xs font-medium ${
                       donor.availability_status === 'AVAILABLE'
@@ -238,69 +274,37 @@ export default async function AdminPage() {
 
       {/* Reports */}
       <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">Reports</h2>
-          <span className="text-xs text-gray-400">
-            {reports.filter((r) => r.status === 'OPEN').length} open
-          </span>
-        </div>
-        {reports.length === 0 ? (
-          <Empty text="No reports." />
-        ) : (
-          <div className="divide-y divide-gray-50">
-            {reports.map((r) => (
-              <div
-                key={r.id}
-                className="px-6 py-4 flex flex-wrap items-start justify-between gap-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
-                    {REPORT_REASON_LABELS[r.reason] ?? r.reason}
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {r.reporter?.full_name ?? 'User'} reported
-                    {r.reported ? ` ${r.reported.full_name}` : ''}
-                    {r.request
-                      ? ` · ${r.request.patient_problem} (${BLOOD_TYPE_LABELS[r.request.blood_type]})`
-                      : ''}
-                    {' · '}
-                    {new Date(r.created_at).toLocaleDateString()}
-                  </p>
-                  {r.details && (
-                    <p className="text-xs text-gray-500 italic mt-1">{r.details}</p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                  <span
-                    className={`text-xs px-2 py-0.5 rounded-full ${
-                      r.status === 'OPEN'
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-gray-100 text-gray-500'
-                    }`}
-                  >
-                    {r.status}
-                  </span>
-                  {r.status === 'OPEN' && <ResolveReportButton reportId={r.id} />}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        <SectionHeader
+          dotClass="bg-blue-500"
+          title="Reports"
+          subtitle="Safety and abuse reports filed by users."
+          badge={`${openReports} open`}
+          badgeClass={
+            openReports > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'
+          }
+        />
+        <ReportsSection reports={reports} />
       </section>
 
       {/* Recent Requests */}
       <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <h2 className="font-semibold text-gray-900">Recent Blood Requests</h2>
-        </div>
+        <SectionHeader
+          dotClass="bg-gray-400"
+          title="Recent Blood Requests"
+          subtitle="Direct requests between users and donors."
+          badge={`latest ${allRequests.length}`}
+        />
         {allRequests.length === 0 ? (
-          <Empty text="No requests yet." />
+          <Empty
+            title="No blood requests yet."
+            hint="When a user requests blood from a donor, it will appear here."
+          />
         ) : (
           <div className="divide-y divide-gray-50">
             {allRequests.map((req) => (
               <div
                 key={req.id}
-                className="px-6 py-4 flex items-center justify-between gap-3"
+                className="px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3"
               >
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">
@@ -316,7 +320,7 @@ export default async function AdminPage() {
                     {new Date(req.created_at).toLocaleDateString()}
                   </p>
                 </div>
-                <div className="flex items-center gap-2 whitespace-nowrap">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <StatusBadge status={req.status} />
                   {(req.status === 'PENDING' || req.status === 'ACCEPTED') && (
                     <AdminCancelRequestButton requestId={req.id} />
@@ -330,40 +334,62 @@ export default async function AdminPage() {
 
       {/* Emergency Requests */}
       <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">Emergency Requests</h2>
-          <span className="text-xs text-gray-400">{openEmergencies} open</span>
-        </div>
+        <SectionHeader
+          dotClass="bg-red-500"
+          title="Emergency Requests"
+          subtitle="Public emergency board posts. Expire stale ones to keep the board honest."
+          badge={`${openEmergencies} open`}
+          badgeClass={
+            openEmergencies > 0 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'
+          }
+        />
         {emergencies.length === 0 ? (
-          <Empty text="No emergency requests." />
+          <Empty
+            title="No emergency requests yet."
+            hint="Posts from the public emergency board will appear here."
+          />
         ) : (
           <div className="divide-y divide-gray-50">
             {emergencies.map((req) => (
-              <div
-                key={req.id}
-                className="px-6 py-4 flex flex-wrap items-center justify-between gap-3"
-              >
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-gray-900">
-                    {req.patient_problem}{' '}
-                    <span className="text-red-600 font-bold">
-                      {BLOOD_TYPE_LABELS[req.blood_type]}
+              <div key={req.id} className="px-4 sm:px-6 py-4">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="text-sm font-medium text-gray-900">
+                        {req.patient_problem}{' '}
+                        <span className="text-red-600 font-bold">
+                          {BLOOD_TYPE_LABELS[req.blood_type]}
+                        </span>
+                      </p>
+                      <span
+                        className={`text-xs px-2 py-0.5 rounded-full font-medium ${URGENCY_STYLES[req.urgency]}`}
+                      >
+                        {URGENCY_LABELS[req.urgency]}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      {req.requester_name} · {req.units_needed} ব্যাগ · {req.hospital},{' '}
+                      {req.district}
+                      {req.needed_on
+                        ? ` · প্রয়োজন: ${formatBnDate(req.needed_on)}`
+                        : ''}
+                      {' · posted '}
+                      {new Date(req.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <span
+                      className={`text-xs px-2.5 py-1 rounded-full font-medium ${EMERGENCY_STATUS_STYLES[req.status]}`}
+                    >
+                      {req.status}
                     </span>
-                  </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
-                    {req.requester_name} · {req.units_needed} ব্যাগ · {req.hospital},{' '}
-                    {req.district} · {new Date(req.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2 whitespace-nowrap">
-                  <span
-                    className={`text-xs px-2.5 py-1 rounded-full font-medium ${EMERGENCY_STATUS_STYLES[req.status]}`}
-                  >
-                    {req.status}
-                  </span>
-                  {req.status === 'OPEN' && (
-                    <AdminEmergencyActions requestId={req.id} />
-                  )}
+                    {req.status === 'OPEN' && (
+                      <AdminEmergencyActions
+                        requestId={req.id}
+                        showExpire={isStaleOpen(req)}
+                      />
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -373,49 +399,13 @@ export default async function AdminPage() {
 
       {/* Users */}
       <section className="bg-white rounded-2xl border border-gray-200 shadow-sm">
-        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-          <h2 className="font-semibold text-gray-900">Users</h2>
-          <span className="text-xs text-gray-400">
-            Showing latest {allUsers.length}
-          </span>
-        </div>
-        <div className="divide-y divide-gray-50">
-          {allUsers.map((u) => (
-            <div
-              key={u.id}
-              className="px-6 py-3 flex items-center justify-between gap-3"
-            >
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {u.full_name || '—'}
-                </p>
-                <p className="text-xs text-gray-400 truncate">{u.email}</p>
-              </div>
-              <div className="flex items-center gap-3 whitespace-nowrap">
-                {u.is_admin && (
-                  <span className="text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded-full">
-                    Admin
-                  </span>
-                )}
-                <UserAdminToggle
-                  userId={u.id}
-                  userName={u.full_name || u.email}
-                  isAdmin={u.is_admin}
-                  isSelf={u.id === user.id}
-                />
-                <DeleteUserButton
-                  userId={u.id}
-                  userName={u.full_name || u.email}
-                  isSelf={u.id === user.id}
-                  isAdminTarget={u.is_admin}
-                />
-                <span className="text-xs text-gray-400">
-                  {new Date(u.created_at).toLocaleDateString()}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <SectionHeader
+          dotClass="bg-purple-500"
+          title="Users"
+          subtitle="Every registered account. Grant admin carefully."
+          badge={`${totalUsers} total`}
+        />
+        <UsersSection users={allUsers} currentUserId={user.id} />
       </section>
     </div>
   )
@@ -430,20 +420,75 @@ function StatCard({
   value: number
   accent: 'amber' | 'blue' | 'green' | 'red'
 }) {
-  const colors: Record<typeof accent, string> = {
-    amber: 'text-amber-500',
-    blue: 'text-blue-500',
-    green: 'text-green-500',
-    red: 'text-red-500',
+  const dot: Record<typeof accent, string> = {
+    amber: 'bg-amber-500',
+    blue: 'bg-blue-500',
+    green: 'bg-green-500',
+    red: 'bg-red-500',
+  }
+  const num: Record<typeof accent, string> = {
+    amber: 'text-amber-600',
+    blue: 'text-blue-600',
+    green: 'text-green-600',
+    red: 'text-red-600',
   }
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 p-5 text-center">
-      <p className={`text-3xl font-bold ${colors[accent]}`}>{value}</p>
-      <p className="text-sm text-gray-500 mt-1">{label}</p>
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-4 sm:p-5">
+      <div className="flex items-center gap-1.5">
+        <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${dot[accent]}`} aria-hidden="true" />
+        <p className="text-xs font-semibold uppercase tracking-wide text-gray-500 truncate">
+          {label}
+        </p>
+      </div>
+      <p className={`mt-1.5 text-2xl sm:text-3xl font-bold tabular-nums ${value > 0 ? num[accent] : 'text-gray-400'}`}>
+        {value}
+      </p>
     </div>
   )
 }
 
-function Empty({ text }: { text: string }) {
-  return <p className="px-6 py-8 text-sm text-gray-400 text-center">{text}</p>
+function SectionHeader({
+  dotClass,
+  title,
+  subtitle,
+  badge,
+  badgeClass = 'bg-gray-100 text-gray-500',
+  className = 'border-gray-100',
+}: {
+  dotClass: string
+  title: string
+  subtitle?: string
+  badge?: string
+  badgeClass?: string
+  className?: string
+}) {
+  return (
+    <div
+      className={`px-4 sm:px-6 py-4 border-b rounded-t-2xl flex flex-wrap items-center justify-between gap-x-3 gap-y-1 ${className}`}
+    >
+      <div className="min-w-0">
+        <h2 className="font-semibold text-gray-900 flex items-center gap-2">
+          <span className={`h-2 w-2 rounded-full shrink-0 ${dotClass}`} aria-hidden="true" />
+          {title}
+        </h2>
+        {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+      </div>
+      {badge && (
+        <span
+          className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${badgeClass}`}
+        >
+          {badge}
+        </span>
+      )}
+    </div>
+  )
+}
+
+function Empty({ title, hint }: { title: string; hint?: string }) {
+  return (
+    <div className="px-6 py-10 text-center">
+      <p className="text-sm font-medium text-gray-500">{title}</p>
+      {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+    </div>
+  )
 }

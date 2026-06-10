@@ -5,6 +5,8 @@ import { useFormStatus } from 'react-dom'
 import { registerAsDonor, type FormState } from './actions'
 import { BLOOD_TYPES, BLOOD_TYPE_LABELS, SEXES, SEX_LABELS } from '@/types'
 import { DISTRICTS } from '@/lib/districts'
+import { BD_MOBILE_PATTERN } from '@/lib/validation'
+import { FIELD_CLASS } from '@/components/ui/form'
 
 type Defaults = {
   full_name: string
@@ -13,9 +15,6 @@ type Defaults = {
   location: string
   district: string
 }
-
-const FIELD_CLASS =
-  'w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent'
 
 export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
   const [state, action] = useActionState<FormState, FormData>(
@@ -122,14 +121,14 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
             type="tel"
             inputMode="numeric"
             required
-            pattern="01[3-9][0-9]{8}"
+            pattern={BD_MOBILE_PATTERN}
             defaultValue={defaults.mobile}
             placeholder="01XXXXXXXXX"
             className={FIELD_CLASS}
           />
           <span className="block text-xs text-gray-400 mt-1">
-            আবশ্যক — রক্তের প্রয়োজনে রোগীরা এই নম্বরে যোগাযোগ করবে। 11 digits
-            starting with 01.
+            আবশ্যক — রক্তের প্রয়োজনে রোগীরা এই নম্বরে যোগাযোগ করবেন (01 দিয়ে
+            শুরু, মোট ১১ সংখ্যা)।
           </span>
         </label>
 
@@ -223,7 +222,7 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
 
         <p className="text-xs text-gray-400 -mt-2">
           রক্তদানের যোগ্যতা: বয়স ১৮–৬৫ ও ওজন কমপক্ষে ৪৫ কেজি। এর বাইরে হলেও
-          আবেদন জমা দিতে পারবেন — admin যাচাই করে সিদ্ধান্ত নেবেন।
+          আবেদন জমা দিতে পারবেন — অ্যাডমিন যাচাই করে সিদ্ধান্ত নেবেন।
         </p>
 
         <label className="block">
@@ -241,8 +240,8 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
         </label>
 
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
-          Your profile will be reviewed by an admin before it becomes visible
-          to others.
+          আপনার আবেদন একজন অ্যাডমিন যাচাই করবেন — অনুমোদনের পর আপনার প্রোফাইল
+          রক্তদাতা তালিকায় দেখা যাবে।
         </div>
 
         <SubmitButton />

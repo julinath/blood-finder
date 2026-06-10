@@ -48,12 +48,13 @@ export default async function BloodAvailability() {
     <section className="max-w-6xl mx-auto px-4 py-16">
       <SectionHeading
         eyebrow="Browse donors"
-        title="রক্তের গ্রুপ অনুযায়ী donor"
+        title="রক্তের গ্রুপ অনুযায়ী রক্তদাতা"
         subtitle={
           <>
             এই মুহূর্তে{' '}
-            <strong className="text-red-600">{toBnDigits(total)} জন</strong> donor
-            available। আপনার গ্রুপে ক্লিক করে সরাসরি তালিকা দেখুন।
+            <strong className="text-red-600">{toBnDigits(total)} জন</strong>{' '}
+            রক্তদাতা রক্ত দিতে প্রস্তুত। আপনার প্রয়োজনের গ্রুপে ট্যাপ করে সরাসরি
+            তালিকা দেখুন।
           </>
         }
       />
@@ -71,7 +72,7 @@ export default async function BloodAvailability() {
             <Reveal key={bt} delay={i * 60}>
               <Link
                 href={href}
-                className="group block h-full bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-red-200 hover:-translate-y-1 transition-all"
+                className="group block h-full bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-red-200 hover:-translate-y-1 active:scale-[0.98] active:border-red-300 transition-all"
               >
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-red-50 text-red-600 text-lg font-bold group-hover:bg-red-600 group-hover:text-white transition-colors">
@@ -81,7 +82,7 @@ export default async function BloodAvailability() {
                     <p className="text-2xl font-bold text-gray-900">
                       <CountUp value={count} />
                     </p>
-                    <p className="text-[11px] text-gray-500 mt-1">জন</p>
+                    <p className="text-xs text-gray-500 mt-1">জন</p>
                   </div>
                 </div>
 
@@ -104,14 +105,14 @@ export default async function BloodAvailability() {
                         <span className="absolute inline-flex h-full w-full rounded-full bg-green-500 opacity-75 animate-ping" />
                         <span className="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
                       </span>
-                      Available এখন
+                      এখন Available
                     </>
                   ) : (
-                    'এখন কেউ নেই — আপনি হোন'
+                    'এখন কেউ নেই — আপনিই প্রথম হোন'
                   )}
                   <span
                     aria-hidden="true"
-                    className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="ml-auto opacity-30 group-hover:opacity-100 transition-opacity"
                   >
                     →
                   </span>
@@ -127,7 +128,7 @@ export default async function BloodAvailability() {
           href="/donors"
           className="inline-flex items-center gap-2 bg-white border border-gray-300 text-gray-800 px-6 py-3 rounded-xl text-sm font-semibold hover:bg-gray-50 hover:border-gray-400 transition-colors"
         >
-          সব donor দেখুন
+          সব রক্তদাতা দেখুন
           <span aria-hidden="true">→</span>
         </Link>
       </div>

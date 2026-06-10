@@ -237,7 +237,12 @@ function RequestCard({
       .insert({ request_id: request.id, donor_id: user.id })
     if (offerError && offerError.code !== '23505') {
       console.error('[emergency-offer] failed:', offerError.message)
-      setError('আবার চেষ্টা করুন।')
+      // 42501 = RLS rejected the insert — the request is no longer OPEN.
+      setError(
+        offerError.code === '42501'
+          ? 'রিকোয়েস্টটি ইতিমধ্যে বন্ধ হয়ে গেছে — পেজটি রিফ্রেশ করুন।'
+          : 'সাড়া পাঠানো যায়নি। আবার চেষ্টা করুন।',
+      )
       setOffering(false)
       return
     }

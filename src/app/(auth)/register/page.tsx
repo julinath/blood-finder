@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import GoogleIcon from '@/components/GoogleIcon'
 import { MIN_PASSWORD_LENGTH } from '@/lib/validation'
 import { parseAuthIdentifier } from '@/lib/auth-identifier'
+import { Field, FIELD_CLASS } from '@/components/ui/form'
 
 type Form = { full_name: string; identifier: string; password: string; confirm: string }
 
@@ -34,7 +35,7 @@ export default function RegisterPage() {
 
     const fullName = form.full_name.trim()
     if (!fullName) {
-      setError('Full name is required.')
+      setError('পুরো নাম লিখুন।')
       return
     }
     const identifier = parseAuthIdentifier(form.identifier)
@@ -43,11 +44,11 @@ export default function RegisterPage() {
       return
     }
     if (form.password !== form.confirm) {
-      setError('Passwords do not match.')
+      setError('দুটি password মেলেনি — আবার দেখুন।')
       return
     }
     if (form.password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
+      setError(`Password কমপক্ষে ${MIN_PASSWORD_LENGTH} অক্ষরের হতে হবে।`)
       return
     }
 
@@ -88,7 +89,7 @@ export default function RegisterPage() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) {
-      setError('Could not start Google sign-in. Please try again.')
+      setError('Google সাইন-ইন শুরু করা যায়নি। আবার চেষ্টা করুন।')
       setGoogleLoading(false)
     }
   }
@@ -202,14 +203,4 @@ export default function RegisterPage() {
   )
 }
 
-const inputClass =
-  'w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent'
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="block text-sm font-medium text-gray-700 mb-1.5">{label}</span>
-      {children}
-    </label>
-  )
-}
+const inputClass = FIELD_CLASS

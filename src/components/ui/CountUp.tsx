@@ -3,9 +3,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { toBnDigits } from '@/lib/bn'
 
+// Keep in sync with Reveal — CountUp usually sits inside a Reveal wrapper, and
+// matching thresholds means the count starts together with the reveal instead
+// of mid-fade.
+const IO_THRESHOLD = 0.15
+
 /**
  * Counts up from 0 to `value` the first time it scrolls into view. Renders
  * Bengali digits by default; pass `bn={false}` for Western numerals.
+ * Honours prefers-reduced-motion by jumping straight to the final value.
  */
 export default function CountUp({
   value,
@@ -29,6 +35,11 @@ export default function CountUp({
     const run = () => {
       if (started.current) return
       started.current = true
+      // Reduced motion: show the final number immediately, no rAF loop.
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        setDisplay(value)
+        return
+      }
       let raf = 0
       let startTs: number | null = null
       const tick = (ts: number) => {
@@ -49,7 +60,7 @@ export default function CountUp({
           observer.disconnect()
         }
       },
-      { threshold: 0.4 },
+      { threshold: IO_THRESHOLD },
     )
     observer.observe(node)
     return () => observer.disconnect()
@@ -57,7 +68,8 @@ export default function CountUp({
 
   const text = bn ? toBnDigits(display) : display.toLocaleString()
   return (
-    <span ref={ref}>
+    // tabular-nums keeps digit width stable while counting → no layout jitter.
+    <span ref={ref} className="tabular-nums">
       {text}
       {suffix}
     </span>

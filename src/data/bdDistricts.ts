@@ -1,3 +1,6 @@
+// SERVER-ONLY: bd-districts.json is ~700 KB. Import this module only from
+// server components (the map is projected to SVG paths server-side) — pulling
+// it into a 'use client' file would ship the whole GeoJSON to every phone.
 import type { FeatureCollection, Geometry, Position } from 'geojson'
 import { geoArea } from 'd3-geo'
 import raw from './bd-districts.json'

@@ -18,13 +18,18 @@ const PREVIEW_LIMIT = 3
 export default async function EmergencyPreview() {
   const supabase = await createClient()
 
-  // Gracefully degrades to the empty state if the migration hasn't run yet.
+  // Gracefully degrades to the empty state if the migration hasn't run yet —
+  // but never silently: keep the error visible in the server logs.
   const { data, error } = await supabase
     .from('emergency_requests')
     .select(PREVIEW_COLUMNS)
     .eq('status', 'OPEN')
     .order('created_at', { ascending: false })
     .limit(PREVIEW_LIMIT)
+
+  if (error) {
+    console.error('[EmergencyPreview] failed to load emergency requests:', error)
+  }
 
   const requests = (error ? [] : (data ?? [])) as unknown as EmergencyRequest[]
 
@@ -41,7 +46,7 @@ export default async function EmergencyPreview() {
           </span>
         }
         title="ইমার্জেন্সি রক্তের রিকোয়েস্ট"
-        subtitle="এই মুহূর্তে যেসব রোগী জরুরি রক্তের অপেক্ষায় আছে।"
+        subtitle="এই মুহূর্তে যেসব রোগী জরুরি রক্তের জন্য অপেক্ষা করছেন।"
         className="mb-6"
       />
 
@@ -62,8 +67,14 @@ export default async function EmergencyPreview() {
               <Reveal key={request.id} delay={i * 100}>
                 <Link
                   href="/emergency"
-                  className="bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-red-200 hover:-translate-y-0.5 transition-all block h-full"
+                  className="relative bg-white rounded-2xl border border-gray-200 p-5 shadow-sm hover:shadow-md hover:border-red-200 hover:-translate-y-0.5 active:scale-[0.98] transition-all block h-full"
                 >
+                  {/* soft "live" pulse — opacity-only, removed under reduced motion */}
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 rounded-2xl ring-2 ring-red-400/35 opacity-0 animate-live-ring"
+                    style={{ animationDelay: `${i * 0.5}s` }}
+                  />
                   <div className="flex items-start justify-between mb-3">
                     <span
                       className={`text-xs font-semibold px-2.5 py-1 rounded-full ${URGENCY_STYLES[request.urgency]}`}

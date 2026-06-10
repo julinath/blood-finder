@@ -5,20 +5,20 @@ const STEPS = [
   {
     num: 1,
     icon: '🔍',
-    title: 'Search Donor',
-    desc: 'রক্তের গ্রুপ ও এলাকা দিয়ে দ্রুত verified donor খুঁজুন।',
+    title: 'রক্তদাতা খুঁজুন',
+    desc: 'রক্তের গ্রুপ ও এলাকা দিয়ে দ্রুত যাচাইকৃত রক্তদাতা খুঁজুন।',
   },
   {
     num: 2,
     icon: '✉️',
-    title: 'Send Request',
-    desc: 'এক ক্লিকে donor কে রক্তের অনুরোধ পাঠান, কোনো ঝামেলা ছাড়াই।',
+    title: 'অনুরোধ পাঠান',
+    desc: 'এক ট্যাপে রক্তদাতাকে রক্তের অনুরোধ পাঠান — কোনো ঝামেলা ছাড়াই।',
   },
   {
     num: 3,
     icon: '❤️',
-    title: 'Save a Life',
-    desc: 'রক্তদানের মাধ্যমে একজনের জীবন বাঁচানোর অংশ হোন।',
+    title: 'জীবন বাঁচান',
+    desc: 'রক্তদানের মাধ্যমে একটি জীবন বাঁচানোর সঙ্গী হোন।',
   },
 ] as const
 
@@ -28,7 +28,7 @@ export default function HowItWorks() {
       <SectionHeading
         eyebrow="How it works"
         title="তিনটি সহজ ধাপে রক্তদাতা খুঁজুন"
-        subtitle="Connecting donors and recipients in three simple steps."
+        subtitle="খোঁজা থেকে রক্তদান — পুরো প্রক্রিয়া মাত্র তিনটি ধাপে।"
       />
 
       <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4">

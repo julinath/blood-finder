@@ -180,7 +180,7 @@ export default async function DonorProfilePage({
             ) : (
               <div className="text-center">
                 <p className="text-sm text-gray-500 mb-3">
-                  Login to contact this donor or send a request.
+                  রক্তদাতার নম্বর দেখতে ও রিকোয়েস্ট পাঠাতে আগে লগইন করুন।
                 </p>
                 <Link
                   href="/login"

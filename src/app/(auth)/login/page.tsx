@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import GoogleIcon from '@/components/GoogleIcon'
 import { parseAuthIdentifier } from '@/lib/auth-identifier'
+import { FIELD_CLASS } from '@/components/ui/form'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -33,7 +34,7 @@ export default function LoginPage() {
       password,
     })
     if (error) {
-      setError('Invalid email/mobile or password.')
+      setError('Email/mobile অথবা password ভুল — আবার চেষ্টা করুন।')
       setLoading(false)
       return
     }
@@ -49,7 +50,7 @@ export default function LoginPage() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) {
-      setError('Could not start Google sign-in. Please try again.')
+      setError('Google সাইন-ইন শুরু করা যায়নি। আবার চেষ্টা করুন।')
       setGoogleLoading(false)
     }
   }
@@ -102,7 +103,7 @@ export default function LoginPage() {
                 onChange={(e) => setIdentifier(e.target.value)}
                 required
                 autoComplete="username"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className={FIELD_CLASS}
                 placeholder="you@example.com অথবা 01XXXXXXXXX"
               />
             </label>
@@ -114,7 +115,7 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                className={FIELD_CLASS}
                 placeholder="••••••••"
               />
             </label>

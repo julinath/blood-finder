@@ -190,7 +190,7 @@ export default function DonorStats({
           )}
 
           {/* Legend */}
-          <div className="flex items-center justify-center gap-3 mt-3 text-[11px] text-gray-500">
+          <div className="flex items-center justify-center gap-3 mt-3 text-xs text-gray-500">
             <span>কম</span>
             <span className="flex items-center gap-1">
               {['#f3f4f6', '#fecaca', '#f87171', '#dc2626', '#991b1b'].map((c) => (

@@ -34,22 +34,39 @@ export default async function Home() {
   const donorCount = donorRes.count ?? 0
   const availableCount = availableRes.count ?? 0
 
+  /*
+   * Section order is intent-first for a mobile-only audience:
+   * 1. Hero          — headline + blood-type quick search ABOVE the CTA buttons,
+   *                    so "I need blood NOW" has a tap target within the first
+   *                    viewport on a 390×844 phone.
+   * 2. Emergency     — live urgent requests: the second most time-critical intent.
+   * 3. Availability  — the interactive per-group board, directly after Emergency
+   *                    (it answers "is my group available right now?").
+   * 4. StatsStrip    — trust/scale numbers as a bridge from action to explanation.
+   * 5. HowItWorks    — first-time visitors who scrolled past the actions.
+   * 6. DonorMap      — the data centerpiece; exploratory, so it can sit mid-page.
+   * 7-9. WhyDonate → Misconceptions → DonationGuide — awareness funnel that
+   *                    warms up the "I want to donate" intent…
+   * 10. CallToDonate — …closed by the donate CTA.
+   */
   return (
     <>
-      {/* 1 — Hero + 2 — live stats (the single home for the numbers) */}
+      {/* 1 — hero: search-first (quick search lives inside, above the fold) */}
       <Hero />
-      <StatsStrip donorCount={donorCount} availableCount={availableCount} />
 
-      {/* 3 — urgent: live emergency requests */}
+      {/* 2 — urgent: live emergency requests */}
       <EmergencyPreview />
 
-      {/* 4 — how the platform works */}
-      <HowItWorks />
-
-      {/* 5 — interactive blood-group availability board */}
+      {/* 3 — interactive blood-group availability board */}
       <BloodAvailability />
 
-      {/* 6 — interactive map (centerpiece) */}
+      {/* 4 — live stats (the single home for the numbers) */}
+      <StatsStrip donorCount={donorCount} availableCount={availableCount} />
+
+      {/* 5 — how the platform works */}
+      <HowItWorks />
+
+      {/* 6 — interactive map (data centerpiece) */}
       <section className="max-w-6xl mx-auto px-4 py-16">
         <SectionHeading
           eyebrow="Live Data"

@@ -102,21 +102,24 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile: profile circle + hamburger */}
-        <div className="md:hidden flex items-center gap-2">
+        {/* Mobile: profile circle + hamburger. Both hit areas are ≥44px —
+            the avatar keeps its 36px visual inside a larger touch target. */}
+        <div className="md:hidden flex items-center gap-1">
           {user && (
             <Link
               href="/profile"
               aria-label="My profile"
               onClick={closeMenu}
-              className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold"
+              className="w-11 h-11 flex items-center justify-center"
             >
-              {initial}
+              <span className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold">
+                {initial}
+              </span>
             </Link>
           )}
           <button
             type="button"
-            className="p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+            className="p-3 rounded-lg text-gray-600 hover:bg-gray-100"
             onClick={() => setMenuOpen((open) => !open)}
             aria-label={menuOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={menuOpen}
@@ -148,7 +151,7 @@ export default function Navbar() {
           <Link
             href="/emergency"
             onClick={closeMenu}
-            className="text-sm text-red-600 font-semibold py-1 flex items-center gap-1"
+            className="text-sm text-red-600 font-semibold py-2.5 flex items-center gap-1"
           >
             <span aria-hidden="true">🚑</span> Emergency
           </Link>
@@ -162,7 +165,7 @@ export default function Navbar() {
                   closeMenu()
                   handleLogout()
                 }}
-                className="text-sm text-red-600 text-left py-1"
+                className="text-sm text-red-600 text-left py-2.5"
               >
                 Logout
               </button>
@@ -200,7 +203,7 @@ function MobileLink({
   children: React.ReactNode
 }) {
   return (
-    <Link href={href} onClick={onClick} className="text-sm text-gray-700 py-1">
+    <Link href={href} onClick={onClick} className="text-sm text-gray-700 py-2.5">
       {children}
     </Link>
   )

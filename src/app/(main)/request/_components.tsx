@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { MAX_NOTES_LENGTH } from '@/lib/validation'
+import { FIELD_CLASS } from '@/components/ui/form'
 import { createBloodRequest, type RequestFormState } from './actions'
 
 export function RequestForm({
@@ -42,7 +43,7 @@ export function RequestForm({
             rows={4}
             maxLength={MAX_NOTES_LENGTH}
             placeholder="রোগীর অবস্থা, হাসপাতাল, কবে লাগবে — যা জানালে রক্তদাতার সুবিধা হয়…"
-            className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent resize-none"
+            className={`${FIELD_CLASS} resize-none`}
           />
           <span className="block text-xs text-gray-400 mt-1 text-right">
             {notes.length}/{MAX_NOTES_LENGTH}

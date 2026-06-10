@@ -232,8 +232,16 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
 
       {!loading && searched && donors.length === 0 && (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-lg">No donors found matching your criteria.</p>
-          <p className="text-gray-400 text-sm mt-1">Try changing your filters.</p>
+          <p className="text-gray-500 text-lg">
+            আপনার শর্তে কোনো রক্তদাতা পাওয়া যায়নি।
+          </p>
+          <p className="text-gray-400 text-sm mt-1">
+            ফিল্টার বদলে আবার চেষ্টা করুন — অথবা{' '}
+            <Link href="/emergency/new" className="text-red-600 hover:underline">
+              Emergency রিকোয়েস্ট পোস্ট করুন
+            </Link>
+            ।
+          </p>
         </div>
       )}
 

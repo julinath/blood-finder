@@ -2,9 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+// Keep in sync with CountUp so counters and the reveal fade start together.
+const IO_THRESHOLD = 0.15
+
 /**
  * Fades + slides its children up the first time they scroll into view.
  * Wraps server-rendered content; `delay` (ms) staggers grid items.
+ * Reduced motion is handled in globals.css (.reveal is forced visible).
  */
 export default function Reveal({
   children,
@@ -28,7 +32,7 @@ export default function Reveal({
           observer.disconnect()
         }
       },
-      { threshold: 0.15 },
+      { threshold: IO_THRESHOLD },
     )
     observer.observe(node)
     return () => observer.disconnect()
