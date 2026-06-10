@@ -3,10 +3,12 @@
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { registerAsDonor, type FormState } from './actions'
-import { BLOOD_TYPES, BLOOD_TYPE_LABELS } from '@/types'
+import { BLOOD_TYPES, BLOOD_TYPE_LABELS, SEXES, SEX_LABELS } from '@/types'
 import { DISTRICTS } from '@/lib/districts'
 
 type Defaults = {
+  full_name: string
+  email: string
   mobile: string
   location: string
   district: string
@@ -21,7 +23,7 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
     null,
   )
   const prefilledFromProfile = Boolean(
-    defaults.mobile || defaults.location || defaults.district,
+    defaults.full_name || defaults.mobile || defaults.location || defaults.district,
   )
 
   return (
@@ -41,13 +43,45 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
             role="status"
             className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2"
           >
-            Pre-filled from your profile — edit if needed.
+            আপনার প্রোফাইল থেকে পূরণ করা হয়েছে — প্রয়োজনে বদলে নিন। এখানে যা
+            সেভ করবেন তা প্রোফাইলেও আপডেট হবে।
           </p>
         )}
 
         <label className="block">
           <span className="block text-sm font-medium text-gray-700 mb-1.5">
-            Blood Type
+            Full Name (পুরো নাম)
+          </span>
+          <input
+            name="full_name"
+            type="text"
+            required
+            minLength={2}
+            defaultValue={defaults.full_name}
+            placeholder="আপনার পুরো নাম"
+            className={FIELD_CLASS}
+          />
+        </label>
+
+        <label className="block">
+          <span className="block text-sm font-medium text-gray-700 mb-1.5">
+            Email
+          </span>
+          <input
+            type="email"
+            value={defaults.email}
+            disabled
+            aria-disabled="true"
+            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-gray-50 text-gray-400 cursor-not-allowed"
+          />
+          <span className="block text-xs text-gray-400 mt-1">
+            আপনার অ্যাকাউন্টের ইমেইল — পরিবর্তন করা যায় না।
+          </span>
+        </label>
+
+        <label className="block">
+          <span className="block text-sm font-medium text-gray-700 mb-1.5">
+            Blood Group (রক্তের গ্রুপ)
           </span>
           <select
             name="blood_type"
@@ -55,13 +89,48 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
             defaultValue=""
             className={`${FIELD_CLASS} bg-white`}
           >
-            <option value="">Select blood type</option>
+            <option value="">Select blood group</option>
             {BLOOD_TYPES.map((bt) => (
               <option key={bt} value={bt}>
                 {BLOOD_TYPE_LABELS[bt]}
               </option>
             ))}
           </select>
+        </label>
+
+        <label className="block">
+          <span className="block text-sm font-medium text-gray-700 mb-1.5">
+            Last Donation Date (শেষ রক্তদানের তারিখ){' '}
+            <span className="text-gray-400">(optional)</span>
+          </span>
+          <input
+            name="last_donation_date"
+            type="date"
+            className={FIELD_CLASS}
+          />
+          <span className="block text-xs text-gray-400 mt-1">
+            আগে কখনো রক্ত না দিয়ে থাকলে খালি রাখুন।
+          </span>
+        </label>
+
+        <label className="block">
+          <span className="block text-sm font-medium text-gray-700 mb-1.5">
+            Mobile Number (মোবাইল নম্বর)
+          </span>
+          <input
+            name="mobile"
+            type="tel"
+            inputMode="numeric"
+            required
+            pattern="01[3-9][0-9]{8}"
+            defaultValue={defaults.mobile}
+            placeholder="01XXXXXXXXX"
+            className={FIELD_CLASS}
+          />
+          <span className="block text-xs text-gray-400 mt-1">
+            আবশ্যক — রক্তের প্রয়োজনে রোগীরা এই নম্বরে যোগাযোগ করবে। 11 digits
+            starting with 01.
+          </span>
         </label>
 
         <label className="block">
@@ -99,21 +168,76 @@ export default function BecomeDonorForm({ defaults }: { defaults: Defaults }) {
           />
         </label>
 
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <label className="block">
+            <span className="block text-sm font-medium text-gray-700 mb-1.5">
+              Sex (লিঙ্গ)
+            </span>
+            <select
+              name="sex"
+              required
+              defaultValue=""
+              className={`${FIELD_CLASS} bg-white`}
+            >
+              <option value="">নির্বাচন করুন</option>
+              {SEXES.map((sex) => (
+                <option key={sex} value={sex}>
+                  {SEX_LABELS[sex]}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className="block">
+            <span className="block text-sm font-medium text-gray-700 mb-1.5">
+              Age (বয়স)
+            </span>
+            <input
+              name="age"
+              type="number"
+              required
+              min={16}
+              max={70}
+              inputMode="numeric"
+              placeholder="যেমন: 25"
+              className={FIELD_CLASS}
+            />
+          </label>
+
+          <label className="block">
+            <span className="block text-sm font-medium text-gray-700 mb-1.5">
+              Weight (ওজন, কেজি)
+            </span>
+            <input
+              name="weight_kg"
+              type="number"
+              required
+              min={30}
+              max={250}
+              inputMode="numeric"
+              placeholder="যেমন: 60"
+              className={FIELD_CLASS}
+            />
+          </label>
+        </div>
+
+        <p className="text-xs text-gray-400 -mt-2">
+          রক্তদানের যোগ্যতা: বয়স ১৮–৬৫ ও ওজন কমপক্ষে ৪৫ কেজি। এর বাইরে হলেও
+          আবেদন জমা দিতে পারবেন — admin যাচাই করে সিদ্ধান্ত নেবেন।
+        </p>
+
         <label className="block">
           <span className="block text-sm font-medium text-gray-700 mb-1.5">
-            Mobile Number
+            কোনো রোগ আছে কি?{' '}
+            <span className="text-gray-400">(optional)</span>
           </span>
-          <input
-            name="mobile"
-            type="tel"
-            inputMode="numeric"
-            defaultValue={defaults.mobile}
-            placeholder="01XXXXXXXXX"
+          <textarea
+            name="health_conditions"
+            rows={2}
+            maxLength={500}
+            placeholder="যেমন: ডায়াবেটিস, উচ্চ রক্তচাপ — কোনো রোগ না থাকলে খালি রাখুন"
             className={FIELD_CLASS}
           />
-          <span className="block text-xs text-gray-400 mt-1">
-            Optional. 11 digits starting with 01.
-          </span>
         </label>
 
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">

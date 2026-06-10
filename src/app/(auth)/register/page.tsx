@@ -6,15 +6,16 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import GoogleIcon from '@/components/GoogleIcon'
 import { MIN_PASSWORD_LENGTH } from '@/lib/validation'
+import { parseAuthIdentifier } from '@/lib/auth-identifier'
 
-type Form = { full_name: string; email: string; password: string; confirm: string }
+type Form = { full_name: string; identifier: string; password: string; confirm: string }
 
 export default function RegisterPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const [form, setForm] = useState<Form>({
     full_name: '',
-    email: '',
+    identifier: '',
     password: '',
     confirm: '',
   })
@@ -36,6 +37,11 @@ export default function RegisterPage() {
       setError('Full name is required.')
       return
     }
+    const identifier = parseAuthIdentifier(form.identifier)
+    if (!identifier) {
+      setError('সঠিক email অথবা mobile number দিন (যেমন: 01712345678)।')
+      return
+    }
     if (form.password !== form.confirm) {
       setError('Passwords do not match.')
       return
@@ -47,19 +53,30 @@ export default function RegisterPage() {
 
     setLoading(true)
 
+    // Mobile signups use a synthetic email under the hood (Supabase Auth is
+    // email-based); the mobile lands on the profile via signup metadata.
     const { error } = await supabase.auth.signUp({
-      email: form.email.trim(),
+      email: identifier.email,
       password: form.password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: {
+          full_name: fullName,
+          ...(identifier.kind === 'mobile' ? { mobile: identifier.mobile } : {}),
+        },
+      },
     })
 
     if (error) {
-      setError(error.message)
+      setError(
+        error.message.includes('already registered')
+          ? 'এই email/mobile দিয়ে আগে থেকেই অ্যাকাউন্ট আছে — Login করুন।'
+          : error.message,
+      )
       setLoading(false)
       return
     }
 
-    router.push('/dashboard?flash=registered')
+    router.push('/profile?flash=registered')
     router.refresh()
   }
 
@@ -125,16 +142,19 @@ export default function RegisterPage() {
                 placeholder="Jewel Ahmed"
               />
             </Field>
-            <Field label="Email">
+            <Field label="Email বা Mobile Number">
               <input
-                type="email"
-                value={form.email}
-                onChange={set('email')}
+                type="text"
+                value={form.identifier}
+                onChange={set('identifier')}
                 required
-                autoComplete="email"
+                autoComplete="username"
                 className={inputClass}
-                placeholder="you@example.com"
+                placeholder="you@example.com অথবা 01XXXXXXXXX"
               />
+              <span className="block text-xs text-gray-400 mt-1">
+                Email না থাকলে মোবাইল নম্বর দিয়েই অ্যাকাউন্ট খুলতে পারবেন।
+              </span>
             </Field>
             <Field label="Password">
               <input

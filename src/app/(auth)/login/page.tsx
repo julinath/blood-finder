@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import GoogleIcon from '@/components/GoogleIcon'
+import { parseAuthIdentifier } from '@/lib/auth-identifier'
 
 export default function LoginPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
-  const [email, setEmail] = useState('')
+  const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -17,16 +18,26 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
     setError('')
 
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const parsed = parseAuthIdentifier(identifier)
+    if (!parsed) {
+      setError('সঠিক email অথবা mobile number দিন।')
+      return
+    }
+
+    setLoading(true)
+
+    const { error } = await supabase.auth.signInWithPassword({
+      email: parsed.email,
+      password,
+    })
     if (error) {
-      setError('Invalid email or password.')
+      setError('Invalid email/mobile or password.')
       setLoading(false)
       return
     }
-    router.push('/dashboard?flash=login-ok')
+    router.push('/profile?flash=login-ok')
     router.refresh()
   }
 
@@ -82,15 +93,17 @@ export default function LoginPage() {
               </div>
             )}
             <label className="block">
-              <span className="block text-sm font-medium text-gray-700 mb-1.5">Email</span>
+              <span className="block text-sm font-medium text-gray-700 mb-1.5">
+                Email বা Mobile Number
+              </span>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={identifier}
+                onChange={(e) => setIdentifier(e.target.value)}
                 required
-                autoComplete="email"
+                autoComplete="username"
                 className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                placeholder="you@example.com"
+                placeholder="you@example.com অথবা 01XXXXXXXXX"
               />
             </label>
             <label className="block">

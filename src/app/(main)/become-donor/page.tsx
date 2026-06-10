@@ -2,19 +2,20 @@ import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import BecomeDonorForm from './_components'
+import { displayEmail } from '@/lib/auth-identifier'
 
 export default async function BecomeDonorPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Check whether they're already a donor, and prefill from their profile
-  // (so a Google user who already filled in mobile/location at /profile
-  // doesn't need to retype them here).
+  // Check whether they're already a donor, and prefill from their profile so
+  // the name/mobile/location they set at registration or /profile show up
+  // here automatically — the two stay in sync.
   const [profileRes, donorRes] = await Promise.all([
     supabase
       .from('profiles')
-      .select('mobile, location, district')
+      .select('full_name, email, mobile, location, district')
       .eq('id', user.id)
       .maybeSingle(),
     supabase
@@ -32,17 +33,23 @@ export default async function BecomeDonorPage() {
           You are already registered as a donor
         </h2>
         <p className="text-gray-500 mb-6">
-          Go to your dashboard to manage your donor profile.
+          Go to your profile to manage your donor information.
         </p>
         <Link
-          href="/dashboard"
+          href="/profile"
           className="inline-block bg-red-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors"
         >
-          Go to Dashboard
+          Go to Profile
         </Link>
       </div>
     )
   }
+
+  const meta = user.user_metadata ?? {}
+  const fullNameFromMeta =
+    (typeof meta.full_name === 'string' && meta.full_name) ||
+    (typeof meta.name === 'string' && meta.name) ||
+    ''
 
   return (
     <div className="max-w-lg mx-auto px-4 py-10">
@@ -62,6 +69,8 @@ export default async function BecomeDonorPage() {
 
       <BecomeDonorForm
         defaults={{
+          full_name: profileRes.data?.full_name || fullNameFromMeta,
+          email: displayEmail(profileRes.data?.email ?? user.email ?? ''),
           mobile: profileRes.data?.mobile ?? '',
           location: profileRes.data?.location ?? '',
           district: profileRes.data?.district ?? '',

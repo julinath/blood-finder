@@ -20,6 +20,10 @@ type Filters = { blood_type: string; district: string; location: string }
 
 const EMPTY_FILTERS: Filters = { blood_type: '', district: '', location: '' }
 
+function hasCriteria(filters: Filters): boolean {
+  return Boolean(filters.blood_type || filters.district || filters.location.trim())
+}
+
 /** Build a readable place string, avoiding "Dhaka, Dhaka" when area == district. */
 function placeOf(donor: DonorCard): string {
   if (donor.district && donor.location && donor.location !== donor.district) {
@@ -48,13 +52,16 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
   )
 
   const [donors, setDonors] = useState<DonorCard[]>([])
-  // Start in the loading/searched state so the initial fetch (below) renders
-  // the skeleton immediately instead of the "enter criteria" placeholder.
-  const [loading, setLoading] = useState(true)
+  // The full /donors page starts EMPTY by design — results appear only after a
+  // deliberate search (or a deep link with filters). The home preview autoloads.
+  const autoLoad = preview || hasCriteria(initialFilters)
+  const [searched, setSearched] = useState(autoLoad)
+  const [loading, setLoading] = useState(autoLoad)
   const [filters, setFilters] = useState<Filters>(initialFilters)
 
   const search = useCallback(
     async (currentFilters: Filters) => {
+      setSearched(true)
       setLoading(true)
 
       let query = supabase
@@ -87,10 +94,12 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
     [supabase, max],
   )
 
-  // Auto-load donors on first visit, honouring any URL filters. Inlined here
+  // Auto-load on the home preview and on deep links with filters. Without
+  // criteria the page stays empty until the visitor searches. Inlined here
   // (rather than calling `search()`) so the effect itself doesn't synchronously
   // setState, and re-runs if the deep-linked filters change.
   useEffect(() => {
+    if (!preview && !hasCriteria(initialFilters)) return
     let cancelled = false
 
     let query = supabase
@@ -124,7 +133,7 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
     return () => {
       cancelled = true
     }
-  }, [supabase, max, initialFilters])
+  }, [supabase, max, initialFilters, preview])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -201,7 +210,24 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
         </div>
       )}
 
-      {!loading && donors.length === 0 && (
+      {/* Not searched yet — motivational prompt instead of a full dump */}
+      {!loading && !searched && (
+        <div className="text-center py-16 max-w-xl mx-auto">
+          <div className="text-5xl mb-4" aria-hidden="true">🩸</div>
+          <h2 className="text-xl font-bold text-gray-900 mb-2">
+            রক্তদাতা খুঁজুন
+          </h2>
+          <p className="text-gray-500">
+            উপরে blood group, জেলা বা এলাকা বেছে <strong>Search</strong> চাপুন —
+            আপনার কাছাকাছি verified রক্তদাতাদের দেখতে পাবেন।
+          </p>
+          <p className="text-sm text-red-600 font-medium mt-4">
+            “আপনার এক ব্যাগ রক্ত, কারো পুরো পৃথিবী।” ❤️
+          </p>
+        </div>
+      )}
+
+      {!loading && searched && donors.length === 0 && (
         <div className="text-center py-16">
           <p className="text-gray-400 text-lg">No donors found matching your criteria.</p>
           <p className="text-gray-400 text-sm mt-1">Try changing your filters.</p>
@@ -253,12 +279,21 @@ export default function DonorSearch({ preview = false }: { preview?: boolean }) 
                     </svg>
                     <span className="truncate">{placeOf(donor)}</span>
                   </p>
-                  {donor.last_donation_date && (
-                    <p className="text-xs text-gray-400 mt-2">
-                      Last donated:{' '}
-                      {new Date(donor.last_donation_date).toLocaleDateString()}
-                    </p>
-                  )}
+                  <div className="flex items-center justify-between gap-2 mt-2">
+                    {donor.last_donation_date ? (
+                      <p className="text-xs text-gray-400">
+                        Last donated:{' '}
+                        {new Date(donor.last_donation_date).toLocaleDateString()}
+                      </p>
+                    ) : (
+                      <span />
+                    )}
+                    {(donor.donation_count ?? 0) > 0 && (
+                      <span className="text-xs bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                        🩸 {donor.donation_count} বার রক্ত দিয়েছেন
+                      </span>
+                    )}
+                  </div>
                 </Link>
               )
             })}

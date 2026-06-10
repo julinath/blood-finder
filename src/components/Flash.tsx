@@ -26,6 +26,14 @@ const FLASH_MESSAGES: Record<string, { type: 'success' | 'info'; text: string }>
     type: 'success',
     text: 'Donor rejected and removed.',
   },
+  'donor-unapproved': {
+    type: 'success',
+    text: 'Donor hidden from public search.',
+  },
+  'donor-removed': {
+    type: 'success',
+    text: 'Donor record removed.',
+  },
   'admin-granted': {
     type: 'success',
     text: 'Admin access granted.',
@@ -33,6 +41,10 @@ const FLASH_MESSAGES: Record<string, { type: 'success' | 'info'; text: string }>
   'admin-revoked': {
     type: 'success',
     text: 'Admin access revoked.',
+  },
+  'user-deleted': {
+    type: 'success',
+    text: 'User deleted permanently.',
   },
   'request-accepted': {
     type: 'success',
@@ -61,6 +73,10 @@ const FLASH_MESSAGES: Record<string, { type: 'success' | 'info'; text: string }>
   'emergency-fulfilled': {
     type: 'success',
     text: 'ধন্যবাদ! রিকোয়েস্ট সম্পন্ন হিসেবে চিহ্নিত হয়েছে।',
+  },
+  'donation-credited': {
+    type: 'success',
+    text: 'ধন্যবাদ! রক্তদান donor-এর হিসাবে যোগ হয়েছে এবং রিকোয়েস্ট সম্পন্ন হয়েছে।',
   },
   'emergency-cancelled': {
     type: 'success',

@@ -35,7 +35,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user && authRoutes.some(r => path.startsWith(r))) {
-    return NextResponse.redirect(new URL('/dashboard', request.url))
+    return NextResponse.redirect(new URL('/profile', request.url))
   }
 
   return supabaseResponse

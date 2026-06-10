@@ -24,7 +24,8 @@ src/
 ├── app/
 │   ├── (auth)/login/         ← Login page
 │   ├── (auth)/register/      ← Register page
-│   ├── (main)/dashboard/     ← User dashboard (protected)
+│   ├── (main)/profile/       ← Profile hub: info, donor details, requests (protected)
+│   ├── (main)/dashboard/     ← Redirects to /profile (legacy route)
 │   ├── (main)/become-donor/  ← Donor registration (protected)
 │   ├── (main)/request/       ← Blood request form (protected)
 │   ├── admin/                ← Admin panel (admin only)
@@ -43,8 +44,9 @@ src/
 
 ### Auth
 - Supabase Auth handles email/password + Google OAuth
-- `src/proxy.ts` protects routes: `/dashboard`, `/become-donor`, `/request`, `/admin`
+- `src/proxy.ts` protects routes: `/profile`, `/become-donor`, `/request`, `/admin`, `/emergency/new`
 - Admin check: `profiles.is_admin = true` in DB
+- Admin link lives in the footer (admins only) — never in the navbar; `/admin` is also reachable by URL
 
 ### Database Schema
 See `supabase-schema.sql` — run this in Supabase SQL Editor to set up tables + RLS policies.

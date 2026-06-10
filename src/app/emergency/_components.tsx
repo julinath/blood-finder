@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import {
@@ -19,19 +20,14 @@ const FEED_COLUMNS =
 
 const FEED_LIMIT = 60
 
-/** Bangladesh local number (01XXXXXXXXX) → WhatsApp international (8801XXXXXXXXX). */
-function toWhatsApp(phone: string): string {
-  return '880' + phone.replace(/^0/, '')
-}
-
 export default function EmergencyFeed() {
   const supabase = useMemo(() => createClient(), [])
   const [requests, setRequests] = useState<EmergencyRequest[]>([])
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
   const [filters, setFilters] = useState({ blood_type: '', district: '' })
-  // request_id -> revealed contact phone, for requests this viewer already offered on.
-  const [revealed, setRevealed] = useState<Record<string, string>>({})
+  // Request ids this viewer already offered on (so the state survives reloads).
+  const [offeredIds, setOfferedIds] = useState<Set<string>>(new Set())
 
   // Identify the viewer and prefill the district filter from their profile
   // ("আমার এলাকা") so donors immediately see needs near them. setState only
@@ -88,9 +84,8 @@ export default function EmergencyFeed() {
     }
   }, [supabase, filters.blood_type, filters.district])
 
-  // Seed already-offered cards with their revealed contact so the reveal
-  // persists across reloads (RLS lets a prior offerer read the contact while
-  // the request is OPEN). setState only happens in the async resolution.
+  // Seed which cards this viewer already offered on, so the "thank you" state
+  // persists across reloads. setState only happens in the async resolution.
   useEffect(() => {
     if (!userId || requests.length === 0) return
     let cancelled = false
@@ -101,21 +96,8 @@ export default function EmergencyFeed() {
         .select('request_id')
         .eq('donor_id', userId)
         .in('request_id', ids)
-      const offeredIds = (offers ?? []).map((o) => o.request_id as string)
-      if (offeredIds.length === 0) {
-        if (!cancelled) setRevealed({})
-        return
-      }
-      const { data: contacts } = await supabase
-        .from('emergency_contacts')
-        .select('request_id, contact_phone')
-        .in('request_id', offeredIds)
       if (cancelled) return
-      const map: Record<string, string> = {}
-      for (const c of contacts ?? []) {
-        map[c.request_id as string] = c.contact_phone as string
-      }
-      setRevealed(map)
+      setOfferedIds(new Set((offers ?? []).map((o) => o.request_id as string)))
     })()
     return () => {
       cancelled = true
@@ -197,7 +179,7 @@ export default function EmergencyFeed() {
               key={request.id}
               request={request}
               isOwn={request.requester_id === userId}
-              revealedPhone={revealed[request.id] ?? null}
+              alreadyOffered={offeredIds.has(request.id)}
             />
           ))}
         </div>
@@ -209,23 +191,27 @@ export default function EmergencyFeed() {
 function RequestCard({
   request,
   isOwn,
-  revealedPhone,
+  alreadyOffered,
 }: {
   request: EmergencyRequest
   isOwn: boolean
-  revealedPhone: string | null
+  alreadyOffered: boolean
 }) {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
-  const [phone, setPhone] = useState<string | null>(null)
+  const [offeredNow, setOfferedNow] = useState(false)
   const [offering, setOffering] = useState(false)
   const [error, setError] = useState('')
+  const [needsMobile, setNeedsMobile] = useState(false)
 
-  // Phone from this session's tap, or seeded from a prior offer (persists reload).
-  const effectivePhone = phone ?? revealedPhone
+  const offered = offeredNow || alreadyOffered
 
+  // Donor-first privacy: offering does NOT reveal the requester's phone.
+  // Instead the requester sees the donor's number on their profile and calls
+  // the donor — so a donor must have a mobile on file before offering.
   const handleOffer = async () => {
     setError('')
+    setNeedsMobile(false)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       router.push('/login')
@@ -233,6 +219,17 @@ function RequestCard({
     }
 
     setOffering(true)
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('mobile')
+      .eq('id', user.id)
+      .maybeSingle()
+    if (!profile?.mobile) {
+      setNeedsMobile(true)
+      setOffering(false)
+      return
+    }
 
     // Record the offer (idempotent — ignore the unique-violation on re-click).
     const { error: offerError } = await supabase
@@ -245,21 +242,7 @@ function RequestCard({
       return
     }
 
-    // Now that an offer exists, RLS lets us read the contact number.
-    const { data: contact, error: contactError } = await supabase
-      .from('emergency_contacts')
-      .select('contact_phone')
-      .eq('request_id', request.id)
-      .maybeSingle()
-
-    if (contactError || !contact) {
-      console.error('[emergency-offer] contact read failed:', contactError?.message)
-      setError('যোগাযোগের নম্বর পাওয়া যায়নি।')
-      setOffering(false)
-      return
-    }
-
-    setPhone(contact.contact_phone)
+    setOfferedNow(true)
     setOffering(false)
   }
 
@@ -322,22 +305,15 @@ function RequestCard({
           <span className="block text-center text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-xl py-2.5">
             আপনার দেওয়া রিকোয়েস্ট
           </span>
-        ) : effectivePhone ? (
-          <div className="space-y-2">
-            <a
-              href={`tel:${effectivePhone}`}
-              className="flex items-center justify-center gap-2 bg-gray-900 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-gray-800 transition-colors"
-            >
-              📞 {effectivePhone}
-            </a>
-            <a
-              href={`https://wa.me/${toWhatsApp(effectivePhone)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 bg-green-600 text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-green-700 transition-colors"
-            >
-              WhatsApp এ যোগাযোগ করুন
-            </a>
+        ) : offered ? (
+          <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-center">
+            <p className="text-sm font-semibold text-green-700">
+              ✅ ধন্যবাদ! আপনার সাড়া পৌঁছে গেছে।
+            </p>
+            <p className="text-xs text-green-600 mt-1">
+              রিকোয়েস্টকারী আপনার নম্বর দেখতে পাবেন এবং প্রয়োজনে আপনাকে কল
+              করবেন।
+            </p>
           </div>
         ) : (
           <button
@@ -348,6 +324,14 @@ function RequestCard({
           >
             {offering ? 'অপেক্ষা করুন…' : '🩸 আমি রক্ত দিতে পারবো'}
           </button>
+        )}
+        {needsMobile && (
+          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 text-center">
+            সাড়া দিতে আগে আপনার মোবাইল নম্বর দরকার —{' '}
+            <Link href="/profile" className="font-semibold underline">
+              প্রোফাইলে নম্বর যোগ করুন
+            </Link>
+          </p>
         )}
         {error && (
           <p className="text-xs text-red-600 mt-2 text-center">{error}</p>

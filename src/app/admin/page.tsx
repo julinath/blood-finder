@@ -4,13 +4,21 @@ import BloodTypeBadge from '@/components/BloodTypeBadge'
 import StatusBadge from '@/components/StatusBadge'
 import {
   BLOOD_TYPE_LABELS,
+  EMERGENCY_STATUS_STYLES,
   REPORT_REASON_LABELS,
+  SEX_LABELS,
   type AdminReport,
   type AdminRequest,
   type AdminUser,
+  type EmergencyRequest,
   type PendingDonor,
 } from '@/types'
+import { checkDonorFitness } from '@/lib/eligibility'
 import {
+  AdminCancelRequestButton,
+  AdminEmergencyActions,
+  ApprovedDonorActions,
+  DeleteUserButton,
   DonorApprovalActions,
   ResolveReportButton,
   UserAdminToggle,
@@ -26,15 +34,27 @@ export default async function AdminPage() {
     .select('is_admin')
     .eq('id', user.id)
     .maybeSingle()
-  if (!profile?.is_admin) redirect('/dashboard')
+  if (!profile?.is_admin) redirect('/profile')
 
-  const [pendingDonorsRes, allRequestsRes, allUsersRes, reportsRes] =
-    await Promise.all([
+  const [
+    pendingDonorsRes,
+    approvedDonorsRes,
+    allRequestsRes,
+    allUsersRes,
+    reportsRes,
+    emergenciesRes,
+  ] = await Promise.all([
       supabase
         .from('donors')
         .select('*, profile:profiles(full_name, email, mobile)')
         .eq('is_approved', false)
         .order('created_at', { ascending: false }),
+      supabase
+        .from('donors')
+        .select('*, profile:profiles(full_name, email, mobile)')
+        .eq('is_approved', true)
+        .order('created_at', { ascending: false })
+        .limit(100),
       supabase
         .from('blood_requests')
         .select(
@@ -54,12 +74,20 @@ export default async function AdminPage() {
         )
         .order('created_at', { ascending: false })
         .limit(50),
+      supabase
+        .from('emergency_requests')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20),
     ])
 
   const pendingDonors = (pendingDonorsRes.data ?? []) as PendingDonor[]
+  const approvedDonors = (approvedDonorsRes.data ?? []) as PendingDonor[]
   const allRequests = (allRequestsRes.data ?? []) as AdminRequest[]
   const allUsers = (allUsersRes.data ?? []) as AdminUser[]
   const reports = (reportsRes.data ?? []) as unknown as AdminReport[]
+  const emergencies = (emergenciesRes.data ?? []) as EmergencyRequest[]
+  const openEmergencies = emergencies.filter((r) => r.status === 'OPEN').length
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-10">
@@ -69,8 +97,9 @@ export default async function AdminPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
         <StatCard label="Pending Donors" value={pendingDonors.length} accent="amber" />
+        <StatCard label="Open Emergencies" value={openEmergencies} accent="red" />
         <StatCard label="Recent Requests" value={allRequests.length} accent="blue" />
         <StatCard label="Total Users" value={allUsers.length} accent="green" />
       </div>
@@ -84,7 +113,82 @@ export default async function AdminPage() {
           <Empty text="No pending approvals." />
         ) : (
           <div className="divide-y divide-gray-50">
-            {pendingDonors.map((donor) => (
+            {pendingDonors.map((donor) => {
+              const fitness = checkDonorFitness({
+                age: donor.age,
+                weight_kg: donor.weight_kg,
+                last_donation_date: donor.last_donation_date,
+              })
+              return (
+                <div key={donor.id} className="px-6 py-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-4 min-w-0">
+                      <BloodTypeBadge bloodType={donor.blood_type} size="sm" variant="soft" />
+                      <div className="min-w-0">
+                        <p className="font-medium text-gray-900 text-sm truncate">
+                          {donor.profile?.full_name ?? 'Unknown'}
+                        </p>
+                        <p className="text-xs text-gray-400 truncate">
+                          {donor.profile?.email ?? ''}
+                          {donor.profile?.mobile ? ` · ${donor.profile.mobile}` : ''}
+                          {donor.location ? ` · ${donor.location}` : ''}
+                        </p>
+                      </div>
+                    </div>
+                    <DonorApprovalActions
+                      donorId={donor.id}
+                      donorName={donor.profile?.full_name ?? 'this donor'}
+                    />
+                  </div>
+
+                  {/* Fitness facts the admin judges approval by */}
+                  <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-gray-500">
+                    {donor.sex && <span>{SEX_LABELS[donor.sex]}</span>}
+                    {donor.age != null && <span>বয়স: {donor.age}</span>}
+                    {donor.weight_kg != null && <span>ওজন: {donor.weight_kg} কেজি</span>}
+                    <span>
+                      শেষ রক্তদান:{' '}
+                      {donor.last_donation_date
+                        ? new Date(donor.last_donation_date).toLocaleDateString()
+                        : 'কখনো দেননি'}
+                    </span>
+                    {donor.health_conditions && (
+                      <span className="text-amber-700">
+                        রোগ: {donor.health_conditions}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    {fitness.fit ? (
+                      <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">
+                        ✓ রক্তদানের উপযুক্ত
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
+                        ⚠ Not eligible — {fitness.reasons.join(' · ')}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Approved Donors */}
+      <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900">Approved Donors</h2>
+          <span className="text-xs text-gray-400">
+            Showing latest {approvedDonors.length}
+          </span>
+        </div>
+        {approvedDonors.length === 0 ? (
+          <Empty text="No approved donors yet." />
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {approvedDonors.map((donor) => (
               <div
                 key={donor.id}
                 className="px-6 py-4 flex flex-wrap items-center justify-between gap-3"
@@ -97,14 +201,35 @@ export default async function AdminPage() {
                     </p>
                     <p className="text-xs text-gray-400 truncate">
                       {donor.profile?.email ?? ''}
+                      {donor.profile?.mobile ? ` · ${donor.profile.mobile}` : ''}
                       {donor.location ? ` · ${donor.location}` : ''}
                     </p>
                   </div>
                 </div>
-                <DonorApprovalActions
-                  donorId={donor.id}
-                  donorName={donor.profile?.full_name ?? 'this donor'}
-                />
+                <div className="flex items-center gap-3 whitespace-nowrap">
+                  <span
+                    className={`flex items-center gap-1.5 text-xs font-medium ${
+                      donor.availability_status === 'AVAILABLE'
+                        ? 'text-green-700'
+                        : 'text-gray-400'
+                    }`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        donor.availability_status === 'AVAILABLE'
+                          ? 'bg-green-500'
+                          : 'bg-gray-400'
+                      }`}
+                    />
+                    {donor.availability_status === 'AVAILABLE'
+                      ? 'Available'
+                      : 'Unavailable'}
+                  </span>
+                  <ApprovedDonorActions
+                    donorId={donor.id}
+                    donorName={donor.profile?.full_name ?? 'this donor'}
+                  />
+                </div>
               </div>
             ))}
           </div>
@@ -191,7 +316,55 @@ export default async function AdminPage() {
                     {new Date(req.created_at).toLocaleDateString()}
                   </p>
                 </div>
-                <StatusBadge status={req.status} />
+                <div className="flex items-center gap-2 whitespace-nowrap">
+                  <StatusBadge status={req.status} />
+                  {(req.status === 'PENDING' || req.status === 'ACCEPTED') && (
+                    <AdminCancelRequestButton requestId={req.id} />
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Emergency Requests */}
+      <section className="bg-white rounded-2xl border border-gray-200 shadow-sm mb-6">
+        <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+          <h2 className="font-semibold text-gray-900">Emergency Requests</h2>
+          <span className="text-xs text-gray-400">{openEmergencies} open</span>
+        </div>
+        {emergencies.length === 0 ? (
+          <Empty text="No emergency requests." />
+        ) : (
+          <div className="divide-y divide-gray-50">
+            {emergencies.map((req) => (
+              <div
+                key={req.id}
+                className="px-6 py-4 flex flex-wrap items-center justify-between gap-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-gray-900">
+                    {req.patient_problem}{' '}
+                    <span className="text-red-600 font-bold">
+                      {BLOOD_TYPE_LABELS[req.blood_type]}
+                    </span>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {req.requester_name} · {req.units_needed} ব্যাগ · {req.hospital},{' '}
+                    {req.district} · {new Date(req.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2 whitespace-nowrap">
+                  <span
+                    className={`text-xs px-2.5 py-1 rounded-full font-medium ${EMERGENCY_STATUS_STYLES[req.status]}`}
+                  >
+                    {req.status}
+                  </span>
+                  {req.status === 'OPEN' && (
+                    <AdminEmergencyActions requestId={req.id} />
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -230,6 +403,12 @@ export default async function AdminPage() {
                   isAdmin={u.is_admin}
                   isSelf={u.id === user.id}
                 />
+                <DeleteUserButton
+                  userId={u.id}
+                  userName={u.full_name || u.email}
+                  isSelf={u.id === user.id}
+                  isAdminTarget={u.is_admin}
+                />
                 <span className="text-xs text-gray-400">
                   {new Date(u.created_at).toLocaleDateString()}
                 </span>
@@ -249,12 +428,13 @@ function StatCard({
 }: {
   label: string
   value: number
-  accent: 'amber' | 'blue' | 'green'
+  accent: 'amber' | 'blue' | 'green' | 'red'
 }) {
   const colors: Record<typeof accent, string> = {
     amber: 'text-amber-500',
     blue: 'text-blue-500',
     green: 'text-green-500',
+    red: 'text-red-500',
   }
   return (
     <div className="bg-white rounded-2xl border border-gray-200 p-5 text-center">

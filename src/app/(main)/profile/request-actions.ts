@@ -14,9 +14,9 @@ export async function toggleAvailability(donorId: string, currentStatus: Availab
     .from('donors')
     .update({ availability_status: newStatus })
     .eq('id', donorId)
-  revalidatePath('/dashboard')
+  revalidatePath('/profile')
   redirect(
-    `/dashboard?flash=${newStatus === 'AVAILABLE' ? 'availability-on' : 'availability-off'}`,
+    `/profile?flash=${newStatus === 'AVAILABLE' ? 'availability-on' : 'availability-off'}`,
   )
 }
 
@@ -26,8 +26,8 @@ export async function cancelRequest(requestId: string) {
     .from('blood_requests')
     .update({ status: 'CANCELLED' })
     .eq('id', requestId)
-  revalidatePath('/dashboard')
-  redirect('/dashboard?flash=request-cancelled')
+  revalidatePath('/profile')
+  redirect('/profile?flash=request-cancelled')
 }
 
 export async function acceptRequest(requestId: string, donorId: string) {
@@ -60,8 +60,8 @@ export async function acceptRequest(requestId: string, donorId: string) {
     .update({ last_donation_date: today })
     .eq('id', donorId)
 
-  revalidatePath('/dashboard')
-  redirect('/dashboard?flash=request-accepted')
+  revalidatePath('/profile')
+  redirect('/profile?flash=request-accepted')
 }
 
 export async function declineRequest(requestId: string) {
@@ -70,8 +70,8 @@ export async function declineRequest(requestId: string) {
     .from('blood_requests')
     .update({ status: 'CANCELLED' })
     .eq('id', requestId)
-  revalidatePath('/dashboard')
-  redirect('/dashboard?flash=request-declined')
+  revalidatePath('/profile')
+  redirect('/profile?flash=request-declined')
 }
 
 // ---- Emergency requests (the public needs board) ----
@@ -83,10 +83,31 @@ export async function fulfillEmergencyRequest(requestId: string) {
     .from('emergency_requests')
     .update({ status: 'FULFILLED' })
     .eq('id', requestId)
-  revalidatePath('/dashboard')
+  revalidatePath('/profile')
   revalidatePath('/emergency')
   revalidatePath('/')
-  redirect('/dashboard?flash=emergency-fulfilled')
+  redirect('/profile?flash=emergency-fulfilled')
+}
+
+// The requester marks WHO actually donated: the DB function records the
+// donation (bumping the donor's public donation_count) and closes the request
+// in one permission-checked step.
+export async function creditEmergencyDonor(
+  requestId: string,
+  donorUserId: string,
+) {
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('record_emergency_donation', {
+    p_request_id: requestId,
+    p_donor_user_id: donorUserId,
+  })
+  if (error) {
+    console.error('[emergency] credit donor failed:', error.message)
+  }
+  revalidatePath('/profile')
+  revalidatePath('/emergency')
+  revalidatePath('/')
+  redirect('/profile?flash=donation-credited')
 }
 
 export async function cancelEmergencyRequest(requestId: string) {
@@ -95,8 +116,8 @@ export async function cancelEmergencyRequest(requestId: string) {
     .from('emergency_requests')
     .update({ status: 'CANCELLED' })
     .eq('id', requestId)
-  revalidatePath('/dashboard')
+  revalidatePath('/profile')
   revalidatePath('/emergency')
   revalidatePath('/')
-  redirect('/dashboard?flash=emergency-cancelled')
+  redirect('/profile?flash=emergency-cancelled')
 }

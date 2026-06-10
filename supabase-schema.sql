@@ -28,6 +28,15 @@ create table if not exists donors (
   created_at timestamp with time zone default now()
 );
 
+-- Columns added after the original release (idempotent for existing DBs).
+alter table profiles add column if not exists district text;
+alter table donors add column if not exists district text;
+alter table donors add column if not exists sex text;
+alter table donors add column if not exists age integer;
+alter table donors add column if not exists weight_kg integer;
+alter table donors add column if not exists health_conditions text;
+alter table donors add column if not exists donation_count integer not null default 0;
+
 -- Blood Requests
 create table if not exists blood_requests (
   id uuid primary key default gen_random_uuid(),
@@ -66,6 +75,18 @@ begin
     alter table blood_requests add constraint blood_requests_status_check
       check (status in ('PENDING','ACCEPTED','CANCELLED','COMPLETED'));
   end if;
+  if not exists (select 1 from pg_constraint where conname = 'donors_sex_check') then
+    alter table donors add constraint donors_sex_check
+      check (sex is null or sex in ('MALE','FEMALE','OTHER'));
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'donors_age_check') then
+    alter table donors add constraint donors_age_check
+      check (age is null or age between 16 and 70);
+  end if;
+  if not exists (select 1 from pg_constraint where conname = 'donors_weight_check') then
+    alter table donors add constraint donors_weight_check
+      check (weight_kg is null or weight_kg between 30 and 250);
+  end if;
 end $$;
 
 -- Prevent duplicate PENDING requests from the same user to the same donor.
@@ -91,8 +112,9 @@ create or replace function public.handle_new_user()
 returns trigger as $$
 begin
   -- Insert, or update if the row already exists (e.g. Google re-login where
-  -- the trigger fired previously without a `full_name`).
-  insert into public.profiles (id, full_name, email)
+  -- the trigger fired previously without a `full_name`). Mobile-number
+  -- registrations carry `mobile` in the signup metadata.
+  insert into public.profiles (id, full_name, email, mobile)
   values (
     new.id,
     coalesce(
@@ -100,7 +122,8 @@ begin
       new.raw_user_meta_data->>'name',
       ''
     ),
-    new.email
+    new.email,
+    nullif(new.raw_user_meta_data->>'mobile', '')
   )
   on conflict (id) do update
     set full_name = case
@@ -108,7 +131,8 @@ begin
             then excluded.full_name
           else profiles.full_name
         end,
-        email = excluded.email;
+        email = excluded.email,
+        mobile = coalesce(profiles.mobile, excluded.mobile);
   return new;
 end;
 $$ language plpgsql security definer;
@@ -116,6 +140,29 @@ $$ language plpgsql security definer;
 create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- ============================================================================
+-- Donation count — kept in sync by trigger on donation_records
+-- ============================================================================
+
+create or replace function public.bump_donation_count()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  update donors
+    set donation_count = donation_count + 1,
+        last_donation_date = greatest(coalesce(last_donation_date, new.donation_date), new.donation_date)
+  where id = new.donor_id;
+  return new;
+end;
+$$;
+
+create or replace trigger on_donation_record_created
+  after insert on donation_records
+  for each row execute procedure public.bump_donation_count();
 
 -- ============================================================================
 -- Row Level Security
@@ -157,6 +204,33 @@ $$;
 
 revoke all on function public.donor_user_id(uuid) from public;
 grant execute on function public.donor_user_id(uuid) to anon, authenticated;
+
+-- Admins can permanently delete a user account. Deleting from auth.users
+-- cascades to profiles → donors → blood_requests etc. SECURITY DEFINER is
+-- required because the authenticated role has no access to auth.users; the
+-- is_admin gate + self-delete guard keep it safe.
+create or replace function public.admin_delete_user(target_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if not public.is_admin(auth.uid()) then
+    raise exception 'Only admins can delete users';
+  end if;
+  if target_user_id = auth.uid() then
+    raise exception 'You cannot delete your own account';
+  end if;
+  if public.is_admin(target_user_id) then
+    raise exception 'Revoke admin access before deleting an admin';
+  end if;
+  delete from auth.users where id = target_user_id;
+end;
+$$;
+
+revoke all on function public.admin_delete_user(uuid) from public;
+grant execute on function public.admin_delete_user(uuid) to authenticated;
 
 -- ---- Profiles ----
 -- Drop old permissive policy if it exists, then re-create tighter ones.

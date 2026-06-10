@@ -102,6 +102,15 @@ export default async function DonorProfilePage({
             <InfoTile label="District" value={donor.district ?? donor.location} />
             <InfoTile label="Last Donated" value={lastDonationLabel} />
             <InfoTile
+              label="Total Donations"
+              value={
+                donor.donation_count > 0
+                  ? `🩸 ${donor.donation_count} বার`
+                  : 'এখনো নেই'
+              }
+              valueClass={donor.donation_count > 0 ? 'text-red-600' : ''}
+            />
+            <InfoTile
               label="Eligibility"
               value={
                 eligibility.isEligible

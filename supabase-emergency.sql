@@ -157,22 +157,19 @@ create policy "Requesters and admins can update requests"
   using (auth.uid() = requester_id or public.is_admin(auth.uid()))
   with check (auth.uid() = requester_id or public.is_admin(auth.uid()));
 
--- ---- emergency_contacts (phone hidden until you're requester / have offered / admin) ----
+-- ---- emergency_contacts (donor-first privacy) ----
 drop policy if exists "Contact visible after offering" on emergency_contacts;
+drop policy if exists "Contact visible to requester and admins" on emergency_contacts;
 drop policy if exists "Requester can add contact" on emergency_contacts;
 
--- The requester and admins can always read the contact. A donor who offered can
--- read it ONLY while the request is still OPEN — so cancelling/fulfilling the
--- request immediately revokes contact access for everyone who offered.
-create policy "Contact visible after offering"
+-- Only the requester and admins can read the contact. Offering donors never
+-- see it — instead the requester sees the offering donor's number (profile
+-- page) and calls the donor. Donor privacy comes first.
+create policy "Contact visible to requester and admins"
   on emergency_contacts for select
   using (
     public.emergency_requester(request_id) = auth.uid()
     or public.is_admin(auth.uid())
-    or (
-      public.has_offered(request_id, auth.uid())
-      and public.emergency_is_open(request_id)
-    )
   );
 
 create policy "Requester can add contact"
@@ -206,6 +203,51 @@ create policy "Donor, requester, admin can update offers"
     or public.emergency_requester(request_id) = auth.uid()
     or public.is_admin(auth.uid())
   );
+
+-- Requester credits the donor who actually gave blood: records the donation
+-- (bump_donation_count trigger updates the donor's count) and closes the
+-- request — one atomic, permission-checked step.
+create or replace function public.record_emergency_donation(p_request_id uuid, p_donor_user_id uuid)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_requester uuid;
+  v_status text;
+  v_donor_id uuid;
+begin
+  select requester_id, status into v_requester, v_status
+    from emergency_requests where id = p_request_id;
+  if v_requester is null then
+    raise exception 'Request not found';
+  end if;
+  if v_requester <> auth.uid() then
+    raise exception 'Only the requester can record who donated';
+  end if;
+  if v_status <> 'OPEN' then
+    raise exception 'Request is already closed';
+  end if;
+  if not exists (
+    select 1 from emergency_offers
+    where request_id = p_request_id and donor_id = p_donor_user_id
+  ) then
+    raise exception 'This user did not offer on the request';
+  end if;
+
+  update emergency_requests set status = 'FULFILLED' where id = p_request_id;
+
+  select id into v_donor_id from donors where user_id = p_donor_user_id;
+  if v_donor_id is not null then
+    insert into donation_records (donor_id, requester_id, request_id, donation_date)
+    values (v_donor_id, auth.uid(), null, current_date);
+  end if;
+end;
+$$;
+
+revoke all on function public.record_emergency_donation(uuid, uuid) from public;
+grant execute on function public.record_emergency_donation(uuid, uuid) to authenticated;
 
 -- Defense-in-depth: cap how fast a single account can create offers, to slow
 -- any bulk contact-scraping attempt that survives the OPEN-status gate.

@@ -117,13 +117,13 @@ function RequestForm() {
         <div className="text-5xl mb-4" aria-hidden="true">✅</div>
         <h2 className="text-2xl font-bold text-gray-900 mb-2">Request Sent!</h2>
         <p className="text-gray-500 mb-6">
-          The donor will be notified. You can track the status in your dashboard.
+          The donor will be notified. You can track the status in your profile.
         </p>
         <button
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push('/profile')}
           className="bg-red-600 text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors"
         >
-          Go to Dashboard
+          Go to Profile
         </button>
       </div>
     )

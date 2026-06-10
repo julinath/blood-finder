@@ -1,13 +1,16 @@
 'use client'
 
-import { useActionState, useEffect, useState } from 'react'
+import { useActionState, useEffect, useMemo, useState } from 'react'
 import { useFormStatus } from 'react-dom'
+import { useRouter } from 'next/navigation'
 import {
-  updateDonorLocation,
+  updateDonorDetails,
   updateProfile,
   type FormState,
 } from './actions'
 import { DISTRICTS } from '@/lib/districts'
+import { SEXES, SEX_LABELS, isSex } from '@/types'
+import { createClient } from '@/lib/supabase/client'
 
 type ProfileDefaults = {
   full_name: string
@@ -20,40 +23,31 @@ type ProfileDefaults = {
 type DonorDefaults = {
   location: string
   district: string
+  sex: string
+  age: string
+  weight_kg: string
+  last_donation_date: string
+  health_conditions: string
 }
 
-export function ProfileSection({
-  profile,
-  donor,
-}: {
-  profile: ProfileDefaults
-  donor: DonorDefaults | null
-}) {
+export function ProfileSection({ profile }: { profile: ProfileDefaults }) {
   const [editing, setEditing] = useState(false)
 
   return (
-    <>
-      <div className="flex items-start justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">
-            {editing ? 'Edit Profile' : 'My Profile'}
-          </h1>
-          <p className="text-gray-500 mt-1">
-            {editing ? 'Update your personal information' : 'Your account information'}
-          </p>
-        </div>
+    <section className="bg-white rounded-2xl border border-gray-200 shadow-sm">
+      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+        <h2 className="font-semibold text-gray-900">Personal Information</h2>
         {!editing && (
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors whitespace-nowrap"
+            className="bg-red-600 text-white px-4 py-1.5 rounded-lg text-xs font-semibold hover:bg-red-700 transition-colors"
           >
             Edit
           </button>
         )}
       </div>
-
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 space-y-6">
+      <div className="p-6">
         {editing ? (
           <ProfileForm
             defaults={profile}
@@ -63,24 +57,14 @@ export function ProfileSection({
         ) : (
           <ProfileView profile={profile} />
         )}
-
-        {donor && (
-          <div className="border-t border-gray-100 pt-6">
-            <h3 className="text-sm font-semibold text-gray-700 mb-4">Donor Location</h3>
-            <DonorLocationForm
-              defaultLocation={donor.location}
-              defaultDistrict={donor.district}
-            />
-          </div>
-        )}
       </div>
-    </>
+    </section>
   )
 }
 
 function ProfileView({ profile }: { profile: ProfileDefaults }) {
   return (
-    <dl className="space-y-5">
+    <dl className="grid grid-cols-1 sm:grid-cols-2 gap-5">
       <ViewRow label="Full Name" value={profile.full_name || '—'} />
       <ViewRow label="Email" value={profile.email || '—'} />
       <ViewRow
@@ -252,50 +236,226 @@ export function ProfileForm({
   )
 }
 
-export function DonorLocationForm({
-  defaultLocation,
-  defaultDistrict,
+export function DonorDetailsSection({ donor }: { donor: DonorDefaults }) {
+  const [editing, setEditing] = useState(false)
+
+  return (
+    <div className="border-t border-gray-100 pt-4 mt-4">
+      <div className="flex items-center justify-between gap-3 mb-4">
+        <h3 className="text-sm font-semibold text-gray-700">Donor Details</h3>
+        {!editing && (
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="bg-gray-900 text-white px-4 py-1.5 rounded-lg text-xs font-semibold hover:bg-gray-700 transition-colors"
+          >
+            Edit
+          </button>
+        )}
+      </div>
+      {editing ? (
+        <DonorDetailsForm donor={donor} onDone={() => setEditing(false)} />
+      ) : (
+        <dl className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          <ViewRow
+            label="District"
+            value={donor.district || <span className="text-gray-400">Not set</span>}
+          />
+          <ViewRow
+            label="Area"
+            value={donor.location || <span className="text-gray-400">Not set</span>}
+          />
+          <ViewRow
+            label="Sex"
+            value={
+              isSex(donor.sex) ? SEX_LABELS[donor.sex] : (
+                <span className="text-gray-400">Not set</span>
+              )
+            }
+          />
+          <ViewRow
+            label="Age"
+            value={donor.age || <span className="text-gray-400">Not set</span>}
+          />
+          <ViewRow
+            label="Weight"
+            value={
+              donor.weight_kg ? (
+                `${donor.weight_kg} kg`
+              ) : (
+                <span className="text-gray-400">Not set</span>
+              )
+            }
+          />
+          <ViewRow
+            label="Last Donation"
+            value={
+              donor.last_donation_date ? (
+                new Date(donor.last_donation_date).toLocaleDateString()
+              ) : (
+                <span className="text-gray-400">Never</span>
+              )
+            }
+          />
+          <div className="col-span-2 sm:col-span-3">
+            <ViewRow
+              label="রোগ / Health Conditions"
+              value={
+                donor.health_conditions || (
+                  <span className="text-gray-400">নেই (None)</span>
+                )
+              }
+            />
+          </div>
+        </dl>
+      )}
+    </div>
+  )
+}
+
+function DonorDetailsForm({
+  donor,
+  onDone,
 }: {
-  defaultLocation: string
-  defaultDistrict: string
+  donor: DonorDefaults
+  onDone: () => void
 }) {
   const [state, action] = useActionState<FormState, FormData>(
-    updateDonorLocation,
+    updateDonorDetails,
     null,
   )
 
+  useEffect(() => {
+    if (state?.ok) onDone()
+  }, [state, onDone])
+
   return (
-    <form action={action} className="space-y-3">
+    <form action={action} className="space-y-4">
       <FeedbackBanner state={state} />
-      <select
-        name="donor_district"
-        defaultValue={defaultDistrict}
-        required
-        className={`${inputClass} bg-white`}
-      >
-        <option value="">জেলা নির্বাচন করুন</option>
-        {DISTRICTS.map((district) => (
-          <option key={district} value={district}>
-            {district}
-          </option>
-        ))}
-      </select>
-      <div className="flex gap-3">
-        <input
-          name="donor_location"
-          type="text"
-          defaultValue={defaultLocation}
-          placeholder="এলাকা / Area (optional)"
-          className={`flex-1 ${inputClass}`}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Field label="District (জেলা)">
+          <select
+            name="donor_district"
+            defaultValue={donor.district}
+            required
+            className={`${inputClass} bg-white`}
+          >
+            <option value="">জেলা নির্বাচন করুন</option>
+            {DISTRICTS.map((district) => (
+              <option key={district} value={district}>
+                {district}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="এলাকা / Area">
+          <input
+            name="donor_location"
+            type="text"
+            defaultValue={donor.location}
+            placeholder="যেমন: মহাখালী, বনানী"
+            className={inputClass}
+          />
+        </Field>
+        <Field label="Sex (লিঙ্গ)">
+          <select
+            name="sex"
+            defaultValue={donor.sex}
+            required
+            className={`${inputClass} bg-white`}
+          >
+            <option value="">নির্বাচন করুন</option>
+            {SEXES.map((sex) => (
+              <option key={sex} value={sex}>
+                {SEX_LABELS[sex]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Age (বয়স)">
+          <input
+            name="age"
+            type="number"
+            required
+            min={16}
+            max={70}
+            inputMode="numeric"
+            defaultValue={donor.age}
+            className={inputClass}
+          />
+        </Field>
+        <Field label="Weight (ওজন, কেজি)">
+          <input
+            name="weight_kg"
+            type="number"
+            required
+            min={30}
+            max={250}
+            inputMode="numeric"
+            defaultValue={donor.weight_kg}
+            className={inputClass}
+          />
+        </Field>
+        <Field label="Last Donation Date" hint="আগে রক্ত না দিলে খালি রাখুন">
+          <input
+            name="last_donation_date"
+            type="date"
+            defaultValue={donor.last_donation_date}
+            className={inputClass}
+          />
+        </Field>
+      </div>
+      <Field label="কোনো রোগ আছে কি?" hint="না থাকলে খালি রাখুন">
+        <textarea
+          name="health_conditions"
+          rows={2}
+          maxLength={500}
+          defaultValue={donor.health_conditions}
+          placeholder="যেমন: ডায়াবেটিস, উচ্চ রক্তচাপ"
+          className={inputClass}
         />
-        <SaveButton
-          pendingText="…"
-          className="bg-gray-900 text-white px-5 py-3 rounded-xl text-sm font-semibold hover:bg-gray-700 transition-colors whitespace-nowrap"
+      </Field>
+      <div className="flex gap-3">
+        <button
+          type="button"
+          onClick={onDone}
+          className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors"
         >
-          Update
+          Cancel
+        </button>
+        <SaveButton
+          pendingText="Saving…"
+          className="flex-1 bg-gray-900 text-white py-3 rounded-xl text-sm font-semibold hover:bg-gray-700 transition-colors"
+        >
+          Save Details
         </SaveButton>
       </div>
     </form>
+  )
+}
+
+export function SignOutButton() {
+  const router = useRouter()
+  const supabase = useMemo(() => createClient(), [])
+  const [pending, setPending] = useState(false)
+
+  const handleSignOut = async () => {
+    setPending(true)
+    await supabase.auth.signOut()
+    router.push('/')
+    router.refresh()
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleSignOut}
+      disabled={pending}
+      aria-busy={pending}
+      className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-200 transition-colors disabled:opacity-60 whitespace-nowrap"
+    >
+      {pending ? 'Signing out…' : 'Sign Out'}
+    </button>
   )
 }
 

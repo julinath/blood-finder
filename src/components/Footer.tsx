@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import AdminFooterLink from './AdminFooterLink'
 
 const QUICK_LINKS = [
   { href: '/', label: 'Home' },
@@ -66,7 +67,10 @@ export default function Footer() {
 
         <div className="pt-6 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-gray-500">
           <p>© {new Date().getFullYear()} Blood Finder. All rights reserved.</p>
-          <p>Built with care to save lives in Bangladesh 🇧🇩</p>
+          <div className="flex items-center gap-4">
+            <AdminFooterLink />
+            <p>Built with care to save lives in Bangladesh 🇧🇩</p>
+          </div>
         </div>
       </div>
     </footer>

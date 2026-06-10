@@ -1,6 +1,7 @@
 export type BloodType = 'A_POS' | 'A_NEG' | 'B_POS' | 'B_NEG' | 'AB_POS' | 'AB_NEG' | 'O_POS' | 'O_NEG'
 export type AvailabilityStatus = 'AVAILABLE' | 'UNAVAILABLE'
 export type RequestStatus = 'PENDING' | 'ACCEPTED' | 'CANCELLED' | 'COMPLETED'
+export type Sex = 'MALE' | 'FEMALE' | 'OTHER'
 
 export interface Profile {
   id: string
@@ -8,6 +9,7 @@ export interface Profile {
   email: string
   mobile: string | null
   location: string | null
+  district: string | null
   is_admin: boolean
   created_at: string
 }
@@ -20,6 +22,11 @@ export interface Donor {
   district: string | null
   availability_status: AvailabilityStatus
   last_donation_date: string | null
+  sex: Sex | null
+  age: number | null
+  weight_kg: number | null
+  health_conditions: string | null
+  donation_count: number
   is_approved: boolean
   created_at: string
 }
@@ -191,4 +198,16 @@ export const REQUEST_STATUS_STYLES: Record<RequestStatus, string> = {
 
 export function isBloodType(value: unknown): value is BloodType {
   return typeof value === 'string' && value in BLOOD_TYPE_LABELS
+}
+
+export const SEXES: readonly Sex[] = ['MALE', 'FEMALE', 'OTHER'] as const
+
+export const SEX_LABELS: Record<Sex, string> = {
+  MALE: 'পুরুষ (Male)',
+  FEMALE: 'মহিলা (Female)',
+  OTHER: 'অন্যান্য (Other)',
+}
+
+export function isSex(value: unknown): value is Sex {
+  return typeof value === 'string' && value in SEX_LABELS
 }

@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { isValidBangladeshMobile, normalizeMobile } from '@/lib/validation'
 import { isDistrict } from '@/lib/districts'
+import { isSex } from '@/types'
+import { todayIsoDate } from '@/lib/eligibility'
 
 export type FormState = { ok: boolean; message: string } | null
 
@@ -70,11 +72,10 @@ export async function updateProfile(
   }
 
   revalidatePath('/profile')
-  revalidatePath('/dashboard')
   return { ok: true, message: 'Profile updated.' }
 }
 
-export async function updateDonorLocation(
+export async function updateDonorDetails(
   _prev: FormState,
   formData: FormData,
 ): Promise<FormState> {
@@ -91,12 +92,62 @@ export async function updateDonorLocation(
   const area = ((formData.get('donor_location') as string | null) ?? '').trim()
   const location = area || districtRaw
 
+  const sex = ((formData.get('sex') as string | null) ?? '').trim()
+  if (!isSex(sex)) {
+    return { ok: false, message: 'লিঙ্গ (Sex) নির্বাচন করুন।' }
+  }
+
+  // Matches become-donor: out-of-range values are accepted and flagged
+  // "Not eligible" in the admin panel instead of being rejected here.
+  const age = Number.parseInt(
+    ((formData.get('age') as string | null) ?? '').trim(),
+    10,
+  )
+  if (!Number.isInteger(age) || age < 16 || age > 70) {
+    return { ok: false, message: 'বয়স ১৬ থেকে ৭০ এর মধ্যে দিন।' }
+  }
+
+  const weight_kg = Number.parseInt(
+    ((formData.get('weight_kg') as string | null) ?? '').trim(),
+    10,
+  )
+  if (!Number.isInteger(weight_kg) || weight_kg < 30 || weight_kg > 250) {
+    return { ok: false, message: 'ওজন ৩০ থেকে ২৫০ কেজির মধ্যে দিন।' }
+  }
+
+  const lastDonationRaw = (
+    (formData.get('last_donation_date') as string | null) ?? ''
+  ).trim()
+  let last_donation_date: string | null = null
+  if (lastDonationRaw) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(lastDonationRaw)) {
+      return { ok: false, message: 'শেষ রক্তদানের তারিখটি সঠিক নয়।' }
+    }
+    if (lastDonationRaw > todayIsoDate()) {
+      return { ok: false, message: 'শেষ রক্তদানের তারিখ ভবিষ্যতের হতে পারে না।' }
+    }
+    last_donation_date = lastDonationRaw
+  }
+
+  const health_conditions =
+    ((formData.get('health_conditions') as string | null) ?? '')
+      .trim()
+      .slice(0, 500) || null
+
   const { error } = await supabase
     .from('donors')
-    .update({ location, district: districtRaw })
+    .update({
+      location,
+      district: districtRaw,
+      sex,
+      age,
+      weight_kg,
+      last_donation_date,
+      health_conditions,
+    })
     .eq('user_id', user.id)
 
-  if (error) return { ok: false, message: 'Could not update donor location.' }
+  if (error) return { ok: false, message: 'Could not update donor details.' }
 
   // Mirror onto the profile so the two records stay aligned.
   await supabase
@@ -105,6 +156,5 @@ export async function updateDonorLocation(
     .eq('id', user.id)
 
   revalidatePath('/profile')
-  revalidatePath('/dashboard')
-  return { ok: true, message: 'Donor location updated.' }
+  return { ok: true, message: 'Donor details updated.' }
 }

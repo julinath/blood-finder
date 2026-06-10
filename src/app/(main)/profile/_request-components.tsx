@@ -6,10 +6,11 @@ import {
   acceptRequest,
   cancelEmergencyRequest,
   cancelRequest,
+  creditEmergencyDonor,
   declineRequest,
   fulfillEmergencyRequest,
   toggleAvailability,
-} from './actions'
+} from './request-actions'
 
 function AvailabilityButton({ isAvailable }: { isAvailable: boolean }) {
   const { pending } = useFormStatus()
@@ -72,10 +73,12 @@ function ActionButton({
   label,
   pendingLabel,
   className,
+  onClick,
 }: {
   label: string
   pendingLabel: string
   className: string
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void
 }) {
   const { pending } = useFormStatus()
   return (
@@ -83,6 +86,7 @@ function ActionButton({
       type="submit"
       disabled={pending}
       aria-busy={pending}
+      onClick={onClick}
       className={`${className} disabled:opacity-60`}
     >
       {pending ? pendingLabel : label}
@@ -114,6 +118,39 @@ export function RequestActions({
         />
       </form>
     </div>
+  )
+}
+
+// Shown beside each offer on the requester's own emergency request: "this
+// person donated" — credits the donor's count and closes the request.
+export function CreditDonorButton({
+  requestId,
+  donorUserId,
+  donorName,
+}: {
+  requestId: string
+  donorUserId: string
+  donorName: string
+}) {
+  const confirmCredit = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (
+      !confirm(
+        `"${donorName}" রক্ত দিয়েছেন — নিশ্চিত করছেন? রিকোয়েস্টটি সম্পন্ন হিসেবে বন্ধ হবে এবং donor-এর রক্তদানের হিসাবে যোগ হবে।`,
+      )
+    ) {
+      e.preventDefault()
+    }
+  }
+
+  return (
+    <form action={creditEmergencyDonor.bind(null, requestId, donorUserId)}>
+      <ActionButton
+        label="✓ ইনি রক্ত দিয়েছেন"
+        pendingLabel="…"
+        className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 transition-colors font-medium whitespace-nowrap"
+        onClick={confirmCredit}
+      />
+    </form>
   )
 }
 

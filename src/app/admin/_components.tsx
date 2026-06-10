@@ -1,7 +1,17 @@
 'use client'
 
 import { useFormStatus } from 'react-dom'
-import { approveDonor, rejectDonor, resolveReport, setUserAdmin } from './actions'
+import {
+  adminCancelRequest,
+  adminUpdateEmergencyStatus,
+  approveDonor,
+  deleteUser,
+  rejectDonor,
+  removeDonor,
+  resolveReport,
+  setUserAdmin,
+  unapproveDonor,
+} from './actions'
 
 function PendingButton({
   label,
@@ -112,5 +122,135 @@ export function ResolveReportButton({ reportId }: { reportId: string }) {
         className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium transition-colors"
       />
     </form>
+  )
+}
+
+export function ApprovedDonorActions({
+  donorId,
+  donorName,
+}: {
+  donorId: string
+  donorName: string
+}) {
+  const confirmUnapprove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (
+      !confirm(
+        `Hide "${donorName}" from public search? They stay registered and can be re-approved later.`,
+      )
+    ) {
+      e.preventDefault()
+    }
+  }
+
+  const confirmRemove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (
+      !confirm(
+        `Remove the donor record for "${donorName}"? Their user account stays, but the donor listing is deleted. This cannot be undone.`,
+      )
+    ) {
+      e.preventDefault()
+    }
+  }
+
+  return (
+    <div className="flex gap-2">
+      <form action={unapproveDonor.bind(null, donorId)}>
+        <PendingButton
+          label="Unapprove"
+          pendingLabel="…"
+          className="text-xs bg-amber-100 text-amber-700 px-3 py-1.5 rounded-lg hover:bg-amber-200 font-medium transition-colors"
+          onClick={confirmUnapprove}
+        />
+      </form>
+      <form action={removeDonor.bind(null, donorId)}>
+        <PendingButton
+          label="Remove"
+          pendingLabel="…"
+          className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-200 font-medium transition-colors"
+          onClick={confirmRemove}
+        />
+      </form>
+    </div>
+  )
+}
+
+export function DeleteUserButton({
+  userId,
+  userName,
+  isSelf,
+  isAdminTarget,
+}: {
+  userId: string
+  userName: string
+  isSelf: boolean
+  isAdminTarget: boolean
+}) {
+  if (isSelf) return null
+  // Admins must be demoted first — the server action and DB function both
+  // refuse, so don't offer a button that can only fail.
+  if (isAdminTarget) return null
+
+  const confirmDelete = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (
+      !confirm(
+        `Permanently delete "${userName}"? Their account, donor record and all requests will be removed. This cannot be undone.`,
+      )
+    ) {
+      e.preventDefault()
+    }
+  }
+
+  return (
+    <form action={deleteUser.bind(null, userId)}>
+      <PendingButton
+        label="Delete"
+        pendingLabel="Deleting…"
+        className="text-xs bg-red-600 text-white px-3 py-1.5 rounded-lg hover:bg-red-700 font-medium transition-colors"
+        onClick={confirmDelete}
+      />
+    </form>
+  )
+}
+
+export function AdminCancelRequestButton({ requestId }: { requestId: string }) {
+  const confirmCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!confirm('Cancel this blood request?')) e.preventDefault()
+  }
+
+  return (
+    <form action={adminCancelRequest.bind(null, requestId)}>
+      <PendingButton
+        label="Cancel"
+        pendingLabel="…"
+        className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+        onClick={confirmCancel}
+      />
+    </form>
+  )
+}
+
+export function AdminEmergencyActions({ requestId }: { requestId: string }) {
+  const confirmCancel = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!confirm('Cancel this emergency request?')) e.preventDefault()
+  }
+
+  return (
+    <div className="flex gap-2">
+      <form action={adminUpdateEmergencyStatus.bind(null, requestId, 'FULFILLED')}>
+        <PendingButton
+          label="Mark fulfilled"
+          pendingLabel="…"
+          className="text-xs bg-green-100 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-200 font-medium transition-colors"
+        />
+      </form>
+      <form action={adminUpdateEmergencyStatus.bind(null, requestId, 'CANCELLED')}>
+        <PendingButton
+          label="Cancel"
+          pendingLabel="…"
+          className="text-xs bg-gray-100 text-gray-600 px-3 py-1.5 rounded-lg hover:bg-gray-200 font-medium transition-colors"
+          onClick={confirmCancel}
+        />
+      </form>
+    </div>
   )
 }
