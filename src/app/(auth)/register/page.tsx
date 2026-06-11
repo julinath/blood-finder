@@ -6,15 +6,17 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import GoogleIcon from '@/components/GoogleIcon'
 import { MIN_PASSWORD_LENGTH } from '@/lib/validation'
+import { parseAuthIdentifier } from '@/lib/auth-identifier'
+import { Field, FIELD_CLASS } from '@/components/ui/form'
 
-type Form = { full_name: string; email: string; password: string; confirm: string }
+type Form = { full_name: string; identifier: string; password: string; confirm: string }
 
 export default function RegisterPage() {
   const router = useRouter()
   const supabase = useMemo(() => createClient(), [])
   const [form, setForm] = useState<Form>({
     full_name: '',
-    email: '',
+    identifier: '',
     password: '',
     confirm: '',
   })
@@ -33,33 +35,49 @@ export default function RegisterPage() {
 
     const fullName = form.full_name.trim()
     if (!fullName) {
-      setError('Full name is required.')
+      setError('পুরো নাম লিখুন।')
+      return
+    }
+    const identifier = parseAuthIdentifier(form.identifier)
+    if (!identifier) {
+      setError('সঠিক email অথবা mobile number দিন (যেমন: 01712345678)।')
       return
     }
     if (form.password !== form.confirm) {
-      setError('Passwords do not match.')
+      setError('দুটি password মেলেনি — আবার দেখুন।')
       return
     }
     if (form.password.length < MIN_PASSWORD_LENGTH) {
-      setError(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`)
+      setError(`Password কমপক্ষে ${MIN_PASSWORD_LENGTH} অক্ষরের হতে হবে।`)
       return
     }
 
     setLoading(true)
 
+    // Mobile signups use a synthetic email under the hood (Supabase Auth is
+    // email-based); the mobile lands on the profile via signup metadata.
     const { error } = await supabase.auth.signUp({
-      email: form.email.trim(),
+      email: identifier.email,
       password: form.password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: {
+          full_name: fullName,
+          ...(identifier.kind === 'mobile' ? { mobile: identifier.mobile } : {}),
+        },
+      },
     })
 
     if (error) {
-      setError(error.message)
+      setError(
+        error.message.includes('already registered')
+          ? 'এই email/mobile দিয়ে আগে থেকেই অ্যাকাউন্ট আছে — Login করুন।'
+          : error.message,
+      )
       setLoading(false)
       return
     }
 
-    router.push('/dashboard?flash=registered')
+    router.push('/profile?flash=registered')
     router.refresh()
   }
 
@@ -71,7 +89,7 @@ export default function RegisterPage() {
       options: { redirectTo: `${window.location.origin}/auth/callback` },
     })
     if (error) {
-      setError('Could not start Google sign-in. Please try again.')
+      setError('Google সাইন-ইন শুরু করা যায়নি। আবার চেষ্টা করুন।')
       setGoogleLoading(false)
     }
   }
@@ -125,16 +143,19 @@ export default function RegisterPage() {
                 placeholder="Jewel Ahmed"
               />
             </Field>
-            <Field label="Email">
+            <Field label="Email বা Mobile Number">
               <input
-                type="email"
-                value={form.email}
-                onChange={set('email')}
+                type="text"
+                value={form.identifier}
+                onChange={set('identifier')}
                 required
-                autoComplete="email"
+                autoComplete="username"
                 className={inputClass}
-                placeholder="you@example.com"
+                placeholder="you@example.com অথবা 01XXXXXXXXX"
               />
+              <span className="block text-xs text-gray-400 mt-1">
+                Email না থাকলে মোবাইল নম্বর দিয়েই অ্যাকাউন্ট খুলতে পারবেন।
+              </span>
             </Field>
             <Field label="Password">
               <input
@@ -182,14 +203,4 @@ export default function RegisterPage() {
   )
 }
 
-const inputClass =
-  'w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent'
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="block text-sm font-medium text-gray-700 mb-1.5">{label}</span>
-      {children}
-    </label>
-  )
-}
+const inputClass = FIELD_CLASS

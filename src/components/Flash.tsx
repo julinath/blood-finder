@@ -5,18 +5,23 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
 // Centralised flash-message catalog. Pages push to `?flash=<key>` and we
 // render the matching message. Keeps URLs clean of free-text content.
-const FLASH_MESSAGES: Record<string, { type: 'success' | 'info'; text: string }> = {
+// Language policy: messages for general users are Bengali; admin-panel
+// messages stay English (the admin UI is English-labelled).
+const FLASH_MESSAGES: Record<
+  string,
+  { type: 'success' | 'info' | 'error'; text: string }
+> = {
   registered: {
     type: 'success',
-    text: 'Welcome! Your account has been created.',
+    text: 'স্বাগতম! আপনার অ্যাকাউন্ট তৈরি হয়েছে।',
   },
   'login-ok': {
     type: 'success',
-    text: 'Signed in successfully.',
+    text: 'সাইন ইন সফল হয়েছে।',
   },
   'donor-pending': {
     type: 'info',
-    text: 'Donor application submitted. An admin will review it shortly.',
+    text: 'রক্তদাতা হওয়ার আবেদন জমা পড়েছে। অ্যাডমিন যাচাই করে শীঘ্রই অনুমোদন দেবেন।',
   },
   'donor-approved': {
     type: 'success',
@@ -26,6 +31,14 @@ const FLASH_MESSAGES: Record<string, { type: 'success' | 'info'; text: string }>
     type: 'success',
     text: 'Donor rejected and removed.',
   },
+  'donor-unapproved': {
+    type: 'success',
+    text: 'Donor hidden from public search.',
+  },
+  'donor-removed': {
+    type: 'success',
+    text: 'Donor record removed.',
+  },
   'admin-granted': {
     type: 'success',
     text: 'Admin access granted.',
@@ -34,25 +47,81 @@ const FLASH_MESSAGES: Record<string, { type: 'success' | 'info'; text: string }>
     type: 'success',
     text: 'Admin access revoked.',
   },
+  'user-deleted': {
+    type: 'success',
+    text: 'User deleted permanently.',
+  },
+  'request-sent': {
+    type: 'success',
+    text: 'রিকোয়েস্ট পাঠানো হয়েছে! রক্তদাতা রাজি হলে এখানে স্ট্যাটাস দেখতে পাবেন।',
+  },
   'request-accepted': {
     type: 'success',
-    text: 'Request accepted. Donation recorded in your history.',
+    text: 'রিকোয়েস্ট গ্রহণ করেছেন। রক্তদানের পর রিকোয়েস্টকারী “রক্ত পেয়েছি” নিশ্চিত করবেন।',
+  },
+  'request-completed': {
+    type: 'success',
+    text: 'ধন্যবাদ! রক্তদান নিশ্চিত হয়েছে — রক্তদাতার হিসাবে যোগ হলো এবং রিকোয়েস্ট সম্পন্ন। 🩸',
   },
   'request-declined': {
     type: 'success',
-    text: 'Request declined.',
+    text: 'রিকোয়েস্টটি ফিরিয়ে দেওয়া হয়েছে।',
   },
   'request-cancelled': {
     type: 'success',
-    text: 'Request cancelled.',
+    text: 'রিকোয়েস্ট বাতিল করা হয়েছে।',
   },
   'availability-on': {
     type: 'success',
-    text: 'You are now marked as available.',
+    text: 'আপনি এখন Available — রক্তদাতার তালিকায় দেখা যাবেন।',
   },
   'availability-off': {
     type: 'success',
-    text: 'You are now marked as unavailable.',
+    text: 'আপনি এখন Unavailable — তালিকা থেকে সাময়িকভাবে আড়ালে থাকবেন।',
+  },
+  'emergency-posted': {
+    type: 'success',
+    text: 'রিকোয়েস্ট পোস্ট হয়েছে। আপনার এলাকার রক্তদাতারা এটি দেখতে পাবেন।',
+  },
+  'emergency-fulfilled': {
+    type: 'success',
+    text: 'ধন্যবাদ! রিকোয়েস্ট সম্পন্ন হিসেবে চিহ্নিত হয়েছে।',
+  },
+  'donation-credited': {
+    type: 'success',
+    text: 'ধন্যবাদ! রক্তদানটি রক্তদাতার হিসাবে যোগ হয়েছে এবং রিকোয়েস্ট সম্পন্ন হয়েছে।',
+  },
+  'emergency-cancelled': {
+    type: 'success',
+    text: 'রিকোয়েস্ট বাতিল করা হয়েছে।',
+  },
+  'report-resolved': {
+    type: 'success',
+    text: 'Report marked as resolved.',
+  },
+  'report-reviewed': {
+    type: 'success',
+    text: 'Report marked as reviewed.',
+  },
+  'emergency-expired': {
+    type: 'success',
+    text: 'Emergency request marked as expired.',
+  },
+  'cannot-self-demote': {
+    type: 'error',
+    text: 'You cannot remove your own admin access.',
+  },
+  'cannot-self-delete': {
+    type: 'error',
+    text: 'You cannot delete your own account.',
+  },
+  'demote-before-delete': {
+    type: 'error',
+    text: 'Revoke admin access before deleting an admin.',
+  },
+  'action-failed': {
+    type: 'error',
+    text: 'দুঃখিত, কাজটি সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।',
   },
 }
 
@@ -82,7 +151,9 @@ function FlashItem({ entryKey }: { entryKey: string }) {
   const palette =
     entry.type === 'success'
       ? 'bg-green-50 border-green-200 text-green-800'
-      : 'bg-blue-50 border-blue-200 text-blue-800'
+      : entry.type === 'error'
+        ? 'bg-red-50 border-red-200 text-red-800'
+        : 'bg-blue-50 border-blue-200 text-blue-800'
 
   return (
     <div
@@ -93,7 +164,9 @@ function FlashItem({ entryKey }: { entryKey: string }) {
       <div
         className={`${palette} border rounded-xl px-4 py-3 text-sm font-medium shadow-sm flex items-center gap-2`}
       >
-        <span aria-hidden="true">{entry.type === 'success' ? '✅' : 'ℹ️'}</span>
+        <span aria-hidden="true">
+          {entry.type === 'success' ? '✅' : entry.type === 'error' ? '⚠️' : 'ℹ️'}
+        </span>
         <span>{entry.text}</span>
       </div>
     </div>

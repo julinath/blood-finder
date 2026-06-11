@@ -11,7 +11,7 @@ export default function Navbar() {
   const pathname = usePathname()
   const supabase = useMemo(() => createClient(), [])
   const [user, setUser] = useState<User | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [fullName, setFullName] = useState('')
   const [menuOpen, setMenuOpen] = useState(false)
 
   // Auth subscription — runs once.
@@ -25,7 +25,7 @@ export default function Navbar() {
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       if (cancelled) return
       setUser(session?.user ?? null)
-      if (!session?.user) setIsAdmin(false)
+      if (!session?.user) setFullName('')
     })
 
     return () => {
@@ -34,21 +34,18 @@ export default function Navbar() {
     }
   }, [supabase])
 
-  // Re-check admin status whenever the user changes OR the route changes.
-  // Route-change refresh covers the case where another admin (or the SQL
-  // editor) promoted this user mid-session — without it, the admin link
-  // would never appear without a hard reload. (`isAdmin` is reset to false
-  // by the auth listener above on logout, so no synchronous reset here.)
+  // Refresh the display name on user/route change so a profile edit shows up
+  // in the avatar without a hard reload.
   useEffect(() => {
     if (!user) return
     let cancelled = false
     supabase
       .from('profiles')
-      .select('is_admin')
+      .select('full_name')
       .eq('id', user.id)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled) setIsAdmin(data?.is_admin ?? false)
+        if (!cancelled) setFullName(data?.full_name ?? '')
       })
     return () => {
       cancelled = true
@@ -63,6 +60,8 @@ export default function Navbar() {
 
   const closeMenu = () => setMenuOpen(false)
 
+  const initial = (fullName || user?.email || '?').trim().charAt(0).toUpperCase()
+
   return (
     <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -73,19 +72,23 @@ export default function Navbar() {
 
         {/* Desktop links */}
         <div className="hidden md:flex items-center gap-6">
+          <Link
+            href="/emergency"
+            className="text-red-600 hover:text-red-700 text-sm font-semibold transition-colors flex items-center gap-1"
+          >
+            <span aria-hidden="true">🚑</span> Emergency
+          </Link>
           <NavLink href="/donors">Find Donors</NavLink>
+          <NavLink href="/about">About Us</NavLink>
           {user ? (
-            <>
-              <NavLink href="/dashboard">Dashboard</NavLink>
-              <NavLink href="/profile">Profile</NavLink>
-              {isAdmin && <NavLink href="/admin">Admin</NavLink>}
-              <button
-                onClick={handleLogout}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
-              >
-                Logout
-              </button>
-            </>
+            <Link
+              href="/profile"
+              aria-label="My profile"
+              title={fullName || 'My profile'}
+              className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold hover:bg-red-700 transition-colors"
+            >
+              {initial}
+            </Link>
           ) : (
             <>
               <NavLink href="/login">Login</NavLink>
@@ -99,29 +102,44 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          type="button"
-          className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-          onClick={() => setMenuOpen((open) => !open)}
-          aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-          aria-expanded={menuOpen}
-          aria-controls="mobile-menu"
-        >
-          <svg
-            className="w-5 h-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            aria-hidden="true"
+        {/* Mobile: profile circle + hamburger. Both hit areas are ≥44px —
+            the avatar keeps its 36px visual inside a larger touch target. */}
+        <div className="md:hidden flex items-center gap-1">
+          {user && (
+            <Link
+              href="/profile"
+              aria-label="My profile"
+              onClick={closeMenu}
+              className="w-11 h-11 flex items-center justify-center"
+            >
+              <span className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold">
+                {initial}
+              </span>
+            </Link>
+          )}
+          <button
+            type="button"
+            className="p-3 rounded-lg text-gray-600 hover:bg-gray-100"
+            onClick={() => setMenuOpen((open) => !open)}
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-menu"
           >
-            {menuOpen ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              {menuOpen ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Mobile menu */}
@@ -130,18 +148,24 @@ export default function Navbar() {
           id="mobile-menu"
           className="md:hidden border-t border-gray-100 bg-white px-4 py-3 flex flex-col gap-3"
         >
+          <Link
+            href="/emergency"
+            onClick={closeMenu}
+            className="text-sm text-red-600 font-semibold py-2.5 flex items-center gap-1"
+          >
+            <span aria-hidden="true">🚑</span> Emergency
+          </Link>
           <MobileLink href="/donors" onClick={closeMenu}>Find Donors</MobileLink>
+          <MobileLink href="/about" onClick={closeMenu}>About Us</MobileLink>
           {user ? (
             <>
-              <MobileLink href="/dashboard" onClick={closeMenu}>Dashboard</MobileLink>
-              <MobileLink href="/profile" onClick={closeMenu}>Profile</MobileLink>
-              {isAdmin && <MobileLink href="/admin" onClick={closeMenu}>Admin</MobileLink>}
+              <MobileLink href="/profile" onClick={closeMenu}>My Profile</MobileLink>
               <button
                 onClick={() => {
                   closeMenu()
                   handleLogout()
                 }}
-                className="text-sm text-red-600 text-left py-1"
+                className="text-sm text-red-600 text-left py-2.5"
               >
                 Logout
               </button>
@@ -179,7 +203,7 @@ function MobileLink({
   children: React.ReactNode
 }) {
   return (
-    <Link href={href} onClick={onClick} className="text-sm text-gray-700 py-1">
+    <Link href={href} onClick={onClick} className="text-sm text-gray-700 py-2.5">
       {children}
     </Link>
   )

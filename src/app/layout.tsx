@@ -1,11 +1,24 @@
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import { Geist, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Flash from "@/components/Flash";
 import Footer from "@/components/Footer";
 
-const geist = Geist({ subsets: ["latin"] });
+// Latin UI font (English + numerals); Bengali glyphs fall through to Hind Siliguri.
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-geist",
+  display: "swap",
+});
+
+// Dedicated Bengali font — far nicer বাংলা rendering than the system fallback.
+const bengali = Hind_Siliguri({
+  subsets: ["bengali"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-bengali",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Blood Finder — Find verified blood donors in Bangladesh",
@@ -19,8 +32,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={`${geist.className} bg-gray-50 min-h-screen flex flex-col`}>
+    <html lang="bn" className={`${geist.variable} ${bengali.variable}`}>
+      <body className="bg-gray-50 min-h-screen flex flex-col antialiased">
         <Navbar />
         <Flash />
         <main className="flex-1">{children}</main>

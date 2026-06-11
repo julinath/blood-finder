@@ -1,0 +1,40 @@
+import Link from 'next/link'
+import EmergencyFeed from './_components'
+
+export const metadata = {
+  title: 'জরুরি রক্তের রিকোয়েস্ট | Blood Finder',
+  description:
+    'এই মুহূর্তে যেসব রোগী জরুরি রক্তের অপেক্ষায় আছে তাদের তালিকা — আপনার এলাকায় কারো রক্ত লাগলে এগিয়ে আসুন।',
+}
+
+export default function EmergencyPage() {
+  return (
+    <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="text-center mb-8">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gray-900">
+          জরুরি রক্তের রিকোয়েস্ট
+        </h1>
+        <p className="text-gray-500 mt-2 max-w-2xl mx-auto">
+          এই মুহূর্তে যেসব রোগী জরুরি রক্তের অপেক্ষায় আছে তাদের তালিকা। আপনার
+          এলাকায় কারো রক্ত লাগলে এগিয়ে আসুন।
+        </p>
+        {/* Requester path — made explicit so visitors instantly understand
+            this is where you ASK for blood, not just browse. */}
+        <div className="mt-6 max-w-xl mx-auto bg-red-50 border border-red-100 rounded-2xl px-5 py-4">
+          <p className="text-sm text-gray-700">
+            রোগীর জন্য জরুরি রক্ত দরকার? এক মিনিটেই রিকোয়েস্ট পোস্ট করুন —
+            আপনার এলাকার রক্তদাতারা সাথে সাথে দেখতে পাবেন।
+          </p>
+          <Link
+            href="/emergency/new"
+            className="inline-block mt-3 bg-red-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors shadow-sm"
+          >
+            + রক্তের রিকোয়েস্ট দিন
+          </Link>
+        </div>
+      </div>
+
+      <EmergencyFeed />
+    </div>
+  )
+}

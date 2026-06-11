@@ -1,59 +1,57 @@
+import SectionHeading from './SectionHeading'
+import Reveal from '@/components/ui/Reveal'
+
 const STEPS = [
   {
     num: 1,
     icon: '🔍',
-    title: 'Search Donor',
-    desc: 'রক্তের গ্রুপ ও এলাকা দিয়ে দ্রুত verified donor খুঁজুন।',
+    title: 'রক্তদাতা খুঁজুন',
+    desc: 'রক্তের গ্রুপ ও এলাকা দিয়ে দ্রুত যাচাইকৃত রক্তদাতা খুঁজুন।',
   },
   {
     num: 2,
     icon: '✉️',
-    title: 'Send Request',
-    desc: 'এক ক্লিকে donor কে রক্তের অনুরোধ পাঠান, কোনো ঝামেলা ছাড়াই।',
+    title: 'অনুরোধ পাঠান',
+    desc: 'এক ট্যাপে রক্তদাতাকে রক্তের অনুরোধ পাঠান — কোনো ঝামেলা ছাড়াই।',
   },
   {
     num: 3,
     icon: '❤️',
-    title: 'Save a Life',
-    desc: 'রক্তদানের মাধ্যমে একজনের জীবন বাঁচানোর অংশ হোন।',
+    title: 'জীবন বাঁচান',
+    desc: 'রক্তদানের মাধ্যমে একটি জীবন বাঁচানোর সঙ্গী হোন।',
   },
 ] as const
 
 export default function HowItWorks() {
   return (
     <section className="max-w-6xl mx-auto px-4 py-14">
-      <div className="text-center mb-10">
-        <p className="text-xs uppercase tracking-wider text-red-600 font-semibold mb-2">
-          How it works
-        </p>
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-          তিনটি সহজ ধাপে রক্তদাতা খুঁজুন
-        </h2>
-        <p className="text-gray-500 mt-2 max-w-xl mx-auto">
-          Connecting donors and recipients in three simple steps.
-        </p>
-      </div>
+      <SectionHeading
+        eyebrow="How it works"
+        title="তিনটি সহজ ধাপে রক্তদাতা খুঁজুন"
+        subtitle="খোঁজা থেকে রক্তদান — পুরো প্রক্রিয়া মাত্র তিনটি ধাপে।"
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {STEPS.map((step) => (
-          <div
-            key={step.num}
-            className="bg-white rounded-2xl border border-gray-200 p-6 text-center hover:border-red-200 hover:shadow-md transition-all"
-          >
-            <div
-              className="inline-flex items-center justify-center w-14 h-14 bg-red-50 text-3xl rounded-2xl mb-4"
-              aria-hidden="true"
-            >
-              {step.icon}
+      <div className="relative grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* connector line behind the cards (desktop only) */}
+        <div
+          aria-hidden="true"
+          className="hidden sm:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-red-100 via-red-300 to-red-100"
+        />
+        {STEPS.map((step, i) => (
+          <Reveal key={step.num} delay={i * 120}>
+            <div className="relative bg-white rounded-2xl border border-gray-200 p-6 text-center hover:border-red-200 hover:shadow-md hover:-translate-y-1 transition-all h-full">
+              <div className="relative inline-flex items-center justify-center w-16 h-16 bg-red-50 text-3xl rounded-2xl mb-4">
+                {step.icon}
+                <span className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-red-600 text-white text-xs font-bold flex items-center justify-center shadow">
+                  {step.num}
+                </span>
+              </div>
+              <h3 className="font-semibold text-gray-900 text-lg mb-2">
+                {step.title}
+              </h3>
+              <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
             </div>
-            <div className="text-xs font-semibold text-red-600 mb-1">
-              STEP {step.num}
-            </div>
-            <h3 className="font-semibold text-gray-900 text-lg mb-2">
-              {step.title}
-            </h3>
-            <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
-          </div>
+          </Reveal>
         ))}
       </div>
     </section>
