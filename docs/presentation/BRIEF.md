@@ -18,7 +18,7 @@
 আর রক্তদাতা হিসেবে নিবন্ধন — সব এক জায়গায়, বাংলা-first ও mobile-first।
 
 - **Live site:** https://blood-finder-bangladesh.vercel.app
-- **GitHub:** https://github.com/devjewel01/blood-finder
+- **GitHub:** https://github.com/julinath/blood-finder
 - **Team:** Juli Nath (2401011004), Asma Akter (2401011021), Mom Chakraborti (2401011034)
 - **Supervisor:** Dhonita Tripura, Assistant Professor, CSE — RMSTU
 - **Course context:** CSE 2nd year, Object Oriented Programming Lab — RMSTU, CSE 11th Batch

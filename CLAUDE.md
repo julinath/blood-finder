@@ -94,29 +94,39 @@ Schema changes must stay additive + idempotent; never weaken RLS.
 states, user-facing success/error messages); English for universal terms
 (A+/O−, Login, Register, Emergency, district names) and the admin panel.
 
-### Docs
-`docs/README.md` (architecture), `docs/SETUP.md` (setup/deploy),
-`docs/RESEARCH.md` (vision), `feature.md` (bilingual checklist).
+### Database facts worth knowing
 
-- 4 tables: `profiles`, `donors`, `blood_requests`, `donation_records`.
-- `auth.users.id` → `profiles.id` (FK + PK).
-- RLS enabled on all four tables.
-- Recursion-safe admin/donor lookups via `SECURITY DEFINER` SQL functions: `public.is_admin(uid)`, `public.donor_user_id(d_id)`.
-- Unique partial index prevents duplicate PENDING requests: `(requester_id, donor_id) WHERE status = 'PENDING'`.
-- Re-running `supabase-schema.sql` is safe — every statement is idempotent.
+- `auth.users.id` → `profiles.id` (FK + PK); profile rows auto-created by trigger.
+- Recursion-safe admin/donor lookups via `SECURITY DEFINER` SQL functions
+  (`is_admin`, `donor_user_id`, `emergency_requester`, …).
+- Unique partial index prevents duplicate PENDING requests:
+  `(requester_id, donor_id) WHERE status = 'PENDING'`.
 
 ### Sync invariants
 
-- `donors.location` is the canonical donor location and is mirrored into `profiles.location` by the become-donor server action.
-- `profiles.mobile` is only on profiles (no `donors.mobile` column). Become-donor form prefills from profile and writes back if changed.
+- `donors.location` is the canonical donor location and is mirrored into
+  `profiles.location` by the become-donor server action.
+- `profiles.mobile` is only on profiles (no `donors.mobile` column).
+  Become-donor form prefills from profile and writes back if changed.
 
 ## When making changes
 
-- Edit `supabase-schema.sql` for any DB change; do not invent migration files. After editing, the user must re-run the script in Supabase SQL Editor.
+- DB changes go into `supabase-schema.sql` (core) or `supabase-emergency.sql`
+  (emergency board) — both idempotent; keep them re-runnable, additive, and
+  never weaken RLS. The user re-runs the edited script in the Supabase SQL
+  Editor (a matching migration may also be applied via MCP).
 - Don't add new flash keys without registering them in `src/components/Flash.tsx`.
-- Prefer server actions over client-side mutations for anything that writes to the DB — gives free cache invalidation via `revalidatePath`.
-- Don't break the desktop app history: the original JavaFX app is preserved on the `desktop-app` branch.
+- Prefer server actions over client-side mutations for anything that writes to
+  the DB. Auth-dependent UI must be resolved server-side (see `layout.tsx` →
+  `Navbar`) — browser-side cookie reads are unreliable for aged/OAuth sessions.
+- Don't break the desktop app history: the original JavaFX app is preserved on
+  the `desktop-app` branch.
 
-## Docs
+### Docs
 
-Comprehensive Bangla beginner docs in `docs/` (target reader: C/C++ background only). Start at [`docs/README.md`](docs/README.md).
+`docs/README.md` (architecture + docs index), `docs/SETUP.md` (setup/deploy),
+`docs/TECH-STACK.md` (tech choices + OOP mapping), `docs/RESEARCH.md` (vision),
+`feature.md` (bilingual checklist), `docs/presentation/` (slide deck).
+Numbered Bangla beginner docs `docs/01…10-*.md` (target reader: C/C++
+background only) — written 19 May 2026, before the emergency board and the
+requester-confirms flow; trust the code and the docs above where they differ.

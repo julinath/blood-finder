@@ -6,7 +6,7 @@
 <title>Blood Finder — Presentation</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,700;1,9..144,900&family=Hind+Siliguri:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;0,900;1,600;1,700;1,900&family=Hind+Siliguri:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root {
     --blood: #b91c1c;
@@ -18,7 +18,9 @@
     --cream: #fffdf9;
     --mono: "IBM Plex Mono", ui-monospace, monospace;
     --bn: "Hind Siliguri", sans-serif;
-    --display: "Fraunces", Georgia, serif;
+    /* Playfair Display: elegant but stays crisp and readable at display sizes
+       (Fraunces' large optical sizes turned heads/italics hard to read). */
+    --display: "Playfair Display", Georgia, serif;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; overflow: hidden; background: var(--ink); }
@@ -123,9 +125,10 @@
                     line-height: .95; letter-spacing: -.02em; }
   .title-slide h1 em { font-style: italic; color: #fca5a5; }
   .title-slide .tag { font-size: clamp(1.05rem, 2.1vw, 1.5rem); color: #fecaca; margin-top: 1.4rem; max-width: 44ch; line-height: 1.6; }
-  .title-meta { margin-top: 3rem; display: flex; flex-wrap: wrap; gap: 2.5rem 4rem; font-size: .95rem; }
-  .title-meta .lbl { font-family: var(--mono); font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; color: #f87171; margin-bottom: .45rem; }
-  .title-meta div p { color: #fee2e2; line-height: 1.55; }
+  .title-meta { margin-top: 2.6rem; display: flex; flex-wrap: wrap; gap: 2rem 3.5rem; font-size: clamp(1.05rem, 1.8vw, 1.3rem); }
+  .title-meta .lbl { font-family: var(--mono); font-size: .72rem; letter-spacing: .2em; text-transform: uppercase; color: #f87171; margin-bottom: .5rem; }
+  .title-meta div p { color: #fee2e2; line-height: 1.65; }
+  .title-meta .id { font-family: var(--mono); font-size: .68em; color: #fca5a5; letter-spacing: .06em; margin-left: .35rem; }
   .live-pill { display: inline-flex; align-items: center; gap: .55rem; margin-top: 2.6rem;
                font-family: var(--mono); font-size: .8rem; color: #fff; border: 1px solid #ffffff3d;
                padding: .65rem 1.2rem; border-radius: 99px; background: #ffffff12; }
@@ -232,7 +235,9 @@
   .end-bn { font-family: var(--bn); font-size: clamp(1.1rem, 2.4vw, 1.7rem); color: #fecaca; }
   .end-url { font-family: var(--mono); font-size: clamp(1rem, 2.2vw, 1.5rem); color: #fff;
              border-bottom: 2px solid #f87171; padding-bottom: .3rem; text-decoration: none; display: inline-block; margin-top: 2.2rem; }
-  .end-meta { margin-top: 3rem; color: #fecaca; line-height: 2; }
+  .end-meta { margin-top: 3rem; color: #fecaca; line-height: 1.9; font-size: clamp(1rem, 1.9vw, 1.3rem); }
+  .end-meta .sup { color: #fff; }
+  .end-meta .repo { font-family: var(--mono); font-size: .85em; color: #fda4af; }
 
   @media (max-width: 900px) {
     .prob-grid, .duo, .arch { grid-template-columns: 1fr; overflow: auto; }
@@ -257,7 +262,11 @@
       <div class="title-meta s" data-d="4">
         <div>
           <p class="lbl">Team</p>
-          <p>Juli Nath · Asma Akter · Mom Chakraborti</p>
+          <p>
+            Juli Nath<span class="id">2401011004</span><br/>
+            Asma Akter<span class="id">2401011021</span><br/>
+            Mom Chakraborti<span class="id">2401011034</span>
+          </p>
         </div>
         <div>
           <p class="lbl">Supervisor</p>
@@ -573,7 +582,8 @@
       <a class="end-url s" data-d="4" href="https://blood-finder-bangladesh.vercel.app" target="_blank" rel="noopener">blood-finder-bangladesh.vercel.app</a>
       <p class="end-meta s" data-d="5">
         Juli Nath · Asma Akter · Mom Chakraborti — CSE 11th Batch, RMSTU<br/>
-        <span style="opacity:.7">Supervisor: Dhonita Tripura · github.com/devjewel01/blood-finder</span>
+        <span class="sup">Supervisor: <b>Dhonita Tripura</b> — Assistant Professor, CSE, RMSTU</span><br/>
+        <span class="repo">github.com/julinath/blood-finder</span>
       </p>
     </div>
   </section>

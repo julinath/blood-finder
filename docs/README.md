@@ -9,11 +9,18 @@
 |------|-------|
 | [README.md](README.md) (this file) | App কী, architecture, routes, data model |
 | [SETUP.md](SETUP.md) | Env vars, Supabase setup, local dev, deploy |
+| [TECH-STACK.md](TECH-STACK.md) | কোন technology কেন (desktop + web), OOP mapping, সম্ভাব্য প্রশ্নোত্তর |
+| [problem-vs-solution.md](problem-vs-solution.md) | কোন সমস্যার কী সমাধান (presentation-ready) |
+| [presentation/](presentation/BRIEF.md) | Slide deck ([index.html](presentation/index.html)) + brief + screenshots |
 | [RESEARCH.md](RESEARCH.md) | Product vision ও বাজার-গবেষণা (বড় ফাইল) |
 | [../feature.md](../feature.md) | Feature checklist (বাংলা/English, টেস্ট-স্ট্যাটাস সহ) |
 | [../CLAUDE.md](../CLAUDE.md) | AI-assistant instructions + directory map |
+| 01…10 numbered docs | শূন্য থেকে শেখার বাংলা সিরিজ — [overview](01-project-overview.md), [tech stack](02-tech-stack.md), [setup](03-setup-guide.md), [structure](04-project-structure.md), [database](05-database.md), [auth](06-authentication.md), [how it works](07-how-it-works.md), [features](08-feature-walkthroughs.md), [deploy](09-deployment.md), [presenting](10-presenting.md) |
 
-> পুরোনো JavaFX desktop app-এর docs ও কোড `desktop-app` branch-এ সংরক্ষিত আছে।
+> **Note:** numbered docs গুলো ১৯ মে ২০২৬-এ লেখা — emergency board ও
+> "রিকোয়েস্টকারী নিশ্চিত করেন" flow আসার আগে; অমিল দেখলে এই README আর কোডকেই
+> সত্য ধরুন। পুরোনো JavaFX desktop app-এর docs ও কোড `desktop-app` branch-এ
+> সংরক্ষিত আছে।
 
 ---
 
