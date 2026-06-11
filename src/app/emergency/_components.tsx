@@ -29,9 +29,11 @@ export default function EmergencyFeed() {
   // Request ids this viewer already offered on (so the state survives reloads).
   const [offeredIds, setOfferedIds] = useState<Set<string>>(new Set())
 
-  // Identify the viewer and prefill the district filter from their profile
-  // ("আমার এলাকা") so donors immediately see needs near them. setState only
-  // happens in the async resolution (never synchronously in the effect body).
+  // Identify the viewer and prefill BOTH filters: their district (profile)
+  // and their own blood group (donor record) — an A+ donor in Dhaka first
+  // wants the requests they can actually help with. Manual choices are never
+  // clobbered, and the empty state offers a one-tap reset to the full board.
+  // setState only happens in the async resolution (never synchronously).
   useEffect(() => {
     let cancelled = false
     supabase.auth.getUser().then(async ({ data }) => {
@@ -39,15 +41,23 @@ export default function EmergencyFeed() {
       const user = data.user
       setUserId(user?.id ?? null)
       if (!user) return
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('district')
-        .eq('id', user.id)
-        .maybeSingle()
-      // Don't clobber a district the visitor already chose manually.
-      if (!cancelled && profile?.district) {
-        setFilters((f) => (f.district ? f : { ...f, district: profile.district as string }))
-      }
+      const [{ data: profile }, { data: donor }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('district')
+          .eq('id', user.id)
+          .maybeSingle(),
+        supabase
+          .from('donors')
+          .select('blood_type')
+          .eq('user_id', user.id)
+          .maybeSingle(),
+      ])
+      if (cancelled) return
+      setFilters((f) => ({
+        blood_type: f.blood_type || ((donor?.blood_type as string) ?? ''),
+        district: f.district || ((profile?.district as string) ?? ''),
+      }))
     })
     return () => {
       cancelled = true

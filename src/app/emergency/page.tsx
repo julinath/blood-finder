@@ -18,12 +18,20 @@ export default function EmergencyPage() {
           এই মুহূর্তে যেসব রোগী জরুরি রক্তের অপেক্ষায় আছে তাদের তালিকা। আপনার
           এলাকায় কারো রক্ত লাগলে এগিয়ে আসুন।
         </p>
-        <Link
-          href="/emergency/new"
-          className="inline-block mt-5 bg-red-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors shadow-sm"
-        >
-          + রক্তের রিকোয়েস্ট দিন
-        </Link>
+        {/* Requester path — made explicit so visitors instantly understand
+            this is where you ASK for blood, not just browse. */}
+        <div className="mt-6 max-w-xl mx-auto bg-red-50 border border-red-100 rounded-2xl px-5 py-4">
+          <p className="text-sm text-gray-700">
+            রোগীর জন্য জরুরি রক্ত দরকার? এক মিনিটেই রিকোয়েস্ট পোস্ট করুন —
+            আপনার এলাকার রক্তদাতারা সাথে সাথে দেখতে পাবেন।
+          </p>
+          <Link
+            href="/emergency/new"
+            className="inline-block mt-3 bg-red-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-red-700 transition-colors shadow-sm"
+          >
+            + রক্তের রিকোয়েস্ট দিন
+          </Link>
+        </div>
       </div>
 
       <EmergencyFeed />
