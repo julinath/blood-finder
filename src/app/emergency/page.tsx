@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import EmergencyFeed from './_components'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata = {
   title: 'জরুরি রক্তের রিকোয়েস্ট | Blood Finder',
@@ -7,7 +8,31 @@ export const metadata = {
     'এই মুহূর্তে যেসব রোগী জরুরি রক্তের অপেক্ষায় আছে তাদের তালিকা — আপনার এলাকায় কারো রক্ত লাগলে এগিয়ে আসুন।',
 }
 
-export default function EmergencyPage() {
+export default async function EmergencyPage() {
+  // Viewer context is resolved on the server (reliable for every session type)
+  // and handed to the client feed: their own id (to tag their cards), filter
+  // prefills (their blood group + district), and which requests they already
+  // offered on.
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  let initialFilters = { blood_type: '', district: '' }
+  let offeredRequestIds: string[] = []
+  if (user) {
+    const [{ data: profile }, { data: donor }, { data: offers }] = await Promise.all([
+      supabase.from('profiles').select('district').eq('id', user.id).maybeSingle(),
+      supabase.from('donors').select('blood_type').eq('user_id', user.id).maybeSingle(),
+      supabase.from('emergency_offers').select('request_id').eq('donor_id', user.id),
+    ])
+    initialFilters = {
+      blood_type: (donor?.blood_type as string) ?? '',
+      district: (profile?.district as string) ?? '',
+    }
+    offeredRequestIds = (offers ?? []).map((o) => o.request_id as string)
+  }
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
       <div className="text-center mb-8">
@@ -34,7 +59,11 @@ export default function EmergencyPage() {
         </div>
       </div>
 
-      <EmergencyFeed />
+      <EmergencyFeed
+        viewerId={user?.id ?? null}
+        initialFilters={initialFilters}
+        offeredRequestIds={offeredRequestIds}
+      />
     </div>
   )
 }

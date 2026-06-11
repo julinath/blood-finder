@@ -1,45 +1,23 @@
-'use client'
-
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
+import { createClient } from '@/lib/supabase/server'
 
-// Renders an Admin Panel link in the footer, but only for admins. Admin access
-// is deliberately kept out of the navbar; admins use this link or go to /admin
-// directly by URL.
-export default function AdminFooterLink() {
-  const supabase = useMemo(() => createClient(), [])
-  const [isAdmin, setIsAdmin] = useState(false)
+// Renders admin-only links in the footer. Admin access is deliberately kept
+// out of the navbar; admins use these links or go to /admin directly by URL.
+// Rendered on the server so the links never depend on the browser being able
+// to read the auth cookie (which proved flaky for aged sessions).
+export default async function AdminFooterLink() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return null
 
-  useEffect(() => {
-    let cancelled = false
-
-    const check = async (userId: string | undefined) => {
-      if (!userId) {
-        if (!cancelled) setIsAdmin(false)
-        return
-      }
-      const { data } = await supabase
-        .from('profiles')
-        .select('is_admin')
-        .eq('id', userId)
-        .maybeSingle()
-      if (!cancelled) setIsAdmin(data?.is_admin ?? false)
-    }
-
-    supabase.auth.getUser().then(({ data }) => check(data.user?.id))
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) =>
-      check(session?.user?.id),
-    )
-
-    return () => {
-      cancelled = true
-      listener.subscription.unsubscribe()
-    }
-  }, [supabase])
-
-  if (!isAdmin) return null
+  const { data } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .maybeSingle()
+  if (!data?.is_admin) return null
 
   return (
     <>

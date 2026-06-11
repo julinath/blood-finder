@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Flash from "@/components/Flash";
 import Footer from "@/components/Footer";
+import { createClient } from "@/lib/supabase/server";
 
 // Latin UI font (English + numerals); Bengali glyphs fall through to Hind Siliguri.
 const geist = Geist({
@@ -26,15 +27,38 @@ export const metadata: Metadata = {
     "Find verified blood donors near you in seconds. A trusted platform connecting donors and recipients across Bangladesh.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Auth state is resolved on the SERVER and passed down. The browser client's
+  // cookie reads proved unreliable for aged/OAuth sessions in production
+  // (server saw the session, client didn't → navbar showed Login while the
+  // user was signed in), so the server is the single source of truth here.
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let viewer: { id: string; email: string; name: string } | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .maybeSingle();
+    viewer = {
+      id: user.id,
+      email: user.email ?? "",
+      name: profile?.full_name ?? "",
+    };
+  }
+
   return (
     <html lang="bn" className={`${geist.variable} ${bengali.variable}`}>
       <body className="bg-gray-50 min-h-screen flex flex-col antialiased">
-        <Navbar />
+        <Navbar initialViewer={viewer} />
         <Flash />
         <main className="flex-1">{children}</main>
         <Footer />

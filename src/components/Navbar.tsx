@@ -4,53 +4,69 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import type { User } from '@supabase/supabase-js'
 
-export default function Navbar() {
+export type NavbarViewer = { id: string; email: string; name: string }
+
+export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer | null }) {
   const router = useRouter()
   const pathname = usePathname()
   const supabase = useMemo(() => createClient(), [])
-  const [user, setUser] = useState<User | null>(null)
-  const [fullName, setFullName] = useState('')
+  // The server-rendered viewer is the source of truth; client auth events only
+  // layer on top for instant feedback after login/logout. Never let a failed
+  // client-side cookie read downgrade a server-confirmed session.
+  const [viewer, setViewer] = useState<NavbarViewer | null>(initialViewer)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  // Auth subscription — runs once.
+  // Re-sync when the server re-renders the layout with a different user
+  // (login, logout, account switch — all go through router.refresh()).
+  // Setting state during render is React's sanctioned "derive from props"
+  // pattern and avoids a visible one-frame flicker.
+  const [syncedViewerId, setSyncedViewerId] = useState(initialViewer?.id ?? null)
+  const serverViewerId = initialViewer?.id ?? null
+  if (serverViewerId !== syncedViewerId) {
+    setSyncedViewerId(serverViewerId)
+    setViewer(initialViewer)
+  }
+
+  // Instant UI on explicit auth events. INITIAL_SESSION is deliberately
+  // ignored when empty — that's the case where the browser can't read the
+  // cookie even though the server-side session is valid.
   useEffect(() => {
-    let cancelled = false
-
-    supabase.auth.getUser().then(({ data }) => {
-      if (!cancelled) setUser(data.user)
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        setViewer(null)
+      } else if (session?.user && event === 'SIGNED_IN') {
+        setViewer((current) =>
+          current?.id === session.user.id
+            ? current
+            : { id: session.user.id, email: session.user.email ?? '', name: '' },
+        )
+      }
     })
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (cancelled) return
-      setUser(session?.user ?? null)
-      if (!session?.user) setFullName('')
-    })
-
-    return () => {
-      cancelled = true
-      listener.subscription.unsubscribe()
-    }
+    return () => listener.subscription.unsubscribe()
   }, [supabase])
 
-  // Refresh the display name on user/route change so a profile edit shows up
-  // in the avatar without a hard reload.
+  // Refresh the display name on route change so a profile edit shows up in the
+  // avatar without a hard reload. A failed read keeps the server-provided name.
+  const viewerId = viewer?.id ?? null
   useEffect(() => {
-    if (!user) return
+    if (!viewerId) return
     let cancelled = false
     supabase
       .from('profiles')
       .select('full_name')
-      .eq('id', user.id)
+      .eq('id', viewerId)
       .maybeSingle()
       .then(({ data }) => {
-        if (!cancelled) setFullName(data?.full_name ?? '')
+        if (cancelled || !data?.full_name) return
+        setViewer((current) =>
+          current && current.id === viewerId ? { ...current, name: data.full_name } : current,
+        )
       })
     return () => {
       cancelled = true
     }
-  }, [supabase, user, pathname])
+  }, [supabase, viewerId, pathname])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
@@ -60,6 +76,8 @@ export default function Navbar() {
 
   const closeMenu = () => setMenuOpen(false)
 
+  const user = viewer
+  const fullName = viewer?.name ?? ''
   const initial = (fullName || user?.email || '?').trim().charAt(0).toUpperCase()
 
   return (

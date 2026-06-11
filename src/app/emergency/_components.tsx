@@ -13,6 +13,7 @@ import {
 } from '@/types'
 import { DISTRICTS } from '@/lib/districts'
 import { formatBnDate, toBnDigits } from '@/lib/bn'
+import { offerHelp } from './offer-actions'
 
 // Explicit column list — `contact_phone` lives in a separate, RLS-protected table.
 const FEED_COLUMNS =
@@ -20,49 +21,26 @@ const FEED_COLUMNS =
 
 const FEED_LIMIT = 60
 
-export default function EmergencyFeed() {
+// Viewer context (id, filter prefills from their donor record + profile, and
+// which requests they already offered on) arrives from the SERVER page — the
+// browser can't always read the auth cookie, the server always can. An A+
+// donor in Dhaka first wants the requests they can actually help with; manual
+// filter changes are never clobbered, and the empty state offers a one-tap
+// reset to the full board.
+export default function EmergencyFeed({
+  viewerId,
+  initialFilters,
+  offeredRequestIds,
+}: {
+  viewerId: string | null
+  initialFilters: { blood_type: string; district: string }
+  offeredRequestIds: string[]
+}) {
   const supabase = useMemo(() => createClient(), [])
   const [requests, setRequests] = useState<EmergencyRequest[]>([])
   const [loading, setLoading] = useState(true)
-  const [userId, setUserId] = useState<string | null>(null)
-  const [filters, setFilters] = useState({ blood_type: '', district: '' })
-  // Request ids this viewer already offered on (so the state survives reloads).
-  const [offeredIds, setOfferedIds] = useState<Set<string>>(new Set())
-
-  // Identify the viewer and prefill BOTH filters: their district (profile)
-  // and their own blood group (donor record) — an A+ donor in Dhaka first
-  // wants the requests they can actually help with. Manual choices are never
-  // clobbered, and the empty state offers a one-tap reset to the full board.
-  // setState only happens in the async resolution (never synchronously).
-  useEffect(() => {
-    let cancelled = false
-    supabase.auth.getUser().then(async ({ data }) => {
-      if (cancelled) return
-      const user = data.user
-      setUserId(user?.id ?? null)
-      if (!user) return
-      const [{ data: profile }, { data: donor }] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('district')
-          .eq('id', user.id)
-          .maybeSingle(),
-        supabase
-          .from('donors')
-          .select('blood_type')
-          .eq('user_id', user.id)
-          .maybeSingle(),
-      ])
-      if (cancelled) return
-      setFilters((f) => ({
-        blood_type: f.blood_type || ((donor?.blood_type as string) ?? ''),
-        district: f.district || ((profile?.district as string) ?? ''),
-      }))
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [supabase])
+  const [filters, setFilters] = useState(initialFilters)
+  const offeredIds = useMemo(() => new Set(offeredRequestIds), [offeredRequestIds])
 
   // Refetch whenever the filters change. Mirrors DonorSearch: the query is built
   // synchronously but state is set only inside the promise resolution.
@@ -93,26 +71,6 @@ export default function EmergencyFeed() {
       cancelled = true
     }
   }, [supabase, filters.blood_type, filters.district])
-
-  // Seed which cards this viewer already offered on, so the "thank you" state
-  // persists across reloads. setState only happens in the async resolution.
-  useEffect(() => {
-    if (!userId || requests.length === 0) return
-    let cancelled = false
-    const ids = requests.map((r) => r.id)
-    ;(async () => {
-      const { data: offers } = await supabase
-        .from('emergency_offers')
-        .select('request_id')
-        .eq('donor_id', userId)
-        .in('request_id', ids)
-      if (cancelled) return
-      setOfferedIds(new Set((offers ?? []).map((o) => o.request_id as string)))
-    })()
-    return () => {
-      cancelled = true
-    }
-  }, [supabase, userId, requests])
 
   // Filter changes happen in event handlers, where flipping the loading skeleton
   // on is allowed (unlike inside an effect body).
@@ -203,7 +161,7 @@ export default function EmergencyFeed() {
             <RequestCard
               key={request.id}
               request={request}
-              isOwn={request.requester_id === userId}
+              isOwn={request.requester_id === viewerId}
               alreadyOffered={offeredIds.has(request.id)}
             />
           ))}
@@ -222,7 +180,6 @@ function RequestCard({
   isOwn: boolean
   alreadyOffered: boolean
 }) {
-  const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const [offeredNow, setOfferedNow] = useState(false)
   const [offering, setOffering] = useState(false)
@@ -231,49 +188,31 @@ function RequestCard({
 
   const offered = offeredNow || alreadyOffered
 
-  // Donor-first privacy: offering does NOT reveal the requester's phone.
-  // Instead the requester sees the donor's number on their profile and calls
-  // the donor — so a donor must have a mobile on file before offering.
+  // The offer is recorded by a server action (cookie-authenticated on the
+  // server), so it works even when the browser can't read the auth cookie.
   const handleOffer = async () => {
     setError('')
     setNeedsMobile(false)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      router.push('/login')
-      return
-    }
-
     setOffering(true)
 
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('mobile')
-      .eq('id', user.id)
-      .maybeSingle()
-    if (!profile?.mobile) {
-      setNeedsMobile(true)
-      setOffering(false)
+    const result = await offerHelp(request.id)
+    setOffering(false)
+
+    if (result.ok) {
+      setOfferedNow(true)
       return
     }
-
-    // Record the offer (idempotent — ignore the unique-violation on re-click).
-    const { error: offerError } = await supabase
-      .from('emergency_offers')
-      .insert({ request_id: request.id, donor_id: user.id })
-    if (offerError && offerError.code !== '23505') {
-      console.error('[emergency-offer] failed:', offerError.message)
-      // 42501 = RLS rejected the insert — the request is no longer OPEN.
+    if (result.code === 'auth') {
+      router.push('/login')
+    } else if (result.code === 'needs-mobile') {
+      setNeedsMobile(true)
+    } else {
       setError(
-        offerError.code === '42501'
+        result.code === 'closed'
           ? 'রিকোয়েস্টটি ইতিমধ্যে বন্ধ হয়ে গেছে — পেজটি রিফ্রেশ করুন।'
           : 'সাড়া পাঠানো যায়নি। আবার চেষ্টা করুন।',
       )
-      setOffering(false)
-      return
     }
-
-    setOfferedNow(true)
-    setOffering(false)
   }
 
   return (

@@ -1,8 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
+import { submitReport } from '@/app/report-actions'
 import { REPORT_REASON_LABELS, type ReportReason } from '@/types'
 
 /**
@@ -18,7 +18,6 @@ export default function ReportButton({
   requestId?: string
   reportedUserId?: string
 }) {
-  const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [reason, setReason] = useState<ReportReason>(
@@ -29,24 +28,18 @@ export default function ReportButton({
   const [done, setDone] = useState(false)
   const [error, setError] = useState('')
 
+  // Submission runs as a server action (cookie-authenticated on the server),
+  // so it works even when the browser can't read the auth cookie.
   const submit = async () => {
     setError('')
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      router.push('/login')
-      return
-    }
     setBusy(true)
-    const { error: insertError } = await supabase.from('reports').insert({
-      reporter_id: user.id,
-      request_id: requestId ?? null,
-      reported_user_id: reportedUserId ?? null,
-      reason,
-      details: details.trim() || null,
-    })
+    const result = await submitReport({ requestId, reportedUserId, reason, details })
     setBusy(false)
-    if (insertError) {
-      console.error('[report] failed:', insertError.message)
+    if (!result.ok) {
+      if (result.code === 'auth') {
+        router.push('/login')
+        return
+      }
       setError('আবার চেষ্টা করুন।')
       return
     }
