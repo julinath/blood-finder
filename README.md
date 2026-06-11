@@ -42,4 +42,4 @@ editor first — full instructions in **[docs/SETUP.md](docs/SETUP.md)**.
 ## Team
 
 CSE 11th Batch, Rangamati Science and Technology University (RMSTU) —
-see [/about](https://blood-finder.vercel.app/about).
+see [/about](https://blood-finder-bangladesh.vercel.app/about).

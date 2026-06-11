@@ -42,8 +42,19 @@ export default function AdminFooterLink() {
   if (!isAdmin) return null
 
   return (
-    <Link href="/admin" className="text-gray-500 hover:text-white transition-colors">
-      Admin Panel
-    </Link>
+    <>
+      <Link href="/admin" className="text-gray-500 hover:text-white transition-colors">
+        Admin Panel
+      </Link>
+      {/* TEMPORARY: lab-exam presentation; remove this link + public/presentation/ after the exam */}
+      <a
+        href="/presentation/index.html"
+        target="_blank"
+        rel="noopener"
+        className="text-gray-500 hover:text-white transition-colors"
+      >
+        Presentation
+      </a>
+    </>
   )
 }
