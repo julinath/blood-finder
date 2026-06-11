@@ -183,6 +183,27 @@
   .arrow small { display: block; font-size: .68rem; color: var(--blood); letter-spacing: .05em; text-align: center; }
   .mech { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
 
+  /* ---------- tech stack ---------- */
+  .tech-list { display: flex; flex-direction: column; gap: .7rem; flex: 1; justify-content: center; }
+  .tech { display: grid; grid-template-columns: 150px 1fr 1.25fr; gap: 1.4rem; align-items: center;
+          background: var(--cream); border: 1px solid #ebe3d7; border-radius: 12px; padding: .85rem 1.3rem; }
+  .tech .t-name { font-family: var(--mono); font-weight: 600; font-size: .92rem; color: var(--blood); line-height: 1.3; }
+  .tech .t-name small { font-weight: 400; color: var(--ink-soft); font-size: .72rem; }
+  .tech .t-what { font-family: var(--bn); font-weight: 600; font-size: .93rem; line-height: 1.5; }
+  .tech .t-why { font-family: var(--bn); color: var(--ink-soft); font-size: .88rem; line-height: 1.55;
+                 border-left: 2px solid #ecd9d9; padding-left: 1.1rem; }
+  .tech code { font-family: var(--mono); font-size: .85em; background: #f3ece2; padding: .05em .35em; border-radius: 4px; }
+
+  /* ---------- OOP slide ---------- */
+  .oop { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem 1.4rem; flex: 1; align-content: center; }
+  .oop .card { background: var(--cream); border: 1px solid #ebe3d7; border-radius: 16px; padding: 1.3rem 1.5rem; }
+  .oop .card h3 { font-family: var(--display); font-size: 1.25rem; margin-bottom: .6rem; color: var(--blood-deep); }
+  .oop .pair { display: grid; grid-template-columns: 64px 1fr; gap: .6rem; font-size: .88rem; line-height: 1.55; margin-top: .35rem; }
+  .oop .pair .tagp { font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; color: var(--blood);
+                     text-transform: uppercase; padding-top: .25rem; }
+  .oop .pair p { color: var(--ink-soft); font-family: var(--bn); }
+  .oop .pair code { font-family: var(--mono); font-size: .84em; background: #f3ece2; padding: .04em .3em; border-radius: 4px; }
+
   /* ---------- architecture ---------- */
   .arch { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 3.5vw, 3.5rem); flex: 1; align-items: center; min-height: 0; }
   .stack { font-family: var(--mono); font-size: clamp(.74rem, 1.25vw, .92rem); line-height: 1.65; background: #211d1a; color: #e7e5e4;
@@ -260,7 +281,7 @@
       <div class="prob-grid">
         <div class="prob-list">
           <div class="prob s" data-d="2"><span class="ic">⏱️</span><div><b>Scattered, unreliable channels</b><p>A saved phone number may be unavailable when it matters; area-based Facebook groups respond slowly and posts sink; local blood organizations are disconnected islands.</p></div></div>
-          <div class="prob s" data-d="3"><span class="ic">💸</span><div><b>Misery as a business</b><p>Middlemen charge money for donor numbers, fake "donors" demand payment at the hospital, and fraudulent requesters even resell donated blood.</p></div></div>
+          <div class="prob s" data-d="3"><span class="ic">💸</span><div><b>Misery as a business</b><p>Some people sell donor phone numbers, fake donors ask for money at the hospital, and some even resell donated blood.</p></div></div>
           <div class="prob s" data-d="4"><span class="ic">🔓</span><div><b>Zero privacy for donors</b><p>Phone numbers get scattered across public groups — fear of spam and harassment keeps willing donors away.</p></div></div>
           <div class="prob s" data-d="5"><span class="ic">😨</span><div><b>Fear &amp; misconceptions</b><p>"Donating makes you weak" — myths and missing knowledge stop thousands of healthy people from ever donating.</p></div></div>
         </div>
@@ -325,7 +346,7 @@
         <div class="shot s" data-d="3"><div class="bar"><i></i><i></i><i></i></div><div><img src="screenshots/02-donor-search.png" alt="Donor search" onerror="this.outerHTML='&lt;div class=ph&gt;screenshots/02-donor-search.png&lt;/div&gt;'"/></div></div>
         <div class="side-notes">
           <div class="note s" data-d="4"><b><span class="tickmark">✓</span> Verified-only results</b><p>Only admin-approved donors ever appear in search — fake profiles have no place here.</p></div>
-          <div class="note s" data-d="5"><b><span class="tickmark">✓</span> 90-day eligibility rule</b><p>Computed from the last donation date and enforced everywhere — search badges, profiles, and the request form itself.</p></div>
+          <div class="note s" data-d="5"><b><span class="tickmark">✓</span> 90-day eligibility rule</b><p>Counted from the last donation date and applied everywhere — search badges, profiles, and the request form.</p></div>
           <div class="note s" data-d="6"><b><span class="tickmark">✓</span> Contact gated by login</b><p>Phone numbers require sign-in. Anonymous visitors cannot read them even directly from the database.</p></div>
         </div>
       </div>
@@ -343,7 +364,7 @@
         <div class="side-notes">
           <div class="note s" data-d="4"><b>1 · Request posted</b><p>The contact number is stored in a separate, access-controlled table — it never appears on the public feed.</p></div>
           <div class="note s" data-d="5"><b>2 · A donor responds</b><p>One tap — <span class="bn">“আমি রক্ত দিতে পারবো”</span> — but the donor <b>never sees</b> the requester's number.</p></div>
-          <div class="note s" data-d="6"><b>3 · The requester calls</b><p>The requester sees the responding donor's name and number and makes the call. Donor privacy comes first — no spam, no harassment. Backed by rate-limiting and an abuse-report system.</p></div>
+          <div class="note s" data-d="6"><b>3 · The requester calls</b><p>The requester sees the responding donor's name and number, and calls them. Donor privacy comes first — no spam, no harassment.</p></div>
         </div>
       </div>
     </div>
@@ -366,8 +387,8 @@
       </div>
       <div class="mech">
         <div class="note s" data-d="4"><b>Accept = consent</b><p>Acceptance reveals the donor's number to the requester — they talk and agree on time and place.</p></div>
-        <div class="note s" data-d="5"><b>Atomic completion</b><p>A single database function closes the request and writes the donation record together — a half-completed state is impossible.</p></div>
-        <div class="note s" data-d="6"><b>Trigger-maintained stats</b><p>Donation count and last-donation date are updated by database triggers — the numbers stay correct even if the app has a bug, and the 90-day countdown starts automatically.</p></div>
+        <div class="note s" data-d="5"><b>Safe completion</b><p>One database function closes the request and saves the donation record at the same time — it can never half-finish.</p></div>
+        <div class="note s" data-d="6"><b>Numbers that can't lie</b><p>The database itself updates the donation count and last-donation date — so the stats are always correct, and the 90-day countdown starts on its own.</p></div>
       </div>
     </div>
   </section>
@@ -389,12 +410,53 @@
     </div>
   </section>
 
-  <!-- 9 · ARCHITECTURE -->
+  <!-- 9 · TECH STACK -->
   <section class="slide">
     <span class="num">08</span>
     <div class="body-wrap">
+      <p class="kicker s" data-d="1">Tech Stack</p>
+      <h2 class="s" data-d="2">What we use — and <em>why</em></h2>
+      <div class="tech-list">
+        <div class="tech s" data-d="2">
+          <span class="t-name">Next.js 16<br/><small>+ React 19</small></span>
+          <span class="t-what">Web framework — pages, routing &amp; server code in one place</span>
+          <span class="t-why">UI আর backend logic একই framework-এ — no separate server to build and maintain.</span>
+        </div>
+        <div class="tech s" data-d="3">
+          <span class="t-name">TypeScript</span>
+          <span class="t-what">Typed JavaScript — our whole domain model is typed</span>
+          <span class="t-why">Mistakes are caught while writing code, not after deploy. Donor, BloodRequest — every model has a type.</span>
+        </div>
+        <div class="tech s" data-d="4">
+          <span class="t-name">Tailwind CSS 4</span>
+          <span class="t-what">Styling system</span>
+          <span class="t-why">One consistent design language, tiny CSS output, very fast to build mobile-first UI.</span>
+        </div>
+        <div class="tech s" data-d="5">
+          <span class="t-name">Supabase</span>
+          <span class="t-what">PostgreSQL database + Auth (login)</span>
+          <span class="t-why">Real SQL with Row Level Security — data protected inside the database itself. Email, mobile-number &amp; Google login readymade.</span>
+        </div>
+        <div class="tech s" data-d="6">
+          <span class="t-name">Vercel</span>
+          <span class="t-what">Hosting + CI/CD</span>
+          <span class="t-why">Every <code>git push</code> auto-deploys. Free, fast, global — perfect for a student project that wants to go real.</span>
+        </div>
+        <div class="tech s" data-d="6">
+          <span class="t-name">+ tools</span>
+          <span class="t-what">d3-geo (district map) · Playwright (browser testing) · Hind Siliguri (বাংলা font)</span>
+          <span class="t-why">The map is drawn on the server; every flow is tested in a real browser.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · ARCHITECTURE -->
+  <section class="slide">
+    <span class="num">09</span>
+    <div class="body-wrap">
       <p class="kicker s" data-d="1">Under the Hood</p>
-      <h2 class="s" data-d="2">Architecture &amp; <em>security</em></h2>
+      <h2 class="s" data-d="2">How the app <em>works</em></h2>
       <div class="arch">
         <pre class="stack s" data-d="3">
 <span class="dim">┌─ CLIENT ─────────────────────────────┐</span>
@@ -425,9 +487,9 @@
     </div>
   </section>
 
-  <!-- 10 · EVOLUTION -->
+  <!-- 11 · EVOLUTION -->
   <section class="slide">
-    <span class="num">09</span>
+    <span class="num">10</span>
     <div class="body-wrap">
       <p class="kicker s" data-d="1">The Journey · from our OOP course</p>
       <h2 class="s" data-d="2">Lab project → real-life <em>product</em></h2>
@@ -456,9 +518,40 @@
     </div>
   </section>
 
-  <!-- 11 · ROADMAP -->
+  <!-- 12 · OOP -->
   <section class="slide">
-    <span class="num">10</span>
+    <span class="num">11</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">OOP in Blood Finder · the course connection</p>
+      <h2 class="s" data-d="2">Same OOP ideas, <em>two stacks</em></h2>
+      <div class="oop">
+        <div class="card s" data-d="3">
+          <h3>Encapsulation</h3>
+          <div class="pair"><span class="tagp">Desktop</span><p><code>Donor.java</code> — private fields, public getters/setters; কেউ সরাসরি data বদলাতে পারে না।</p></div>
+          <div class="pair"><span class="tagp">Web</span><p><code>eligibility.ts</code> — ৯০-দিনের rule একটাই function-এ বন্দি; পুরো সাইট সেটাই ব্যবহার করে।</p></div>
+        </div>
+        <div class="card s" data-d="4">
+          <h3>Abstraction</h3>
+          <div class="pair"><span class="tagp">Desktop</span><p>Repository interface-এর পেছনে SQLite লুকানো — service layer SQL জানে না।</p></div>
+          <div class="pair"><span class="tagp">Web</span><p>Server actions-এর পেছনে database লুকানো — UI component কখনো SQL দেখে না।</p></div>
+        </div>
+        <div class="card s" data-d="5">
+          <h3>Inheritance &amp; Polymorphism</h3>
+          <div class="pair"><span class="tagp">Desktop</span><p>Common base entity + interface implementation বদলে দিলেই অন্য DB — কোড একই থাকে।</p></div>
+          <div class="pair"><span class="tagp">Web</span><p>Typed unions (<code>RequestStatus</code>) + reusable components (<code>Field</code>, <code>BloodTypeBadge</code>) — এক component, অনেক রূপ।</p></div>
+        </div>
+        <div class="card s" data-d="6">
+          <h3>MVC — Separation of Concerns</h3>
+          <div class="pair"><span class="tagp">Desktop</span><p>Model (entities) · View (FXML) · Controller — classic JavaFX MVC.</p></div>
+          <div class="pair"><span class="tagp">Web</span><p>একই ভাগ — Supabase tables (Model) · React components (View) · Server actions (Controller).</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · ROADMAP -->
+  <section class="slide">
+    <span class="num">12</span>
     <div class="body-wrap">
       <p class="kicker s" data-d="1">Roadmap</p>
       <h2 class="s" data-d="2">What comes <em>next?</em></h2>

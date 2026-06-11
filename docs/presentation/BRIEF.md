@@ -1,9 +1,13 @@
 # Blood Finder — Presentation Brief (Claude-কে দেওয়ার Context Pack)
 
-> **কীভাবে ব্যবহার করবেন:** claude.ai-তে (বা Claude Code-এ) নতুন চ্যাট খুলে এই পুরো
-> ফাইলটা paste করুন + `screenshots/` ফোল্ডারের ছবিগুলো attach করুন, তারপর বলুন কী
-> ধরনের আউটপুট চান (slide deck / .pptx / HTML presentation)। নিচের সবকিছুই
-> presentation বানানোর জন্য যথেষ্ট context।
+> **কীভাবে ব্যবহার করবেন:** claude.ai-তে নতুন চ্যাট খুলে attach করুন —
+> এই ফাইল + [../problem-vs-solution.md](../problem-vs-solution.md) +
+> [../TECH-STACK.md](../TECH-STACK.md) + `screenshots/` ফোল্ডারের ৮টা ছবি।
+> তারপর বলুন কী ধরনের আউটপুট চান (interactive HTML deck / .pptx)।
+> এই তিন ফাইল + ছবি = presentation বানানোর সম্পূর্ণ context।
+>
+> **তৈরি deck:** [index.html](index.html) — ব্রাউজারে খুললেই চলে (১৪ স্লাইড,
+> English, F = fullscreen)।
 
 ---
 
