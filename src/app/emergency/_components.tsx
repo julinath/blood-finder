@@ -165,12 +165,27 @@ export default function EmergencyFeed() {
         </div>
       ) : requests.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-500 text-lg">
             এই মুহূর্তে কোনো জরুরি রিকোয়েস্ট নেই।
           </p>
-          <p className="text-gray-400 text-sm mt-1">
-            ফিল্টার পরিবর্তন করে আবার দেখুন।
-          </p>
+          {filters.blood_type || filters.district ? (
+            // The district auto-prefills from the viewer's profile, so an
+            // empty local feed needs a one-tap way out to the full board.
+            <button
+              type="button"
+              onClick={() => {
+                setLoading(true)
+                setFilters({ blood_type: '', district: '' })
+              }}
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-red-600 hover:underline"
+            >
+              ফিল্টার মুছে সব জেলার রিকোয়েস্ট দেখুন →
+            </button>
+          ) : (
+            <p className="text-gray-400 text-sm mt-1">
+              কারো রক্ত লাগলে উপরের “রক্তের রিকোয়েস্ট দিন” বাটন থেকে পোস্ট করুন।
+            </p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
