@@ -9,6 +9,17 @@
 > **সর্বশেষ ফুল টেস্ট:** 2026-06-11 — Playwright দিয়ে সব মূল ফ্লো ব্রাউজারে টেস্ট করা হয়েছে
 > (desktop + 390px/360px mobile)। `[x]` = ওই টেস্টে পাস করেছে। বিস্তারিত: docs/README.md।
 
+> ### 👥 টিমমেটদের জন্য — কীভাবে ব্যবহার করবেন
+> - **Live site:** https://blood-finder-bangladesh.vercel.app — এখান থেকেই টেস্ট করুন।
+> - `[x]` = ইতিমধ্যে ব্রাউজারে টেস্ট-পাস; `[ ]` = **তোমরা হাতে-কলমে চেক করো** আর কিছু
+>   খটকা লাগলে পাশে 📝 নোট লেখো।
+> - **টেস্ট অ্যাকাউন্ট** (password দুটোতেই `BloodTest#2026`):
+>   `01712340001` → Juli Nath (admin + approved O+ donor) ·
+>   `bf.test.karima@example.org` → Asma Akter (requester)।
+>   চাইলে নিজের নামে নতুন অ্যাকাউন্টও খুলে নাও (মোবাইল নম্বর দিয়েই হয়)।
+> - প্রেজেন্টেশন: `docs/presentation/index.html` (ব্রাউজারে খুলে F = fullscreen) ·
+>   স্যারের প্রশ্নের প্রস্তুতি: `docs/TECH-STACK.md` + `docs/problem-vs-solution.md`।
+
 ---
 
 ## 0) Global / সব পেজে কমন
@@ -91,8 +102,9 @@
 - [ ] **Donor Status Card** (donor হলে) — blood group badge, location, **Approved / Pending Approval** status; approved হলে **Available/Unavailable toggle**।
 - [x] **Donation Eligibility Note** — donor নিজের কার্ডে দেখে: ✅ "এখন রক্ত দিতে পারবেন" বা ⏳ "আরো X দিন পরে (তারিখ)" — ৯০-দিনের নিয়মে।
 - [ ] **Donor Details (Edit)** — district, area, sex, age, weight, last donation date, রোগ — সব view ও edit করা যায়।
-- [x] **Requests I Sent** — পাঠানো রক্তের অনুরোধ + status; PENDING হলে Cancel।
-- [x] **Requests I Received** (donor হলে) — পাওয়া অনুরোধ + requester-এর নাম/মোবাইল; **Accept / Decline**।
+- [x] **Requests I Sent** — পাঠানো রক্তের অনুরোধ + status; PENDING হলে Cancel; ACCEPTED হলে donor-এর মোবাইল + **"🩸 রক্ত পেয়েছি — নিশ্চিত করুন"** বাটন।
+- [x] **Requests I Received** (donor হলে) — পাওয়া অনুরোধ + requester-এর নাম/মোবাইল; **Accept / Decline**; Accept-এর পর donor অপেক্ষা করেন — **রিকোয়েস্টকারীই সম্পন্ন নিশ্চিত করেন** (donor নিজের donation নিজে confirm করতে পারে না)।
+- [x] **Request Completion (requester-confirmed)** — রিকোয়েস্টকারী "রক্ত পেয়েছি" চাপলে রিকোয়েস্ট **COMPLETED**, donation record তৈরি, donor-এর **count +১** ও ৯০-দিনের countdown শুরু।
 - [x] **My Emergency Requests** — নিজের পোস্ট করা জরুরি রিকোয়েস্ট + কারা offer দিয়েছে (নাম/মোবাইল/report বাটন); **Fulfill / Cancel**।
 - [x] **"✓ ইনি রক্ত দিয়েছেন"** — ব্লাড পেয়ে গেলে রিকোয়েস্টকারী offer-দেওয়া donor-এর পাশে এই বাটন চাপে — রিকোয়েস্ট FULFILLED হয়, donation রেকর্ড হয় এবং সেই donor-এর **donation count +১** হয়।
 - [x] **Donation History** — আগের রক্তদানের রেকর্ড (কত তারিখে, কাকে দিয়েছে)।
@@ -113,8 +125,8 @@
   - [x] **Manage Users** — **Make admin / Revoke admin**; **Delete** (account + donor record + সব request স্থায়ীভাবে মুছে যায়, confirm dialog সহ)।
   - [ ] **Safety Guards** — নিজেকে delete বা নিজের admin status বদলানো যায় না; আরেক admin-কে delete করতে হলে আগে **Revoke admin** করতে হয় (UI + server + database তিন স্তরে enforced)।
   - [ ] **Blood Requests** — সাম্প্রতিক সব অনুরোধ দেখা; PENDING/ACCEPTED হলে **Cancel** করা যায়।
-  - [x] **Emergency Requests** — সব জরুরি রিকোয়েস্ট দেখা; OPEN হলে **Mark fulfilled / Cancel**।
-  - [x] **View Reports** — জমা পড়া অভিযোগ দেখা ও **Mark resolved**।
+  - [x] **Emergency Requests** — সব জরুরি রিকোয়েস্ট (urgency + তারিখসহ); OPEN হলে **Mark fulfilled / Cancel**, পুরনো হলে **Mark expired**।
+  - [x] **View Reports** — অভিযোগের queue: **Open / Reviewed / Resolved ট্যাব**; **Mark reviewed → Mark resolved**।
 
 ---
 
@@ -150,7 +162,7 @@
 
 ## 9) ২০২৬-০৬-১১ সেশনে নতুন/পরিবর্তিত
 
-- **Request lifecycle সম্পূর্ণ** — Accept এখন শুধু সম্মতি; রক্তদান শেষে donor **"🩸 রক্ত দিয়েছি"** চাপলে রিকোয়েস্ট COMPLETED + donation record তৈরি হয় (নতুন `complete_blood_request` DB function, atomic)।
+- **Request lifecycle সম্পূর্ণ** — Accept এখন শুধু সম্মতি; রক্তদানের পর **রিকোয়েস্টকারী "🩸 রক্ত পেয়েছি"** নিশ্চিত করলে রিকোয়েস্ট COMPLETED + donation record তৈরি হয় (নতুন `complete_blood_request` DB function, atomic)। রক্তদাতা নিজের donation নিজে confirm করতে পারেন না — count বাড়ানোর fraud বন্ধ।
 - **Accept হলে মোবাইল দেখা যায়** — Accept হলে requester এখন donor-এর মোবাইল নম্বর দেখতে পায়।
 - **`/request` এখন server-validated** — eligibility (৯০ দিন), availability, নিজের কাছে রিকোয়েস্ট ব্লক, duplicate ব্লক।
 - **Privacy hardening** — anonymous ভিজিটর আর email/mobile/স্বাস্থ্যতথ্য পড়তে পারে না (column-level grants)।

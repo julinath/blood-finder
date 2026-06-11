@@ -215,16 +215,24 @@ export default async function ProfilePage() {
                   {req.notes && (
                     <p className="text-xs text-gray-500 italic mt-2">{req.notes}</p>
                   )}
-                  {req.status === 'ACCEPTED' && req.donor?.profile?.mobile && (
-                    <p className="text-xs text-gray-600 mt-2">
-                      রক্তদাতা রাজি হয়েছেন — যোগাযোগ করুন:{' '}
-                      <a
-                        href={`tel:${req.donor.profile.mobile}`}
-                        className="text-red-600 font-medium hover:underline"
-                      >
-                        {req.donor.profile.mobile}
-                      </a>
-                    </p>
+                  {req.status === 'ACCEPTED' && (
+                    <div className="mt-2 space-y-2">
+                      {req.donor?.profile?.mobile && (
+                        <p className="text-xs text-gray-600">
+                          রক্তদাতা রাজি হয়েছেন — যোগাযোগ করুন:{' '}
+                          <a
+                            href={`tel:${req.donor.profile.mobile}`}
+                            className="text-red-600 font-medium hover:underline"
+                          >
+                            {req.donor.profile.mobile}
+                          </a>
+                        </p>
+                      )}
+                      <CompleteRequestButton
+                        requestId={req.id}
+                        donorName={req.donor?.profile?.full_name ?? 'রক্তদাতা'}
+                      />
+                    </div>
                   )}
                   {req.status === 'PENDING' && (
                     <CancelRequestButton requestId={req.id} />
@@ -270,7 +278,10 @@ export default async function ProfilePage() {
                       <RequestActions requestId={req.id} />
                     )}
                     {req.status === 'ACCEPTED' && (
-                      <CompleteRequestButton requestId={req.id} />
+                      <p className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                        রক্তদান হয়ে গেলে রিকোয়েস্টকারী “রক্ত পেয়েছি” নিশ্চিত
+                        করবেন — তখনই এটি আপনার রক্তদানের হিসাবে যোগ হবে।
+                      </p>
                     )}
                   </div>
                 ))

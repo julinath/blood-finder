@@ -109,9 +109,11 @@ export async function declineRequest(requestId: string) {
   redirect('/profile?flash=request-declined')
 }
 
-// The donor confirms the donation happened. A single DB function flips the
-// request to COMPLETED and inserts the donation record atomically — the
-// on-insert trigger then bumps donation_count and last_donation_date.
+// The REQUESTER confirms the donation happened — never the donor, who could
+// otherwise inflate their own donation count. A single DB function (which
+// re-checks that the caller is the requester) flips the request to COMPLETED
+// and inserts the donation record atomically — the on-insert trigger then
+// bumps the donor's donation_count and last_donation_date.
 export async function completeRequest(requestId: string) {
   const { supabase } = await requireUser()
   const { error } = await supabase.rpc('complete_blood_request', {

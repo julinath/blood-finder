@@ -182,10 +182,12 @@ create or replace trigger on_donation_record_created
 revoke execute on function public.bump_donation_count() from public, anon, authenticated;
 
 -- ============================================================================
--- Complete a blood request — the donor confirms the donation actually
--- happened. Flips the ACCEPTED request to COMPLETED and inserts the donation
--- record in one atomic, permission-checked step (the trigger above then bumps
--- donation_count and last_donation_date).
+-- Complete a blood request — the REQUESTER (who received the blood) confirms
+-- the donation actually happened. The donor must NOT be able to confirm their
+-- own donations, otherwise they could inflate their public donation count.
+-- Mirrors record_emergency_donation: the receiver attests, the donor gets the
+-- credit. Flips ACCEPTED → COMPLETED and inserts the donation record in one
+-- atomic step (the trigger above then bumps donation_count/last_donation_date).
 -- ============================================================================
 
 create or replace function public.complete_blood_request(p_request_id uuid)
@@ -196,7 +198,6 @@ set search_path = public
 as $$
 declare
   v_donor_id uuid;
-  v_donor_user uuid;
   v_requester uuid;
   v_status text;
 begin
@@ -205,9 +206,8 @@ begin
   if v_donor_id is null then
     raise exception 'Request not found';
   end if;
-  select user_id into v_donor_user from donors where id = v_donor_id;
-  if v_donor_user is null or v_donor_user <> auth.uid() then
-    raise exception 'Only the donor can complete this request';
+  if v_requester is null or v_requester <> auth.uid() then
+    raise exception 'Only the requester can confirm the donation';
   end if;
   if v_status <> 'ACCEPTED' then
     raise exception 'Request is not in an accepted state';

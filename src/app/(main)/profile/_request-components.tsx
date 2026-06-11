@@ -118,13 +118,20 @@ export function RequestActions({ requestId }: { requestId: string }) {
   )
 }
 
-// Shown on an ACCEPTED received request: the donor confirms the donation
-// actually happened, which records it and closes the request.
-export function CompleteRequestButton({ requestId }: { requestId: string }) {
+// Shown on an ACCEPTED *sent* request: the REQUESTER (who received the blood)
+// confirms the donation happened — the donor never confirms their own
+// donations, so the public donation count can't be self-inflated.
+export function CompleteRequestButton({
+  requestId,
+  donorName,
+}: {
+  requestId: string
+  donorName: string
+}) {
   const confirmComplete = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (
       !confirm(
-        'রক্তদান সম্পন্ন হয়েছে — নিশ্চিত করছেন? এটি আপনার রক্তদানের হিসাবে যোগ হবে এবং রিকোয়েস্টটি সম্পন্ন হিসেবে বন্ধ হবে।',
+        `"${donorName}" আপনাকে রক্ত দিয়েছেন — নিশ্চিত করছেন? রিকোয়েস্টটি সম্পন্ন হবে এবং রক্তদানটি রক্তদাতার হিসাবে যোগ হবে।`,
       )
     ) {
       e.preventDefault()
@@ -134,7 +141,7 @@ export function CompleteRequestButton({ requestId }: { requestId: string }) {
   return (
     <form action={completeRequest.bind(null, requestId)}>
       <ActionButton
-        label="🩸 রক্ত দিয়েছি"
+        label="🩸 রক্ত পেয়েছি — নিশ্চিত করুন"
         pendingLabel="…"
         className="text-xs bg-red-100 text-red-700 px-3 py-1.5 rounded-lg hover:bg-red-200 transition-colors font-medium whitespace-nowrap"
         onClick={confirmComplete}

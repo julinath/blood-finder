@@ -113,10 +113,14 @@ requester ──send──▶ PENDING ──donor declines / requester cancels�
                        │
                   donor accepts          (requester sees donor's mobile)
                        ▼
-                   ACCEPTED ──donor taps "রক্ত দিয়েছি"──▶ COMPLETED
+                   ACCEPTED ──requester taps "রক্ত পেয়েছি"──▶ COMPLETED
                                                   └─ donation_record inserted
                                                      (count + last date bumped)
 ```
+
+Completion is always confirmed by the blood *receiver* — never the donor —
+so a donor cannot inflate their own donation count (`complete_blood_request`
+enforces this in the database).
 
 Emergency flow: post → donors offer → requester calls a donor → requester
 taps **"ইনি রক্ত দিয়েছেন"** (credits that donor, closes the request) or marks
