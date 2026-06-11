@@ -45,7 +45,7 @@ export default async function EmergencyPreview() {
             Live · Emergency
           </span>
         }
-        title="ইমার্জেন্সি রক্তের রিকোয়েস্ট"
+        title="জরুরি রক্তের রিকোয়েস্ট"
         subtitle="এই মুহূর্তে যেসব রোগী জরুরি রক্তের জন্য অপেক্ষা করছেন।"
         className="mb-6"
       />
