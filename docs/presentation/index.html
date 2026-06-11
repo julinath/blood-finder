@@ -1,0 +1,565 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Blood Finder — Presentation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,700;1,9..144,900&family=Hind+Siliguri:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --blood: #b91c1c;
+    --blood-bright: #dc2626;
+    --blood-deep: #7f1d1d;
+    --ink: #1c1917;
+    --ink-soft: #57534e;
+    --paper: #faf7f2;
+    --cream: #fffdf9;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --bn: "Hind Siliguri", sans-serif;
+    --display: "Fraunces", Georgia, serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; overflow: hidden; background: var(--ink); }
+  body { font-family: var(--display); font-weight: 500; color: var(--ink); }
+  .bn { font-family: var(--bn); }
+
+  /* ---------- deck scaffolding ---------- */
+  .deck { position: relative; width: 100vw; height: 100vh; }
+  .slide {
+    position: absolute; inset: 0;
+    display: none;
+    padding: clamp(2rem, 5vw, 4.5rem) clamp(2rem, 6vw, 6rem);
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .slide.active { display: flex; flex-direction: column; animation: slide-in .45s cubic-bezier(.22,1,.36,1) both; }
+  @keyframes slide-in { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+
+  .slide::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .5;
+    background-image: radial-gradient(#d6cec240 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
+  .slide.dark::before { background-image: radial-gradient(#ffffff14 1px, transparent 1px); }
+
+  .active .s { animation: rise .6s cubic-bezier(.22,1,.36,1) both; }
+  .active [data-d="1"] { animation-delay: .05s; }
+  .active [data-d="2"] { animation-delay: .15s; }
+  .active [data-d="3"] { animation-delay: .25s; }
+  .active [data-d="4"] { animation-delay: .35s; }
+  .active [data-d="5"] { animation-delay: .45s; }
+  .active [data-d="6"] { animation-delay: .55s; }
+  @keyframes rise { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    .slide.active, .active .s { animation: none !important; }
+  }
+
+  /* ---------- shared atoms ---------- */
+  .kicker {
+    font-family: var(--mono); font-size: clamp(.65rem, 1vw, .8rem); letter-spacing: .22em;
+    text-transform: uppercase; color: var(--blood); display: flex; align-items: center; gap: .8rem;
+  }
+  .kicker::before { content: ""; width: 2.2rem; height: 2px; background: var(--blood); }
+  .slide h2 {
+    font-family: var(--display); font-weight: 700;
+    font-size: clamp(2rem, 4.4vw, 3.6rem); line-height: 1.1;
+    margin: .6rem 0 1.6rem; letter-spacing: -.015em;
+  }
+  .slide h2 em { font-style: italic; font-weight: 900; color: var(--blood); }
+  .num {
+    position: absolute; right: clamp(1.5rem, 4vw, 4rem); top: clamp(1.2rem, 3vw, 2.5rem);
+    font-family: var(--display); font-weight: 900; font-size: clamp(4rem, 9vw, 8rem);
+    color: transparent; -webkit-text-stroke: 1.5px #d8cfc2; line-height: 1; user-select: none;
+  }
+  .dark .num { -webkit-text-stroke: 1.5px #ffffff2b; }
+  .body-wrap { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  p, li { font-family: var(--bn); }  /* body copy uses the humanist sans for clean reading + Bengali glyph support */
+
+  .shot { background: #fff; border: 1px solid #e4ddd2; border-radius: 14px; overflow: hidden;
+          box-shadow: 0 24px 60px -24px #b91c1c2e, 0 4px 16px #1c191712; }
+  .shot .bar { display: flex; gap: 5px; padding: 9px 12px; background: #f5f0e8; border-bottom: 1px solid #e7e0d5; }
+  .shot .bar i { width: 9px; height: 9px; border-radius: 50%; background: #ddd3c4; }
+  .shot .bar i:first-child { background: var(--blood-bright); }
+  .shot img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+  .shot .ph { display:flex; align-items:center; justify-content:center; height:100%; color:#a8a29e; font-family:var(--mono); font-size:.8rem; }
+
+  /* ---------- chrome: ECG progress + counter + dots ---------- */
+  .ecg { position: fixed; left: 0; right: 0; bottom: 0; height: 44px; z-index: 50; pointer-events: none; }
+  .ecg svg { width: 100%; height: 100%; }
+  .ecg .trace { stroke: var(--blood-bright); stroke-width: 2; fill: none;
+                stroke-dasharray: var(--len, 4000); stroke-dashoffset: var(--off, 4000);
+                transition: stroke-dashoffset .5s cubic-bezier(.22,1,.36,1);
+                filter: drop-shadow(0 0 6px #dc262666); }
+  .ecg .ghost { stroke: #1c19171a; stroke-width: 1.5; fill: none; }
+  .dark-active .ecg .ghost { stroke: #ffffff22; }
+  .counter { position: fixed; right: clamp(1rem, 3vw, 2.4rem); bottom: 1.1rem; z-index: 60;
+             font-family: var(--mono); font-size: .75rem; letter-spacing: .15em; color: var(--ink-soft); }
+  .dark-active .counter { color: #d6c8c8; }
+  .hint { position: fixed; left: 50%; transform: translateX(-50%); bottom: 3.4rem; z-index: 60;
+          font-family: var(--mono); font-size: .68rem; letter-spacing: .12em; color: #a8a29e;
+          background: #ffffffd9; border: 1px solid #e7e0d5; padding: .45rem .9rem; border-radius: 99px;
+          transition: opacity .6s; }
+  .hint.gone { opacity: 0; }
+  .dots { position: fixed; right: 1.1rem; top: 50%; transform: translateY(-50%); z-index: 60;
+          display: flex; flex-direction: column; gap: .55rem; }
+  .dots button { width: 8px; height: 8px; border-radius: 50%; border: none; cursor: pointer;
+                 background: #1c191726; transition: all .25s; padding: 0; }
+  .dots button.on { background: var(--blood-bright); transform: scale(1.45); }
+  .dark-active .dots button { background: #ffffff38; }
+  .dark-active .dots button.on { background: #fca5a5; }
+
+  /* ---------- title ---------- */
+  .dark { background: radial-gradient(120% 140% at 80% -10%, #991b1b 0%, var(--blood-deep) 38%, #450a0a 75%, #2a0606 100%); color: #fdf6f3; }
+  .title-slide { justify-content: center; }
+  .title-slide .drop {
+    width: clamp(72px, 9vw, 120px); height: auto; margin-bottom: 2rem;
+    animation: bob 4.5s ease-in-out infinite;
+    filter: drop-shadow(0 18px 30px #00000066);
+  }
+  @keyframes bob { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-12px) } }
+  .title-slide h1 { font-family: var(--display); font-weight: 900; font-size: clamp(3.4rem, 9vw, 7.5rem);
+                    line-height: .95; letter-spacing: -.02em; }
+  .title-slide h1 em { font-style: italic; color: #fca5a5; }
+  .title-slide .tag { font-size: clamp(1.05rem, 2.1vw, 1.5rem); color: #fecaca; margin-top: 1.4rem; max-width: 44ch; line-height: 1.6; }
+  .title-meta { margin-top: 3rem; display: flex; flex-wrap: wrap; gap: 2.5rem 4rem; font-size: .95rem; }
+  .title-meta .lbl { font-family: var(--mono); font-size: .65rem; letter-spacing: .2em; text-transform: uppercase; color: #f87171; margin-bottom: .45rem; }
+  .title-meta div p { color: #fee2e2; line-height: 1.55; }
+  .live-pill { display: inline-flex; align-items: center; gap: .55rem; margin-top: 2.6rem;
+               font-family: var(--mono); font-size: .8rem; color: #fff; border: 1px solid #ffffff3d;
+               padding: .65rem 1.2rem; border-radius: 99px; background: #ffffff12; }
+  .live-pill i { width: 8px; height: 8px; border-radius: 50%; background: #4ade80; animation: blink 1.6s infinite; }
+  @keyframes blink { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
+
+  /* ---------- problem ---------- */
+  .prob-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(1.5rem, 4vw, 4rem); flex: 1; min-height: 0; align-items: center; }
+  .prob-list { display: flex; flex-direction: column; gap: .85rem; }
+  .prob { display: flex; gap: 1rem; align-items: flex-start; background: var(--cream); border: 1px solid #ebe3d7;
+          border-left: 4px solid var(--blood-bright); padding: .9rem 1.2rem; border-radius: 12px; }
+  .prob b { display: block; font-size: 1.05rem; margin-bottom: .15rem; }
+  .prob p { color: var(--ink-soft); font-size: .9rem; line-height: 1.55; }
+  .prob .ic { font-size: 1.5rem; line-height: 1; margin-top: .15rem; }
+  .big-claim { font-family: var(--display); font-weight: 700; font-style: italic;
+               font-size: clamp(1.5rem, 3vw, 2.4rem); line-height: 1.35; color: var(--blood-deep); }
+  .claim-note { margin-top: 1.4rem; font-family: var(--mono); font-size: .78rem; color: var(--ink-soft); letter-spacing: .05em; line-height: 1.9; }
+
+  /* ---------- solution cards ---------- */
+  .tri { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; flex: 1; align-content: center; }
+  .tri .card { background: var(--cream); border: 1px solid #ebe3d7; border-radius: 18px; padding: 1.8rem 1.6rem;
+               position: relative; transition: transform .25s, box-shadow .25s; }
+  .tri .card:hover { transform: translateY(-6px); box-shadow: 0 20px 44px -20px #b91c1c40; }
+  .tri .card .step { font-family: var(--mono); font-size: .7rem; letter-spacing: .2em; color: var(--blood); }
+  .tri .card .em { font-size: 2.2rem; margin: .9rem 0 .7rem; }
+  .tri .card h3 { font-family: var(--display); font-size: 1.4rem; margin-bottom: .55rem; }
+  .tri .card p { color: var(--ink-soft); font-size: .95rem; line-height: 1.7; }
+
+  /* ---------- product showcase ---------- */
+  .show { position: relative; flex: 1; min-height: 0; }
+  .show .desk { position: absolute; left: 0; top: 0; width: 72%; height: 92%; }
+  .show .mob { position: absolute; right: 1%; bottom: 0; width: 21%; aspect-ratio: 39/76; transform: rotate(2.5deg); z-index: 2; }
+  .show .badge { position: absolute; right: 24%; top: 6%; z-index: 3; background: var(--ink); color: #fff;
+                 font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; padding: .6rem 1rem;
+                 border-radius: 10px; transform: rotate(-2deg); box-shadow: 0 10px 26px #00000033; }
+
+  .duo { display: grid; grid-template-columns: 1.15fr .85fr; gap: 2rem; flex: 1; min-height: 0; align-items: stretch; }
+  .duo .shot { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+  .duo .shot > div:last-child { flex: 1; min-height: 0; }
+  .side-notes { display: flex; flex-direction: column; gap: 1rem; justify-content: center; }
+  .note { background: var(--cream); border: 1px solid #ebe3d7; border-radius: 14px; padding: 1.05rem 1.25rem; }
+  .note b { display: flex; gap: .6rem; align-items: center; font-size: 1.02rem; margin-bottom: .25rem; font-family: var(--bn); }
+  .note p { color: var(--ink-soft); font-size: .92rem; line-height: 1.65; }
+  .note .tickmark { color: var(--blood-bright); font-weight: 700; }
+
+  /* ---------- lifecycle ---------- */
+  .flow { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; margin: 1.2rem 0 2rem; }
+  .state { font-family: var(--mono); font-size: clamp(.8rem, 1.4vw, 1rem); font-weight: 600; letter-spacing: .08em;
+           padding: .85rem 1.5rem; border-radius: 12px; border: 1.5px solid; }
+  .state.pending { color: #a16207; border-color: #facc15; background: #fefce8; }
+  .state.accepted { color: #15803d; border-color: #4ade80; background: #f0fdf4; }
+  .state.completed { color: #1d4ed8; border-color: #60a5fa; background: #eff6ff; }
+  .state.cancelled { color: #6b7280; border-color: #d1d5db; background: #f9fafb; }
+  .arrow { font-family: var(--mono); color: var(--ink-soft); font-size: 1rem; }
+  .arrow small { display: block; font-size: .68rem; color: var(--blood); letter-spacing: .05em; text-align: center; }
+  .mech { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.2rem; }
+
+  /* ---------- architecture ---------- */
+  .arch { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(1.5rem, 3.5vw, 3.5rem); flex: 1; align-items: center; min-height: 0; }
+  .stack { font-family: var(--mono); font-size: clamp(.74rem, 1.25vw, .92rem); line-height: 1.65; background: #211d1a; color: #e7e5e4;
+           border-radius: 16px; padding: 1.6rem 1.8rem; box-shadow: 0 24px 60px -28px #000000aa; overflow: auto; }
+  .stack .c1 { color: #fca5a5; } .stack .c2 { color: #86efac; } .stack .c3 { color: #93c5fd; }
+  .stack .dim { color: #78716c; }
+  .arch-pts { display: flex; flex-direction: column; gap: 1rem; }
+
+  /* ---------- evolution ---------- */
+  .evo { display: flex; flex-direction: column; flex: 1; justify-content: center; }
+  .evo-row { display: grid; grid-template-columns: 130px 26px 1fr; gap: 1.4rem; align-items: start; }
+  .evo-when { font-family: var(--mono); font-size: .78rem; letter-spacing: .12em; color: var(--blood); padding-top: .25rem; text-align: right; }
+  .evo-line { display: flex; flex-direction: column; align-items: center; }
+  .evo-line i { width: 13px; height: 13px; border-radius: 50%; background: var(--blood-bright); border: 3px solid #fecaca; flex-shrink: 0; }
+  .evo-line span { width: 2px; flex: 1; background: #e2d9cb; min-height: 2.4rem; }
+  .evo-what { padding-bottom: 1.5rem; }
+  .evo-what b { font-size: 1.15rem; font-family: var(--bn); }
+  .evo-what p { color: var(--ink-soft); line-height: 1.65; margin-top: .2rem; font-size: .95rem; }
+
+  .road { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem 1.6rem; flex: 1; align-content: center; }
+
+  /* ---------- closing ---------- */
+  .end-slide { justify-content: center; align-items: flex-start; }
+  .end-slide h2 { font-size: clamp(2.4rem, 6vw, 4.8rem); margin-bottom: .6rem; }
+  .end-slide h2 em { color: #fca5a5; }
+  .end-bn { font-family: var(--bn); font-size: clamp(1.1rem, 2.4vw, 1.7rem); color: #fecaca; }
+  .end-url { font-family: var(--mono); font-size: clamp(1rem, 2.2vw, 1.5rem); color: #fff;
+             border-bottom: 2px solid #f87171; padding-bottom: .3rem; text-decoration: none; display: inline-block; margin-top: 2.2rem; }
+  .end-meta { margin-top: 3rem; color: #fecaca; line-height: 2; }
+
+  @media (max-width: 900px) {
+    .prob-grid, .duo, .arch { grid-template-columns: 1fr; overflow: auto; }
+    .tri, .mech, .road { grid-template-columns: 1fr; overflow: auto; }
+    .num { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1 · TITLE -->
+  <section class="slide dark title-slide">
+    <div class="body-wrap">
+      <svg class="drop s" data-d="1" viewBox="0 0 64 80" aria-hidden="true">
+        <path d="M32 2C32 2 8 34 8 52a24 24 0 0 0 48 0C56 34 32 2 32 2Z" fill="#fee2e2"/>
+        <path d="M32 10C32 10 14 36 14 52a18 18 0 0 0 36 0C50 36 32 10 32 10Z" fill="#dc2626"/>
+        <ellipse cx="24" cy="48" rx="5" ry="8" fill="#fca5a5" opacity=".7"/>
+      </svg>
+      <h1 class="s" data-d="2">Blood <em>Finder</em></h1>
+      <p class="tag s" data-d="3">A trusted platform to find verified blood donors in Bangladesh — fast, safe, and free.</p>
+      <div class="title-meta s" data-d="4">
+        <div>
+          <p class="lbl">Team</p>
+          <p>Juli Nath · Asma Akter · Mom Chakraborti</p>
+        </div>
+        <div>
+          <p class="lbl">Supervisor</p>
+          <p>Dhonita Tripura<br/><span style="opacity:.75">Assistant Professor, CSE — RMSTU</span></p>
+        </div>
+        <div>
+          <p class="lbl">Course</p>
+          <p>Object Oriented Programming Lab<br/><span style="opacity:.75">CSE 11th Batch, RMSTU</span></p>
+        </div>
+      </div>
+      <span class="live-pill s" data-d="5"><i></i> live — blood-finder-bangladesh.vercel.app</span>
+    </div>
+  </section>
+
+  <!-- 2 · PROBLEM -->
+  <section class="slide">
+    <span class="num">01</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">The Problem</p>
+      <h2 class="s" data-d="2">Finding blood in an emergency is <em>chaos</em></h2>
+      <div class="prob-grid">
+        <div class="prob-list">
+          <div class="prob s" data-d="2"><span class="ic">⏱️</span><div><b>Scattered, unreliable channels</b><p>A saved phone number may be unavailable when it matters; area-based Facebook groups respond slowly and posts sink; local blood organizations are disconnected islands.</p></div></div>
+          <div class="prob s" data-d="3"><span class="ic">💸</span><div><b>Misery as a business</b><p>Middlemen charge money for donor numbers, fake "donors" demand payment at the hospital, and fraudulent requesters even resell donated blood.</p></div></div>
+          <div class="prob s" data-d="4"><span class="ic">🔓</span><div><b>Zero privacy for donors</b><p>Phone numbers get scattered across public groups — fear of spam and harassment keeps willing donors away.</p></div></div>
+          <div class="prob s" data-d="5"><span class="ic">😨</span><div><b>Fear &amp; misconceptions</b><p>"Donating makes you weak" — myths and missing knowledge stop thousands of healthy people from ever donating.</p></div></div>
+        </div>
+        <div class="s" data-d="6">
+          <p class="big-claim">“Someone in Bangladesh needs blood every two seconds — yet there is no reliable place to look.”</p>
+          <p class="claim-note">1 bag of blood can save up to 3 lives<br/>Blood cannot be manufactured — only donated</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · SOLUTION -->
+  <section class="slide">
+    <span class="num">02</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">The Solution</p>
+      <h2 class="s" data-d="2">One platform, three <em>flows</em></h2>
+      <div class="tri">
+        <div class="card s" data-d="3">
+          <p class="step">FLOW — 01</p>
+          <p class="em">🔍</p>
+          <h3>Find Donors</h3>
+          <p>Search <b>verified</b> donors by blood group, district and area in seconds — with a 90-day eligibility badge and donation count, so you instantly know who can give.</p>
+        </div>
+        <div class="card s" data-d="4">
+          <p class="step">FLOW — 02</p>
+          <p class="em">🚑</p>
+          <h3>Emergency Board</h3>
+          <p>A patient's family posts a request; nearby donors step forward with one tap — <span class="bn">“আমি রক্ত দিতে পারবো”</span>. The feed auto-filters to the viewer's own blood group and district.</p>
+        </div>
+        <div class="card s" data-d="5">
+          <p class="step">FLOW — 03</p>
+          <p class="em">🩸</p>
+          <h3>Become a Donor</h3>
+          <p>One form to register as a donor — visible in search only after admin approval. Every donation is recorded on the platform and counts toward the donor's public profile.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 · PRODUCT SHOWCASE -->
+  <section class="slide">
+    <span class="num">03</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">The Product</p>
+      <h2 class="s" data-d="2">Bengali-first, <em>mobile-first</em>, data-driven</h2>
+      <div class="show">
+        <div class="shot desk s" data-d="3"><div class="bar"><i></i><i></i><i></i></div><div style="height:calc(100% - 28px)"><img src="screenshots/01-home-desktop.png" alt="Home page" onerror="this.outerHTML='&lt;div class=ph&gt;screenshots/01-home-desktop.png&lt;/div&gt;'"/></div></div>
+        <div class="shot mob s" data-d="5"><img src="screenshots/08-home-mobile-390.png" alt="Mobile home" onerror="this.outerHTML='&lt;div class=ph&gt;mobile&lt;/div&gt;'"/></div>
+        <div class="badge s" data-d="6">search above the fold @ 390px</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · SEARCH + PROFILE -->
+  <section class="slide">
+    <span class="num">04</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">Find Donors</p>
+      <h2 class="s" data-d="2">From search to contact in <em>seconds</em></h2>
+      <div class="duo">
+        <div class="shot s" data-d="3"><div class="bar"><i></i><i></i><i></i></div><div><img src="screenshots/02-donor-search.png" alt="Donor search" onerror="this.outerHTML='&lt;div class=ph&gt;screenshots/02-donor-search.png&lt;/div&gt;'"/></div></div>
+        <div class="side-notes">
+          <div class="note s" data-d="4"><b><span class="tickmark">✓</span> Verified-only results</b><p>Only admin-approved donors ever appear in search — fake profiles have no place here.</p></div>
+          <div class="note s" data-d="5"><b><span class="tickmark">✓</span> 90-day eligibility rule</b><p>Computed from the last donation date and enforced everywhere — search badges, profiles, and the request form itself.</p></div>
+          <div class="note s" data-d="6"><b><span class="tickmark">✓</span> Contact gated by login</b><p>Phone numbers require sign-in. Anonymous visitors cannot read them even directly from the database.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 · EMERGENCY + PRIVACY -->
+  <section class="slide">
+    <span class="num">05</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">Emergency Board · our signature design</p>
+      <h2 class="s" data-d="2">Donor-first <em>privacy</em></h2>
+      <div class="duo">
+        <div class="shot s" data-d="3"><div class="bar"><i></i><i></i><i></i></div><div><img src="screenshots/04-emergency-board.png" alt="Emergency board" onerror="this.outerHTML='&lt;div class=ph&gt;screenshots/04-emergency-board.png&lt;/div&gt;'"/></div></div>
+        <div class="side-notes">
+          <div class="note s" data-d="4"><b>1 · Request posted</b><p>The contact number is stored in a separate, access-controlled table — it never appears on the public feed.</p></div>
+          <div class="note s" data-d="5"><b>2 · A donor responds</b><p>One tap — <span class="bn">“আমি রক্ত দিতে পারবো”</span> — but the donor <b>never sees</b> the requester's number.</p></div>
+          <div class="note s" data-d="6"><b>3 · The requester calls</b><p>The requester sees the responding donor's name and number and makes the call. Donor privacy comes first — no spam, no harassment. Backed by rate-limiting and an abuse-report system.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · LIFECYCLE -->
+  <section class="slide">
+    <span class="num">06</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">Request Lifecycle</p>
+      <h2 class="s" data-d="2">From request to a recorded <em>donation</em></h2>
+      <div class="flow s" data-d="3">
+        <span class="state pending">PENDING</span>
+        <span class="arrow">──▶<small>donor accepts</small></span>
+        <span class="state accepted">ACCEPTED</span>
+        <span class="arrow">──▶<small>donor confirms <span class="bn">“রক্ত দিয়েছি”</span></small></span>
+        <span class="state completed">COMPLETED</span>
+        <span class="arrow" style="margin-left:1rem">⤷</span>
+        <span class="state cancelled">CANCELLED</span>
+      </div>
+      <div class="mech">
+        <div class="note s" data-d="4"><b>Accept = consent</b><p>Acceptance reveals the donor's number to the requester — they talk and agree on time and place.</p></div>
+        <div class="note s" data-d="5"><b>Atomic completion</b><p>A single database function closes the request and writes the donation record together — a half-completed state is impossible.</p></div>
+        <div class="note s" data-d="6"><b>Trigger-maintained stats</b><p>Donation count and last-donation date are updated by database triggers — the numbers stay correct even if the app has a bug, and the 90-day countdown starts automatically.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 · TRUST / ADMIN -->
+  <section class="slide">
+    <span class="num">07</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">Trust &amp; Safety</p>
+      <h2 class="s" data-d="2">The admin panel — our <em>gatekeeper</em></h2>
+      <div class="duo">
+        <div class="shot s" data-d="3"><div class="bar"><i></i><i></i><i></i></div><div><img src="screenshots/06-admin-panel.png" alt="Admin panel" onerror="this.outerHTML='&lt;div class=ph&gt;screenshots/06-admin-panel.png&lt;/div&gt;'"/></div></div>
+        <div class="side-notes">
+          <div class="note s" data-d="4"><b><span class="tickmark">✓</span> Donor approval queue</b><p>Each application arrives with an automatic fitness verdict (age, weight, donation-gap rules); admins approve, reject, or un-list donors.</p></div>
+          <div class="note s" data-d="5"><b><span class="tickmark">✓</span> Reports queue</b><p>No-shows, payment demands, fake requests — user reports flow through an Open → Reviewed → Resolved pipeline.</p></div>
+          <div class="note s" data-d="6"><b><span class="tickmark">✓</span> Full oversight</b><p>Expire stale emergencies, manage users and requests — every admin action is double-guarded at both server and database level.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 · ARCHITECTURE -->
+  <section class="slide">
+    <span class="num">08</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">Under the Hood</p>
+      <h2 class="s" data-d="2">Architecture &amp; <em>security</em></h2>
+      <div class="arch">
+        <pre class="stack s" data-d="3">
+<span class="dim">┌─ CLIENT ─────────────────────────────┐</span>
+  React 19 · Tailwind CSS v4
+  <span class="c1">Bengali-first UI</span> (Hind Siliguri)
+<span class="dim">└──────────────┬───────────────────────┘</span>
+               ▼
+<span class="dim">┌─ NEXT.JS 16 (App Router) ────────────┐</span>
+  Server Components + <span class="c2">Server Actions</span>
+  proxy.ts → route protection
+  <span class="c2">auth + ownership re-checked per action</span>
+<span class="dim">└──────────────┬───────────────────────┘</span>
+               ▼
+<span class="dim">┌─ SUPABASE (PostgreSQL + Auth) ───────┐</span>
+  <span class="c3">Row Level Security</span> on every table
+  <span class="c3">Column-level grants</span> — anonymous users
+    can never read email / phone / health
+  Triggers — donation count, rate limits
+  SECURITY DEFINER fns — atomic ops
+<span class="dim">└──────────────────────────────────────┘</span>
+  Deploy: <span class="c1">Vercel</span> · CI on git push</pre>
+        <div class="arch-pts">
+          <div class="note s" data-d="4"><b>Defense in depth</b><p>UI validation → server-action validation → database constraints &amp; RLS. Even if one layer fails, the data stays safe.</p></div>
+          <div class="note s" data-d="5"><b>Performance</b><p>The 700 KB district map is projected to SVG on the server — it never reaches the phone. CSS-only animations, reduced-motion respected.</p></div>
+          <div class="note s" data-d="6"><b>Quality process</b><p>Every flow tested end-to-end in a real browser with Playwright (desktop + 390px mobile); lint, type-check and production build all clean.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 · EVOLUTION -->
+  <section class="slide">
+    <span class="num">09</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">The Journey · from our OOP course</p>
+      <h2 class="s" data-d="2">Lab project → real-life <em>product</em></h2>
+      <div class="evo">
+        <div class="evo-row s" data-d="3">
+          <p class="evo-when">PHASE 1</p>
+          <div class="evo-line"><i></i><span></span></div>
+          <div class="evo-what"><b>JavaFX Desktop App (OOP Lab)</b><p>Java 21 + JavaFX + SQLite in an MVC pattern — User, Donor, BloodRequest and DonationRecord models putting core OOP concepts to work. <span style="font-family:var(--mono);font-size:.8em">preserved on the desktop-app branch</span></p></div>
+        </div>
+        <div class="evo-row s" data-d="4">
+          <p class="evo-when">PHASE 2</p>
+          <div class="evo-line"><i></i><span></span></div>
+          <div class="evo-what"><b>Web Platform Rebuild</b><p>The same domain model, now reachable by everyone — rebuilt on Next.js + Supabase with the emergency board, admin panel, district map and donation tracking.</p></div>
+        </div>
+        <div class="evo-row s" data-d="5">
+          <p class="evo-when">PHASE 3</p>
+          <div class="evo-line"><i></i><span></span></div>
+          <div class="evo-what"><b>Production Hardening <span style="font-family:var(--mono);font-size:.75em;color:var(--blood)">— we are here</span></b><p>Full security audit, privacy hardening (column-level grants), end-to-end browser testing, Bengali language pass — the live site is usable today.</p></div>
+        </div>
+        <div class="evo-row s" data-d="6">
+          <p class="evo-when">NEXT</p>
+          <div class="evo-line"><i></i></div>
+          <div class="evo-what"><b>Real-life launch</b><p>Starting from campus and growing nationwide — the goal: Bangladesh's most trusted blood-donor network.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · ROADMAP -->
+  <section class="slide">
+    <span class="num">10</span>
+    <div class="body-wrap">
+      <p class="kicker s" data-d="1">Roadmap</p>
+      <h2 class="s" data-d="2">What comes <em>next?</em></h2>
+      <div class="road">
+        <div class="note s" data-d="3"><b>📱 SMS / push notifications</b><p>When a request is posted, matching donors nearby get notified instantly — no need to keep checking the site.</p></div>
+        <div class="note s" data-d="4"><b>🏅 Donor recognition</b><p>Milestone badges (5, 10, 25 donations…) and verified-donor honors — encouraging people to donate regularly.</p></div>
+        <div class="note s" data-d="5"><b>🪪 Stronger verification</b><p>NID / student-ID based identity checks and hospital partnerships — raising the bar of trust even higher.</p></div>
+        <div class="note s" data-d="6"><b>⏰ Smart automation</b><p>Auto-expiry of stale requests, eligibility-day reminders for donors, and blood-group compatibility matching.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 12 · CLOSING -->
+  <section class="slide dark end-slide">
+    <div class="body-wrap" style="justify-content:center">
+      <p class="kicker s" data-d="1" style="color:#fca5a5">Thank you</p>
+      <h2 class="s" data-d="2">One bag of blood can be<br/>someone's whole <em>world.</em></h2>
+      <p class="end-bn s" data-d="3">আপনার এক ব্যাগ রক্ত, কারো পুরো পৃথিবী।</p>
+      <a class="end-url s" data-d="4" href="https://blood-finder-bangladesh.vercel.app" target="_blank" rel="noopener">blood-finder-bangladesh.vercel.app</a>
+      <p class="end-meta s" data-d="5">
+        Juli Nath · Asma Akter · Mom Chakraborti — CSE 11th Batch, RMSTU<br/>
+        <span style="opacity:.7">Supervisor: Dhonita Tripura · github.com/devjewel01/blood-finder</span>
+      </p>
+    </div>
+  </section>
+</div>
+
+<!-- chrome -->
+<div class="ecg" aria-hidden="true">
+  <svg viewBox="0 0 1200 44" preserveAspectRatio="none">
+    <path class="ghost" d="M0,30 H80 L92,30 100,12 110,40 118,24 126,30 H230 L242,30 250,10 260,42 268,22 276,30 H380 L392,30 400,12 410,40 418,24 426,30 H530 L542,30 550,10 560,42 568,22 576,30 H680 L692,30 700,12 710,40 718,24 726,30 H830 L842,30 850,10 860,42 868,22 876,30 H980 L992,30 1000,12 1010,40 1018,24 1026,30 H1200"/>
+    <path class="trace" id="trace" d="M0,30 H80 L92,30 100,12 110,40 118,24 126,30 H230 L242,30 250,10 260,42 268,22 276,30 H380 L392,30 400,12 410,40 418,24 426,30 H530 L542,30 550,10 560,42 568,22 576,30 H680 L692,30 700,12 710,40 718,24 726,30 H830 L842,30 850,10 860,42 868,22 876,30 H980 L992,30 1000,12 1010,40 1018,24 1026,30 H1200"/>
+  </svg>
+</div>
+<p class="counter" id="counter">01 / 12</p>
+<p class="hint" id="hint">→ / space / click · F = fullscreen</p>
+<nav class="dots" id="dots" aria-label="Slides"></nav>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  const counter = document.getElementById('counter');
+  const dots = document.getElementById('dots');
+  const hint = document.getElementById('hint');
+  const trace = document.getElementById('trace');
+  let i = 0;
+
+  const traceLen = trace.getTotalLength();
+  trace.style.setProperty('--len', traceLen);
+
+  slides.forEach((_, n) => {
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', 'Slide ' + (n + 1));
+    b.addEventListener('click', () => go(n));
+    dots.appendChild(b);
+  });
+
+  function go(n) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach((s, k) => s.classList.toggle('active', k === i));
+    document.body.classList.toggle('dark-active', slides[i].classList.contains('dark'));
+    counter.textContent = String(i + 1).padStart(2, '0') + ' / ' + slides.length;
+    [...dots.children].forEach((d, k) => d.classList.toggle('on', k === i));
+    // The ECG line fills as the talk progresses
+    trace.style.setProperty('--off', traceLen * (1 - (i + 1) / slides.length));
+    location.hash = i + 1;
+  }
+
+  function next() { go(i + 1); hint.classList.add('gone'); }
+  function prev() { go(i - 1); hint.classList.add('gone'); }
+
+  addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); next(); }
+    else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') go(0);
+    else if (e.key === 'End') go(slides.length - 1);
+    else if (e.key.toLowerCase() === 'f') {
+      document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    }
+  });
+
+  addEventListener('click', (e) => {
+    if (e.target.closest('a, button, nav')) return;
+    (e.clientX < innerWidth / 3 ? prev : next)();
+  });
+
+  let tx = null;
+  addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true });
+  addEventListener('touchend', (e) => {
+    if (tx === null) return;
+    const dx = e.changedTouches[0].clientX - tx;
+    if (Math.abs(dx) > 45) (dx < 0 ? next : prev)();
+    tx = null;
+  }, { passive: true });
+
+  addEventListener('hashchange', () => {
+    const n = parseInt(location.hash.slice(1), 10) - 1;
+    if (!Number.isNaN(n) && n !== i) go(n);
+  });
+
+  setTimeout(() => hint.classList.add('gone'), 6000);
+  go(parseInt(location.hash.slice(1), 10) - 1 || 0);
+</script>
+</body>
+</html>
