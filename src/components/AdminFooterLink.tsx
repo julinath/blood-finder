@@ -24,9 +24,10 @@ export default async function AdminFooterLink() {
       <Link href="/admin" className="text-gray-500 hover:text-white transition-colors">
         Admin Panel
       </Link>
-      {/* TEMPORARY: lab-exam presentation; remove this link + public/presentation/ after the exam */}
+      {/* TEMPORARY: lab-exam presentation; remove this link, public/presentation/
+          and the /presentation redirect in next.config.ts after the exam */}
       <a
-        href="/presentation/index.html"
+        href="/presentation"
         target="_blank"
         rel="noopener"
         className="text-gray-500 hover:text-white transition-colors"

@@ -1,7 +1,18 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      // The lab-exam deck lives at public/presentation/index.html; let people
+      // type just /presentation. Non-permanent so browsers don't cache it
+      // after the deck is removed post-exam.
+      {
+        source: "/presentation",
+        destination: "/presentation/index.html",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
