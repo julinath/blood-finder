@@ -24,8 +24,9 @@ export default async function AdminFooterLink() {
       <Link href="/admin" className="text-gray-500 hover:text-white transition-colors">
         Admin Panel
       </Link>
-      {/* TEMPORARY: lab-exam presentation; remove this link, public/presentation/
-          and the /presentation redirect in next.config.ts after the exam */}
+      {/* TEMPORARY: lab-exam deck + report; remove these links, public/presentation/,
+          public/report/ and the /presentation + /report redirects in
+          next.config.ts after the exam */}
       <a
         href="/presentation"
         target="_blank"
@@ -33,6 +34,14 @@ export default async function AdminFooterLink() {
         className="text-gray-500 hover:text-white transition-colors"
       >
         Presentation
+      </a>
+      <a
+        href="/report"
+        target="_blank"
+        rel="noopener"
+        className="text-gray-500 hover:text-white transition-colors"
+      >
+        Report
       </a>
     </>
   )

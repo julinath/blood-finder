@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
         destination: "/presentation/index.html",
         permanent: false,
       },
+      // Same idea for the lab report: /report opens the print-ready PDF.
+      {
+        source: "/report",
+        destination: "/report/Blood-Finder-Lab-Report.pdf",
+        permanent: false,
+      },
     ];
   },
 };
