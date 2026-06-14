@@ -209,7 +209,9 @@
   /* ---------- OOP slide ---------- */
   .oop { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.2rem 1.4rem; flex: 1; align-content: center; }
   .oop .card { background: var(--cream); border: 1px solid #ebe3d7; border-radius: 16px; padding: 1.3rem 1.5rem; }
-  .oop .card h3 { font-family: var(--display); font-size: 1.25rem; margin-bottom: .6rem; color: var(--blood-deep); }
+  .oop .card h3 { font-family: var(--display); font-size: 1.2rem; margin-bottom: .5rem; color: var(--blood-deep); }
+  .oop .card h3 .def { display: block; font-family: var(--bn); font-size: .82rem; font-weight: 500;
+                       color: var(--ink-soft); margin-top: .12rem; }
   .oop .pair { display: grid; grid-template-columns: 64px 1fr; gap: .6rem; font-size: .88rem; line-height: 1.55; margin-top: .35rem; }
   .oop .pair .tagp { font-family: var(--mono); font-size: .62rem; letter-spacing: .12em; color: var(--blood);
                      text-transform: uppercase; padding-top: .25rem; }
@@ -292,13 +294,13 @@
     <span class="num">01</span>
     <div class="body-wrap">
       <p class="kicker s" data-d="1">The Problem</p>
-      <h2 class="s" data-d="2">Finding blood in an emergency is <em>chaos</em></h2>
+      <h2 class="s" data-d="2">Finding blood fast is <em>too hard</em></h2>
       <div class="prob-grid">
         <div class="prob-list">
-          <div class="prob s" data-d="2"><span class="ic">⏱️</span><div><b>Scattered, unreliable channels</b><p>A saved phone number may be unavailable when it matters; area-based Facebook groups respond slowly and posts sink; local blood organizations are disconnected islands.</p></div></div>
-          <div class="prob s" data-d="3"><span class="ic">💸</span><div><b>Misery as a business</b><p>Some people sell donor phone numbers, fake donors ask for money at the hospital, and some even resell donated blood.</p></div></div>
-          <div class="prob s" data-d="4"><span class="ic">🔓</span><div><b>Zero privacy for donors</b><p>Phone numbers get scattered across public groups — fear of spam and harassment keeps willing donors away.</p></div></div>
-          <div class="prob s" data-d="5"><span class="ic">😨</span><div><b>Fear &amp; misconceptions</b><p>"Donating makes you weak" — myths and missing knowledge stop thousands of healthy people from ever donating.</p></div></div>
+          <div class="prob s" data-d="2"><span class="ic">⏱️</span><div><b>No reliable place to search</b><p>A saved phone number may not answer when it matters; Facebook groups are slow and posts sink; local blood clubs don't share their lists.</p></div></div>
+          <div class="prob s" data-d="3"><span class="ic">💸</span><div><b>Some make money from the crisis</b><p>People sell donor phone numbers, fake donors ask for money at the hospital, and some even resell donated blood.</p></div></div>
+          <div class="prob s" data-d="4"><span class="ic">🔓</span><div><b>No privacy for donors</b><p>Phone numbers get spread across public groups — fear of spam and unwanted calls keeps willing donors away.</p></div></div>
+          <div class="prob s" data-d="5"><span class="ic">😨</span><div><b>Fear and wrong beliefs</b><p>"Donating makes you weak" — myths and missing knowledge stop thousands of healthy people from ever donating.</p></div></div>
         </div>
         <div class="s" data-d="6">
           <p class="big-claim">“Someone in Bangladesh needs blood every two seconds — yet there is no reliable place to look.”</p>
@@ -342,7 +344,7 @@
     <span class="num">03</span>
     <div class="body-wrap">
       <p class="kicker s" data-d="1">The Product</p>
-      <h2 class="s" data-d="2">Bengali-first, <em>mobile-first</em>, data-driven</h2>
+      <h2 class="s" data-d="2">Made for everyday <em>phone users</em></h2>
       <div class="show">
         <div class="shot desk s" data-d="3"><div class="bar"><i></i><i></i><i></i></div><div style="height:calc(100% - 28px)"><img src="screenshots/01-home-desktop.png" alt="Home page" onerror="this.outerHTML='&lt;div class=ph&gt;screenshots/01-home-desktop.png&lt;/div&gt;'"/></div></div>
         <div class="shot mob s" data-d="5"><img src="screenshots/08-home-mobile-390.png" alt="Mobile home" onerror="this.outerHTML='&lt;div class=ph&gt;mobile&lt;/div&gt;'"/></div>
@@ -413,7 +415,7 @@
     <span class="num">07</span>
     <div class="body-wrap">
       <p class="kicker s" data-d="1">Trust &amp; Safety</p>
-      <h2 class="s" data-d="2">The admin panel — our <em>gatekeeper</em></h2>
+      <h2 class="s" data-d="2">The admin panel — keeps it <em>safe &amp; real</em></h2>
       <div class="duo">
         <div class="shot s" data-d="3"><div class="bar"><i></i><i></i><i></i></div><div><img src="screenshots/06-admin-panel.png" alt="Admin panel" onerror="this.outerHTML='&lt;div class=ph&gt;screenshots/06-admin-panel.png&lt;/div&gt;'"/></div></div>
         <div class="side-notes">
@@ -435,7 +437,7 @@
         <div class="tech s" data-d="2">
           <span class="t-name">Next.js 16<br/><small>+ React 19</small></span>
           <span class="t-what">Web framework — pages, routing &amp; server code in one place</span>
-          <span class="t-why">UI আর backend logic একই framework-এ — no separate server to build and maintain.</span>
+          <span class="t-why">UI and server logic in one framework — no separate backend to build and maintain.</span>
         </div>
         <div class="tech s" data-d="3">
           <span class="t-name">TypeScript</span>
@@ -459,7 +461,7 @@
         </div>
         <div class="tech s" data-d="6">
           <span class="t-name">+ tools</span>
-          <span class="t-what">d3-geo (district map) · Playwright (browser testing) · Hind Siliguri (বাংলা font)</span>
+          <span class="t-what">d3-geo (district map) · Playwright (browser testing) · Hind Siliguri (Bangla font)</span>
           <span class="t-why">The map is drawn on the server; every flow is tested in a real browser.</span>
         </div>
       </div>
@@ -476,7 +478,7 @@
         <pre class="stack s" data-d="3">
 <span class="dim">┌─ CLIENT ─────────────────────────────┐</span>
   React 19 · Tailwind CSS v4
-  <span class="c1">Bengali-first UI</span> (Hind Siliguri)
+  <span class="c1">Bangla UI</span> (Hind Siliguri font)
 <span class="dim">└──────────────┬───────────────────────┘</span>
                ▼
 <span class="dim">┌─ NEXT.JS 16 (App Router) ────────────┐</span>
@@ -522,7 +524,7 @@
         <div class="evo-row s" data-d="5">
           <p class="evo-when">PHASE 3</p>
           <div class="evo-line"><i></i><span></span></div>
-          <div class="evo-what"><b>Production Hardening <span style="font-family:var(--mono);font-size:.75em;color:var(--blood)">— we are here</span></b><p>Full security audit, privacy hardening (column-level grants), end-to-end browser testing, Bengali language pass — the live site is usable today.</p></div>
+          <div class="evo-what"><b>Production Hardening <span style="font-family:var(--mono);font-size:.75em;color:var(--blood)">— we are here</span></b><p>Full security audit, privacy hardening (column-level grants), end-to-end browser testing, Bangla language pass — the live site is usable today.</p></div>
         </div>
         <div class="evo-row s" data-d="6">
           <p class="evo-when">NEXT</p>
@@ -541,24 +543,24 @@
       <h2 class="s" data-d="2">Same OOP ideas, <em>two stacks</em></h2>
       <div class="oop">
         <div class="card s" data-d="3">
-          <h3>Encapsulation</h3>
-          <div class="pair"><span class="tagp">Desktop</span><p><code>Donor.java</code> — private fields, public getters/setters; কেউ সরাসরি data বদলাতে পারে না।</p></div>
-          <div class="pair"><span class="tagp">Web</span><p><code>eligibility.ts</code> — ৯০-দিনের rule একটাই function-এ বন্দি; পুরো সাইট সেটাই ব্যবহার করে।</p></div>
+          <h3>Encapsulation<span class="def">Keep data private; change it only in safe ways</span></h3>
+          <div class="pair"><span class="tagp">Desktop</span><p><code>Donor.java</code> hides its fields — no other class can change them directly.</p></div>
+          <div class="pair"><span class="tagp">Web</span><p>One file (<code>eligibility.ts</code>) holds the 90-day rule; the whole site uses that one place.</p></div>
         </div>
         <div class="card s" data-d="4">
-          <h3>Abstraction</h3>
-          <div class="pair"><span class="tagp">Desktop</span><p>Repository interface-এর পেছনে SQLite লুকানো — service layer SQL জানে না।</p></div>
-          <div class="pair"><span class="tagp">Web</span><p>Server actions-এর পেছনে database লুকানো — UI component কখনো SQL দেখে না।</p></div>
+          <h3>Abstraction<span class="def">Hide the messy details behind a simple call</span></h3>
+          <div class="pair"><span class="tagp">Desktop</span><p>A Repository hides the SQL — the rest of the app just asks for data.</p></div>
+          <div class="pair"><span class="tagp">Web</span><p>Server Actions hide the database — the UI just calls <code>acceptRequest()</code>.</p></div>
         </div>
         <div class="card s" data-d="5">
-          <h3>Inheritance &amp; Polymorphism</h3>
-          <div class="pair"><span class="tagp">Desktop</span><p>Common base entity + interface implementation বদলে দিলেই অন্য DB — কোড একই থাকে।</p></div>
-          <div class="pair"><span class="tagp">Web</span><p>Typed unions (<code>RequestStatus</code>) + reusable components (<code>Field</code>, <code>BloodTypeBadge</code>) — এক component, অনেক রূপ।</p></div>
+          <h3>Inheritance &amp; Polymorphism<span class="def">Reuse code — one shape, many forms</span></h3>
+          <div class="pair"><span class="tagp">Desktop</span><p>A shared base class; swap the part underneath and the rest of the code stays the same.</p></div>
+          <div class="pair"><span class="tagp">Web</span><p>One <code>BloodTypeBadge</code> / <code>Field</code> component, reused in many places.</p></div>
         </div>
         <div class="card s" data-d="6">
-          <h3>MVC — Separation of Concerns</h3>
-          <div class="pair"><span class="tagp">Desktop</span><p>Model (entities) · View (FXML) · Controller — classic JavaFX MVC.</p></div>
-          <div class="pair"><span class="tagp">Web</span><p>একই ভাগ — Supabase tables (Model) · React components (View) · Server actions (Controller).</p></div>
+          <h3>MVC — Separation of Concerns<span class="def">Split the app into clear, separate parts</span></h3>
+          <div class="pair"><span class="tagp">Desktop</span><p>Model (data) · View (FXML screen) · Controller (logic).</p></div>
+          <div class="pair"><span class="tagp">Web</span><p>Database = Model · React pages = View · Server actions = Controller.</p></div>
         </div>
       </div>
     </div>
