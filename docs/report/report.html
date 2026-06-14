@@ -1,0 +1,544 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Blood Finder — Project Lab Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  @page { size: A4; margin: 20mm 18mm 20mm 20mm; }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    color: #1a1a1a; font-size: 11.5pt; line-height: 1.6; margin: 0;
+    text-align: justify;
+  }
+  .bn { font-family: "Hind Siliguri", "Nirmala UI", sans-serif; }
+
+  h1, h2, h3 { font-family: Georgia, serif; color: #7f1d1d; page-break-after: avoid; }
+  h1 { font-size: 16pt; margin: 1.5em 0 .5em; padding-bottom: .2em; border-bottom: 2px solid #c9a3a3; }
+  h2 { font-size: 13pt; margin: 1.1em 0 .35em; color: #991b1b; }
+  h3 { font-size: 11.5pt; margin: .9em 0 .3em; color: #991b1b; }
+  p { margin: .5em 0; }
+  ul, ol { margin: .4em 0 .7em 1.4em; padding: 0; }
+  li { margin: .22em 0; }
+  b, strong { color: #111; }
+  code { font-family: "Consolas", monospace; font-size: .9em; background: #f3eded; padding: .05em .3em; border-radius: 3px; }
+
+  table { width: 100%; border-collapse: collapse; margin: .8em 0; font-size: 10pt; page-break-inside: avoid; }
+  th, td { border: 1px solid #b9a9a9; padding: 6px 9px; text-align: left; vertical-align: top; }
+  th { background: #f3e7e7; color: #5b1414; font-family: Georgia, serif; }
+  tr:nth-child(even) td { background: #faf6f6; }
+
+  figure { margin: 1.1em 0; text-align: center; page-break-inside: avoid; }
+  figure img { max-width: 100%; max-height: 175mm; border: 1px solid #ccc; border-radius: 4px; }
+  figcaption { font-size: 9.5pt; color: #555; font-style: italic; margin-top: .45em; }
+  .shot img { max-height: 120mm; box-shadow: 0 2px 8px #0002; }
+
+  .section { page-break-before: always; }
+
+  /* ---- cover ---- */
+  .cover { height: 257mm; display: flex; flex-direction: column; align-items: center;
+           text-align: center; page-break-after: always; padding-top: 8mm; }
+  .cover .uni { font-size: 15pt; font-weight: bold; color: #111; letter-spacing: .3px; }
+  .cover .dept { font-size: 12pt; margin-top: .3em; color: #333; }
+  .cover .crest { width: 26mm; height: 26mm; margin: 9mm 0; }
+  .cover .ribbon { font-family: "Hind Siliguri", sans-serif; font-size: 10.5pt; color: #991b1b;
+                   letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4mm; }
+  .cover h1.title { border: none; color: #7f1d1d; font-size: 30pt; margin: 0; line-height: 1.1; }
+  .cover .subtitle { font-size: 13pt; color: #444; margin-top: 3mm; max-width: 150mm; }
+  .cover .meta-box { margin-top: auto; width: 100%; max-width: 165mm; text-align: left;
+                     border-top: 1.5px solid #c9a3a3; padding-top: 6mm; }
+  .cover .meta-box table { font-size: 11pt; border: none; }
+  .cover .meta-box td { border: none; padding: 3px 8px; }
+  .cover .meta-box td:first-child { color: #7f1d1d; font-weight: bold; width: 38mm; white-space: nowrap; }
+  .cover .date { margin-top: 5mm; font-size: 11pt; color: #333; }
+
+  .abstract { background: #faf6f6; border-left: 3px solid #991b1b; padding: 10px 16px; margin: 1em 0; }
+  .toc ol { list-style: none; margin-left: 0; }
+  .toc > ol > li { margin: .3em 0; font-weight: bold; }
+  .toc ol ol { margin-left: 1.4em; font-weight: normal; }
+  .lead { font-size: 11.5pt; }
+  .note-card { border: 1px solid #e0cccc; border-left: 4px solid #dc2626; background: #fcf7f7;
+               padding: 8px 14px; margin: .7em 0; }
+</style>
+</head>
+<body>
+
+<!-- ============ COVER ============ -->
+<section class="cover">
+  <div class="uni">Rangamati Science and Technology University (RMSTU)</div>
+  <div class="dept">Department of Computer Science and Engineering</div>
+
+  <svg class="crest" viewBox="0 0 64 80" aria-hidden="true">
+    <path d="M32 2C32 2 8 34 8 52a24 24 0 0 0 48 0C56 34 32 2 32 2Z" fill="#fee2e2"/>
+    <path d="M32 12C32 12 15 37 15 52a17 17 0 0 0 34 0C49 37 32 12 32 12Z" fill="#dc2626"/>
+    <ellipse cx="25" cy="49" rx="4.5" ry="7" fill="#fca5a5" opacity=".7"/>
+  </svg>
+
+  <div class="ribbon">Object Oriented Programming Lab — Project Report</div>
+  <h1 class="title">Blood Finder</h1>
+  <div class="subtitle">A Trusted Blood-Donor Platform for Bangladesh — connecting verified donors and patients in seconds.</div>
+
+  <div class="meta-box">
+    <table>
+      <tr><td>Submitted by</td><td>
+        Juli Nath (ID: 2401011004)<br/>
+        Asma Akter (ID: 2401011021)<br/>
+        Mom Chakraborti (ID: 2401011034)<br/>
+        <span style="color:#555">CSE 11th Batch</span>
+      </td></tr>
+      <tr><td>Submitted to</td><td>
+        Dhonita Tripura<br/>
+        <span style="color:#555">Assistant Professor, Department of CSE, RMSTU</span>
+      </td></tr>
+      <tr><td>Live site</td><td>https://blood-finder-bangladesh.vercel.app</td></tr>
+      <tr><td>Source code</td><td>https://github.com/julinath/blood-finder</td></tr>
+    </table>
+    <div class="date">Date of submission: 15 June 2026</div>
+  </div>
+</section>
+
+<!-- ============ ABSTRACT + TOC ============ -->
+<h1>Abstract</h1>
+<div class="abstract">
+<p>In Bangladesh, finding blood during an emergency still depends on saved phone
+numbers, scattered Facebook groups and word of mouth — a slow, unreliable
+process that also exposes donors to spam and opens the door to fraud and
+middlemen. <b>Blood Finder</b> is a web platform that solves this by letting
+anyone search a pool of <b>admin-verified donors</b> by blood group and district
+in seconds, post urgent needs on a public <b>emergency board</b> where nearby
+donors step forward, and register as a donor — all on a mobile-first, Bangla
+interface.</p>
+<p>The project began as a JavaFX desktop application for our Object Oriented
+Programming course and was then rebuilt as a production web application using
+<b>Next.js 16</b>, <b>TypeScript</b> and <b>Supabase (PostgreSQL + Auth)</b>,
+keeping the same object-oriented domain model (User, Donor, BloodRequest,
+DonationRecord). Trust and privacy are the core design principles: a donor's
+phone number is never public, every donation is confirmed by the receiver (not
+the donor) to prevent fake counts, and the database itself blocks anonymous
+visitors from ever reading personal data. The result is a live, usable platform
+that turns the concepts learned in an OOP lab into a real product.</p>
+</div>
+
+<h1>Table of Contents</h1>
+<div class="toc">
+<ol>
+  <li>Introduction</li>
+  <li>Problem Statement</li>
+  <li>Objectives</li>
+  <li>Existing System and Its Limitations</li>
+  <li>Proposed System (Blood Finder)</li>
+  <li>System Requirements
+    <ol><li>Functional Requirements</li><li>Non-Functional Requirements</li><li>Hardware &amp; Software</li></ol></li>
+  <li>System Design
+    <ol><li>System Architecture</li><li>Use-Case Diagram</li><li>Class Diagram</li><li>Database Design (ER Diagram &amp; Schema)</li><li>Request Lifecycle (Sequence)</li></ol></li>
+  <li>Object-Oriented Concepts Applied</li>
+  <li>Technology Stack</li>
+  <li>Implementation</li>
+  <li>Security and Privacy</li>
+  <li>Testing</li>
+  <li>Results (Screenshots)</li>
+  <li>Limitations and Future Work</li>
+  <li>Conclusion</li>
+  <li>References</li>
+</ol>
+</div>
+
+<!-- ============ 1. INTRODUCTION ============ -->
+<section class="section">
+<h1>1. Introduction</h1>
+<p>Blood cannot be manufactured — it can only come from a donor. Yet when a
+patient suddenly needs blood, families are left calling around, posting on
+social media and hoping a matching donor is nearby, free and eligible. Precious
+time is lost, and the process is easy to exploit.</p>
+<p><b>Blood Finder</b> is our answer: a single, trusted platform that connects
+patients with verified blood donors across all 64 districts of Bangladesh. Users
+can search donors by blood group and area, send a request, or post an urgent
+need on a public board where nearby donors respond with one tap. The interface
+is mobile-first and primarily in Bangla, because our target users are ordinary
+people using everyday phones.</p>
+<p>This project also has an academic story. It started as a JavaFX + SQLite
+desktop application built for our Object Oriented Programming (OOP) Lab, using a
+clean object model and the Model–View–Controller pattern. We then rebuilt the
+same idea as a production web application so that it could actually be used by
+people on their phones — carrying the same OOP design into a modern stack. The
+original desktop version is preserved on the <code>desktop-app</code> branch of
+the repository.</p>
+</section>
+
+<!-- ============ 2. PROBLEM ============ -->
+<section class="section">
+<h1>2. Problem Statement</h1>
+<p>Finding blood quickly in Bangladesh is harder than it should be:</p>
+<ul>
+  <li><b>No reliable place to search.</b> A saved phone number may not answer
+  when it matters; area-based Facebook groups respond slowly and posts sink out
+  of sight; local blood clubs keep separate lists that no one else can see.</li>
+  <li><b>Some people make money from the crisis.</b> Donor phone numbers are
+  sold, fake "donors" demand payment at the hospital, and middlemen treat an
+  emergency as a business opportunity.</li>
+  <li><b>No privacy for donors.</b> Phone numbers get spread across public
+  groups, so fear of spam and unwanted calls keeps many willing donors away.</li>
+  <li><b>Fear and wrong beliefs.</b> Myths such as "donating makes you weak"
+  and a lack of clear information stop many healthy people from donating.</li>
+  <li><b>No way to know if a donor is eligible.</b> A donor must wait about 90
+  days between donations, but there is usually no way to know this in advance.</li>
+</ul>
+</section>
+
+<!-- ============ 3. OBJECTIVES ============ -->
+<section class="section">
+<h1>3. Objectives</h1>
+<ul>
+  <li>Build a searchable pool of <b>admin-verified</b> donors filterable by
+  blood group, district and area.</li>
+  <li>Provide a public <b>emergency board</b> where patients post urgent needs
+  and nearby donors can respond instantly.</li>
+  <li>Protect donors with <b>donor-first privacy</b> — a donor's number is never
+  shown publicly; the donor chooses whether to respond.</li>
+  <li>Enforce the <b>90-day eligibility rule</b> consistently across search,
+  profiles and the request form.</li>
+  <li>Prevent fraud: record every donation and let <b>only the receiver</b>
+  confirm it, so no one can inflate their own donation count.</li>
+  <li>Give administrators tools to <b>approve donors and moderate</b> abuse
+  reports.</li>
+  <li>Deliver a fast, <b>mobile-first, Bangla</b> experience.</li>
+  <li>Apply object-oriented design principles in a real, deployable product.</li>
+</ul>
+</section>
+
+<!-- ============ 4. EXISTING SYSTEM ============ -->
+<section class="section">
+<h1>4. Existing System and Its Limitations</h1>
+<p>Today people rely on a mix of informal channels, each with serious gaps:</p>
+<table>
+  <tr><th>Current approach</th><th>Limitation</th></tr>
+  <tr><td>Saved phone numbers / personal contacts</td><td>The one person may be unavailable, out of town, or recently donated.</td></tr>
+  <tr><td>Facebook / area groups</td><td>Must find and join the right group; posts get buried; responses are slow and unverified.</td></tr>
+  <tr><td>Local blood-donation clubs</td><td>Each keeps its own list; the lists are not connected or searchable.</td></tr>
+  <tr><td>Paid "donor" middlemen</td><td>Charge money, may be fake, and expose families to fraud.</td></tr>
+  <tr><td>Stand-alone desktop apps</td><td>Single machine, single user, no shared data, must be installed — and our users are on mobile.</td></tr>
+</table>
+<p>None of these provide a single, verified, searchable, privacy-respecting and
+mobile-friendly system — which is exactly the gap Blood Finder fills.</p>
+</section>
+
+<!-- ============ 5. PROPOSED SYSTEM ============ -->
+<section class="section">
+<h1>5. Proposed System (Blood Finder)</h1>
+<p>Blood Finder is one web platform with three main flows, supported by an
+administration panel and a statistics map.</p>
+<h2>5.1 Key Features</h2>
+<ul>
+  <li><b>Find Donors —</b> search verified donors by blood group, district and
+  area; each card shows an eligibility badge and total donation count.</li>
+  <li><b>Donor Profiles —</b> public profile with eligibility countdown and
+  donation history; the contact number is shown only to signed-in users.</li>
+  <li><b>Blood Requests —</b> a registered user sends a request to a donor; the
+  donor accepts (revealing their number to the requester) and, after donating,
+  the <b>requester confirms</b> "রক্ত পেয়েছি" to complete it.</li>
+  <li><b>Emergency Board —</b> post an urgent need; nearby donors respond with
+  one tap ("আমি রক্ত দিতে পারবো"); the board auto-filters to the viewer's own
+  blood group and district.</li>
+  <li><b>Become a Donor —</b> a single form (pre-filled from the profile) that,
+  after admin approval, makes the donor visible in search.</li>
+  <li><b>Admin Panel —</b> approve or un-list donors, handle abuse reports, and
+  oversee users and emergencies.</li>
+  <li><b>Statistics &amp; Map —</b> an interactive 64-district heat-map and
+  blood-group distribution.</li>
+</ul>
+</section>
+
+<!-- ============ 6. REQUIREMENTS ============ -->
+<section class="section">
+<h1>6. System Requirements</h1>
+<h2>6.1 Functional Requirements</h2>
+<ul>
+  <li>Users can register and log in with email/password, a mobile number, or Google.</li>
+  <li>A user can apply to become a donor; admins approve before the donor appears in search.</li>
+  <li>Visitors can search and filter donors and view public profiles.</li>
+  <li>Registered users can send, accept/decline, cancel and complete blood requests.</li>
+  <li>Users can post emergency requests and offer to donate on them.</li>
+  <li>Users can report abuse, no-shows, fake requests or payment demands.</li>
+  <li>Admins can approve/un-list donors and resolve reports.</li>
+  <li>The system displays live availability and district/blood-group statistics.</li>
+</ul>
+<h2>6.2 Non-Functional Requirements</h2>
+<ul>
+  <li><b>Security &amp; privacy:</b> personal data (email, mobile, health) is
+  unreadable by anonymous visitors; every write is re-checked on the server.</li>
+  <li><b>Performance:</b> fast first load on weak phones (server-side
+  rendering); the heavy district map is computed on the server.</li>
+  <li><b>Usability:</b> mobile-first, Bangla-first, no horizontal scrolling.</li>
+  <li><b>Reliability &amp; integrity:</b> donation counts and duplicate requests
+  are guarded by the database.</li>
+  <li><b>Maintainability:</b> typed code, one shared domain model, idempotent SQL.</li>
+</ul>
+<h2>6.3 Hardware &amp; Software</h2>
+<ul>
+  <li><b>For users:</b> any modern smartphone or computer with a web browser and internet.</li>
+  <li><b>For development:</b> Node.js, a code editor, Git, and a Supabase project; deployed on Vercel.</li>
+</ul>
+</section>
+
+<!-- ============ 7. SYSTEM DESIGN ============ -->
+<section class="section">
+<h1>7. System Design</h1>
+
+<h2>7.1 System Architecture</h2>
+<p>The application has three layers: a React client in the browser, the Next.js
+server (Server Components, Server Actions and route protection) running on
+Vercel, and Supabase (PostgreSQL + Auth) where Row Level Security and
+column-level grants protect the data. Public reads go straight to the database
+with a restricted anonymous key; everything that writes data goes through a
+server action that re-checks the user.</p>
+<figure>
+  <img src="diagrams/architecture.png" alt="System architecture diagram" />
+  <figcaption>Figure 1: Three-layer system architecture (Client → Next.js → Supabase).</figcaption>
+</figure>
+
+<h2>7.2 Use-Case Diagram</h2>
+<p>Four actors interact with the system: a <b>Visitor</b> (not logged in), a
+<b>Donor</b>, a <b>Requester</b> (a registered user who needs blood), and an
+<b>Admin</b>.</p>
+<figure>
+  <img src="diagrams/usecase.png" alt="Use-case diagram" style="max-height:165mm" />
+  <figcaption>Figure 2: Use-case diagram of Blood Finder.</figcaption>
+</figure>
+
+<h2>7.3 Class Diagram</h2>
+<p>The object model is the heart of the project and is shared between the desktop
+and web versions. The main classes are <code>Profile</code> (user),
+<code>Donor</code>, <code>BloodRequest</code>, <code>DonationRecord</code>,
+<code>EmergencyRequest</code> and <code>EmergencyOffer</code>.</p>
+<figure>
+  <img src="diagrams/class.png" alt="Class diagram" style="max-height:165mm" />
+  <figcaption>Figure 3: Domain class diagram.</figcaption>
+</figure>
+
+<h2>7.4 Database Design</h2>
+<p>The database has eight tables, all protected by Row Level Security. The
+entity-relationship diagram below shows how they relate; the table after it
+summarises each one.</p>
+<figure>
+  <img src="diagrams/er.png" alt="Entity relationship diagram" />
+  <figcaption>Figure 4: Entity-Relationship (ER) diagram of the database.</figcaption>
+</figure>
+<table>
+  <tr><th>Table</th><th>Purpose</th></tr>
+  <tr><td><code>profiles</code></td><td>Extends the auth user — name, email, mobile, district, admin flag.</td></tr>
+  <tr><td><code>donors</code></td><td>Donor record — blood type, location, availability, last donation date, donation count, approval status.</td></tr>
+  <tr><td><code>blood_requests</code></td><td>Direct requests from a requester to a donor (PENDING → ACCEPTED → COMPLETED / CANCELLED).</td></tr>
+  <tr><td><code>donation_records</code></td><td>Immutable log of completed donations; inserting one bumps the donor's count via a trigger.</td></tr>
+  <tr><td><code>emergency_requests</code></td><td>Public emergency needs board (blood type, hospital, urgency, status).</td></tr>
+  <tr><td><code>emergency_contacts</code></td><td>The requester's phone number, kept in a separate table so it stays private.</td></tr>
+  <tr><td><code>emergency_offers</code></td><td>"I can donate" responses from donors to an emergency request.</td></tr>
+  <tr><td><code>reports</code></td><td>Abuse / no-show / fake-request reports that feed the admin queue.</td></tr>
+</table>
+
+<h2>7.5 Request Lifecycle</h2>
+<p>The sequence diagram below shows the most important flow — from a request to
+a recorded donation — and where the anti-fraud rule applies: the donation is
+confirmed by the <b>receiver</b>, never by the donor.</p>
+<figure>
+  <img src="diagrams/sequence.png" alt="Request lifecycle sequence diagram" />
+  <figcaption>Figure 5: Sequence of a blood request through to a recorded donation.</figcaption>
+</figure>
+</section>
+
+<!-- ============ 8. OOP ============ -->
+<section class="section">
+<h1>8. Object-Oriented Concepts Applied</h1>
+<p>The most important lesson from the OOP course is not a language — it is a way
+of thinking: split a problem into objects, hide data and details, reuse code,
+and separate responsibilities. The same domain model we designed for the desktop
+app lives on in the web app as typed interfaces. The table below maps each
+concept to both versions.</p>
+<table>
+  <tr><th>OOP concept</th><th>Desktop (Java / JavaFX)</th><th>Web (TypeScript / Next.js)</th></tr>
+  <tr>
+    <td><b>Encapsulation</b><br/><span style="color:#777">keep data private</span></td>
+    <td><code>Donor.java</code> uses private fields with getters/setters — no other class changes its data directly.</td>
+    <td>One module (<code>eligibility.ts</code>) holds the 90-day rule; the whole site calls that single place.</td>
+  </tr>
+  <tr>
+    <td><b>Abstraction</b><br/><span style="color:#777">hide the details</span></td>
+    <td>A Repository interface hides SQLite; the service layer never sees SQL.</td>
+    <td>Server Actions hide the database; a UI component just calls <code>acceptRequest()</code>.</td>
+  </tr>
+  <tr>
+    <td><b>Inheritance &amp; Polymorphism</b><br/><span style="color:#777">reuse code</span></td>
+    <td>A common base entity and interface implementations — swap the database and the rest stays the same.</td>
+    <td>Typed unions (<code>RequestStatus</code>) and reusable components (<code>Field</code>, <code>BloodTypeBadge</code>).</td>
+  </tr>
+  <tr>
+    <td><b>MVC / Separation of Concerns</b><br/><span style="color:#777">split into parts</span></td>
+    <td>Model (entities) · View (FXML) · Controller — classic JavaFX MVC.</td>
+    <td>Database = Model · React pages = View · Server actions = Controller.</td>
+  </tr>
+</table>
+<div class="note-card">The same model — <b>User, Donor, BloodRequest, DonationRecord</b> — that
+we designed in the OOP lab survives, almost unchanged, as typed interfaces in
+the web app. That continuity is the project's biggest OOP lesson.</div>
+</section>
+
+<!-- ============ 9. TECH STACK ============ -->
+<section class="section">
+<h1>9. Technology Stack</h1>
+<table>
+  <tr><th>Technology</th><th>Role</th><th>Why we chose it</th></tr>
+  <tr><td><b>Next.js 16</b> + React 19</td><td>Full-stack web framework</td><td>UI and server logic in one framework — no separate backend to build and maintain; fast server-side rendering.</td></tr>
+  <tr><td><b>TypeScript</b></td><td>Typed language</td><td>Our whole domain model is typed, so mistakes are caught while writing code, not after deploy.</td></tr>
+  <tr><td><b>Tailwind CSS 4</b></td><td>Styling</td><td>Consistent design, tiny CSS output, very fast to build a mobile-first UI.</td></tr>
+  <tr><td><b>Supabase</b></td><td>PostgreSQL database + Auth</td><td>Real SQL with Row Level Security; email/mobile/Google login ready-made.</td></tr>
+  <tr><td><b>Vercel</b></td><td>Hosting + CI/CD</td><td>Every <code>git push</code> auto-deploys; free, fast and global.</td></tr>
+  <tr><td><b>d3-geo</b></td><td>District map projection</td><td>The 700 KB map is turned into an image on the server, so it never reaches the phone.</td></tr>
+  <tr><td><b>Playwright</b></td><td>Browser testing</td><td>Every flow is tested in a real browser, on desktop and 390 px mobile.</td></tr>
+  <tr><td><b>Hind Siliguri</b></td><td>Bangla font</td><td>Clean, correct Bangla rendering.</td></tr>
+</table>
+</section>
+
+<!-- ============ 10. IMPLEMENTATION ============ -->
+<section class="section">
+<h1>10. Implementation</h1>
+<p>The application is organised into clear modules:</p>
+<ul>
+  <li><b>Authentication</b> — email/password, mobile-number sign-up (via a
+  synthetic email) and Google OAuth, handled by Supabase Auth.</li>
+  <li><b>Route protection</b> — <code>proxy.ts</code> guards the private pages
+  (<code>/profile</code>, <code>/become-donor</code>, <code>/request</code>,
+  <code>/admin</code>, <code>/emergency/new</code>).</li>
+  <li><b>Server Actions</b> — all database writes go through server actions that
+  re-check the logged-in user and their ownership of the data.</li>
+  <li><b>Business rules</b> — the 90-day eligibility rule and fitness checks live
+  in one module and are reused everywhere.</li>
+  <li><b>Atomic operations</b> — a single database function,
+  <code>complete_blood_request()</code>, closes the request and writes the
+  donation record together; a trigger then updates the donation count and the
+  last-donation date.</li>
+  <li><b>Privacy</b> — anonymous visitors are given column-level read access only
+  to safe donor-card fields; email, mobile and health data are never exposed.</li>
+</ul>
+<figure class="shot">
+  <img src="../presentation/screenshots/01-home-desktop.png" alt="Home page" />
+  <figcaption>Figure 6: Home page — quick blood-group search, live availability and the district map.</figcaption>
+</figure>
+</section>
+
+<!-- ============ 11. SECURITY ============ -->
+<section class="section">
+<h1>11. Security and Privacy</h1>
+<p>Trust is the product. Security is applied in three layers, so that a bug in
+one layer is still caught by the others:</p>
+<ol>
+  <li><b>User interface</b> — input validation and login checks.</li>
+  <li><b>Server actions</b> — every write re-checks authentication and ownership.</li>
+  <li><b>Database</b> — Row Level Security, column-level grants and CHECK
+  constraints. Even a direct API call cannot read a donor's phone number.</li>
+</ol>
+<h2>11.1 Donor-First Privacy</h2>
+<p>A donor's phone number is never shown on the public board. When a donor
+chooses to respond to an emergency, only then does the requester see the donor's
+number and call them — so the decision always stays with the donor, and there is
+no spam or harassment.</p>
+<h2>11.2 Fraud Prevention</h2>
+<div class="note-card"><b>The receiver confirms the donation — never the donor.</b>
+A donor can never mark their own donation as complete, so no one can inflate
+their donation count. The confirmation is enforced inside the database, and the
+emergency board follows the same rule.</div>
+<figure class="shot">
+  <img src="../presentation/screenshots/04-emergency-board.png" alt="Emergency board" />
+  <figcaption>Figure 7: Emergency board — urgent requests with one-tap "I can donate"; the requester's number stays private.</figcaption>
+</figure>
+</section>
+
+<!-- ============ 12. TESTING ============ -->
+<section class="section">
+<h1>12. Testing</h1>
+<p>The project was verified at three levels:</p>
+<ul>
+  <li><b>Type checking</b> — the TypeScript compiler verifies the whole codebase on every build.</li>
+  <li><b>Linting</b> — ESLint enforces a consistent, error-free code style.</li>
+  <li><b>End-to-end testing</b> — using Playwright, real user journeys were
+  tested in a real browser (both desktop and 390 px mobile): register → become a
+  donor → admin approval → search → send request → accept → confirm donation →
+  report → admin queue. The production build, type-check and lint all pass
+  cleanly.</li>
+</ul>
+<figure class="shot">
+  <img src="../presentation/screenshots/06-admin-panel.png" alt="Admin panel" />
+  <figcaption>Figure 8: Admin panel — donor approval queue, reports queue and oversight.</figcaption>
+</figure>
+</section>
+
+<!-- ============ 13. RESULTS ============ -->
+<section class="section">
+<h1>13. Results (Screenshots)</h1>
+<p>The platform is fully built and live at
+<b>https://blood-finder-bangladesh.vercel.app</b>. Selected screens are shown
+below.</p>
+<figure class="shot">
+  <img src="../presentation/screenshots/02-donor-search.png" alt="Donor search" />
+  <figcaption>Figure 9: Donor search with blood-group, district and eligibility badges.</figcaption>
+</figure>
+<figure class="shot">
+  <img src="../presentation/screenshots/07-stats-map.png" alt="District map and statistics" />
+  <figcaption>Figure 10: District heat-map and blood-group distribution (rendered on the server).</figcaption>
+</figure>
+<figure class="shot">
+  <img src="../presentation/screenshots/08-home-mobile-390.png" alt="Mobile home" style="max-height:140mm" />
+  <figcaption>Figure 11: Mobile-first layout — search is visible above the fold at 390 px.</figcaption>
+</figure>
+</section>
+
+<!-- ============ 14. LIMITATIONS + FUTURE ============ -->
+<section class="section">
+<h1>14. Limitations and Future Work</h1>
+<h2>14.1 Limitations</h2>
+<ul>
+  <li>The platform currently includes demo donor data for demonstration; it grows with real users.</li>
+  <li>Notifications are not yet automatic — donors check the board themselves.</li>
+  <li>Identity verification is by admin review only (no national-ID check yet).</li>
+</ul>
+<h2>14.2 Future Work</h2>
+<ul>
+  <li><b>SMS / push notifications</b> so matching donors are alerted instantly.</li>
+  <li><b>Donor recognition</b> — milestone badges (5, 10, 25 donations).</li>
+  <li><b>Stronger verification</b> — NID / student-ID checks and hospital partnerships.</li>
+  <li><b>Smart automation</b> — auto-expiry of old requests and eligibility reminders.</li>
+</ul>
+</section>
+
+<!-- ============ 15. CONCLUSION ============ -->
+<section class="section">
+<h1>15. Conclusion</h1>
+<p>Blood Finder takes a real, painful problem — finding safe blood in an
+emergency — and solves it with a single trusted platform that is fast, private
+and free. By removing unreliable middle layers and connecting patients directly
+with verified donors, it makes the process faster and safer. Just as
+importantly, it shows how the object-oriented design we learned in the lab — a
+clean domain model, encapsulation, abstraction and separation of concerns —
+carries directly into a real, deployable product. The platform is live today and
+ready to grow into a trusted national blood-donor network.</p>
+</section>
+
+<!-- ============ 16. REFERENCES ============ -->
+<section class="section">
+<h1>16. References</h1>
+<ol>
+  <li>Next.js Documentation — https://nextjs.org/docs</li>
+  <li>React Documentation — https://react.dev</li>
+  <li>Supabase Documentation (Auth &amp; Row Level Security) — https://supabase.com/docs</li>
+  <li>PostgreSQL Documentation — https://www.postgresql.org/docs</li>
+  <li>Tailwind CSS Documentation — https://tailwindcss.com/docs</li>
+  <li>TypeScript Handbook — https://www.typescriptlang.org/docs</li>
+  <li>Vercel Documentation — https://vercel.com/docs</li>
+  <li>Blood Finder source code — https://github.com/julinath/blood-finder</li>
+</ol>
+</section>
+
+</body>
+</html>

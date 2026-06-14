@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Blood Finder — Diagrams</title>
+<style>
+  body { margin: 0; background: #fff; font-family: "Segoe UI", system-ui, sans-serif; }
+  .wrap { width: 1000px; padding: 28px; background: #fff; margin: 0; }
+  .wrap.wide { width: 1180px; }
+  .mermaid { font-size: 15px; }
+</style>
+</head>
+<body>
+  <div class="wrap" id="d-arch"><pre class="mermaid">
+flowchart TB
+  subgraph CLIENT["Browser — React 19 client components"]
+    UI["Bangla UI · Tailwind CSS v4"]
+  end
+  subgraph NEXT["Next.js 16 (App Router) on Vercel"]
+    SC["Server Components"]
+    SA["Server Actions"]
+    PX["proxy.ts — route protection"]
+  end
+  subgraph SUPA["Supabase"]
+    AU["Auth (email / mobile / Google)"]
+    PG[("PostgreSQL")]
+    RLS["Row Level Security + column-level grants"]
+  end
+  UI -->|"public reads (anon key)"| PG
+  UI --> SC
+  PX --> SC
+  SC --> SA
+  SA -->|"auth + ownership re-check"| PG
+  AU --- PG
+  RLS --- PG
+  </pre></div>
+
+  <div class="wrap wide" id="d-usecase"><pre class="mermaid">
+flowchart LR
+  Visitor([Visitor])
+  Donor([Donor])
+  Requester([Requester])
+  Admin([Admin])
+  subgraph BF["Blood Finder System"]
+    U1(["Search verified donors"])
+    U2(["View donor profile"])
+    U3(["Register / Login"])
+    U4(["Become a donor"])
+    U5(["Send blood request"])
+    U6(["Confirm blood received"])
+    U7(["Post emergency request"])
+    U8(["Offer to donate"])
+    U9(["Report abuse / no-show"])
+    U10(["Approve / un-list donors"])
+    U11(["Manage reports & users"])
+  end
+  Visitor --> U1
+  Visitor --> U2
+  Visitor --> U3
+  Requester --> U5
+  Requester --> U6
+  Requester --> U7
+  Requester --> U9
+  Donor --> U4
+  Donor --> U8
+  Admin --> U10
+  Admin --> U11
+  </pre></div>
+
+  <div class="wrap wide" id="d-class"><pre class="mermaid">
+classDiagram
+  class Profile {
+    +UUID id
+    +String full_name
+    +String email
+    +String mobile
+    +String district
+    +Boolean is_admin
+  }
+  class Donor {
+    +UUID id
+    +UUID user_id
+    +BloodType blood_type
+    +String district
+    +Availability availability_status
+    +Date last_donation_date
+    +Int donation_count
+    +Boolean is_approved
+  }
+  class BloodRequest {
+    +UUID id
+    +UUID requester_id
+    +UUID donor_id
+    +RequestStatus status
+    +String notes
+  }
+  class DonationRecord {
+    +UUID id
+    +UUID donor_id
+    +UUID request_id
+    +Date donation_date
+  }
+  class EmergencyRequest {
+    +UUID id
+    +BloodType blood_type
+    +String hospital
+    +Urgency urgency
+    +EmergencyStatus status
+  }
+  class EmergencyOffer {
+    +UUID id
+    +OfferStatus status
+  }
+  Profile "1" --> "0..1" Donor : registers as
+  Profile "1" --> "*" BloodRequest : makes
+  Donor "1" --> "*" BloodRequest : receives
+  BloodRequest "1" --> "0..1" DonationRecord : produces
+  Donor "1" --> "*" DonationRecord : credited to
+  Profile "1" --> "*" EmergencyRequest : posts
+  EmergencyRequest "1" --> "*" EmergencyOffer : receives
+  Profile "1" --> "*" EmergencyOffer : offers
+  </pre></div>
+
+  <div class="wrap wide" id="d-er"><pre class="mermaid">
+erDiagram
+  profiles ||--o| donors : "registers as"
+  profiles ||--o{ blood_requests : "requester"
+  donors ||--o{ blood_requests : "donor"
+  blood_requests ||--o| donation_records : "produces"
+  donors ||--o{ donation_records : "credited"
+  profiles ||--o{ donation_records : "requester"
+  profiles ||--o{ emergency_requests : "posts"
+  emergency_requests ||--|| emergency_contacts : "private phone"
+  emergency_requests ||--o{ emergency_offers : "receives"
+  profiles ||--o{ emergency_offers : "donor"
+  profiles ||--o{ reports : "files"
+  emergency_requests ||--o{ reports : "about"
+  profiles {
+    uuid id PK
+    text full_name
+    text email
+    text mobile
+    boolean is_admin
+  }
+  donors {
+    uuid id PK
+    uuid user_id FK
+    text blood_type
+    int donation_count
+    boolean is_approved
+  }
+  blood_requests {
+    uuid id PK
+    uuid requester_id FK
+    uuid donor_id FK
+    text status
+  }
+  donation_records {
+    uuid id PK
+    uuid donor_id FK
+    date donation_date
+  }
+  emergency_requests {
+    uuid id PK
+    text blood_type
+    text hospital
+    text status
+  }
+  emergency_contacts {
+    uuid request_id PK
+    text contact_phone
+  }
+  emergency_offers {
+    uuid id PK
+    uuid request_id FK
+    uuid donor_id FK
+  }
+  reports {
+    uuid id PK
+    text reason
+    text status
+  }
+  </pre></div>
+
+  <div class="wrap" id="d-seq"><pre class="mermaid">
+sequenceDiagram
+  actor R as Requester
+  actor D as Donor
+  participant A as Server Action
+  participant DB as PostgreSQL
+  R->>A: Send blood request
+  A->>DB: insert blood_request (PENDING)
+  D->>A: Accept request
+  A->>DB: status = ACCEPTED
+  DB-->>R: Donor's mobile number revealed
+  Note over R,D: They talk and donate in person
+  R->>A: Confirm "রক্ত পেয়েছি"
+  A->>DB: complete_blood_request()
+  DB->>DB: insert donation_record + trigger bumps count
+  DB-->>R: status = COMPLETED
+  </pre></div>
+
+<script type="module">
+  import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+  mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose",
+    flowchart: { useMaxWidth: false }, er: { useMaxWidth: false },
+    sequence: { useMaxWidth: false }, class: { useMaxWidth: false } });
+  window.__mmReady = false;
+  await mermaid.run();
+  window.__mmReady = true;
+</script>
+</body>
+</html>
