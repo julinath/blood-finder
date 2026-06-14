@@ -97,7 +97,7 @@
       <tr><td>Live site</td><td>https://blood-finder-bangladesh.vercel.app</td></tr>
       <tr><td>Source code</td><td>https://github.com/julinath/blood-finder</td></tr>
     </table>
-    <div class="date">Date of submission: 15 June 2026</div>
+    <div class="date">Date of submission: ______________________</div>
   </div>
 </section>
 
@@ -139,7 +139,6 @@ that turns the concepts learned in an OOP lab into a real product.</p>
   <li>Technology Stack</li>
   <li>Implementation</li>
   <li>Security and Privacy</li>
-  <li>Testing</li>
   <li>Results (Screenshots)</li>
   <li>Limitations and Future Work</li>
   <li>Conclusion</li>
@@ -423,7 +422,7 @@ the web app. That continuity is the project's biggest OOP lesson.</div>
   to safe donor-card fields; email, mobile and health data are never exposed.</li>
 </ul>
 <figure class="shot">
-  <img src="../presentation/screenshots/01-home-desktop.png" alt="Home page" />
+  <img src="shots/home-desktop.png" alt="Home page" />
   <figcaption>Figure 6: Home page — quick blood-group search, live availability and the district map.</figcaption>
 </figure>
 </section>
@@ -450,53 +449,38 @@ A donor can never mark their own donation as complete, so no one can inflate
 their donation count. The confirmation is enforced inside the database, and the
 emergency board follows the same rule.</div>
 <figure class="shot">
-  <img src="../presentation/screenshots/04-emergency-board.png" alt="Emergency board" />
+  <img src="shots/emergency-board.png" alt="Emergency board" />
   <figcaption>Figure 7: Emergency board — urgent requests with one-tap "I can donate"; the requester's number stays private.</figcaption>
 </figure>
 </section>
 
-<!-- ============ 12. TESTING ============ -->
+<!-- ============ 12. RESULTS ============ -->
 <section class="section">
-<h1>12. Testing</h1>
-<p>The project was verified at three levels:</p>
-<ul>
-  <li><b>Type checking</b> — the TypeScript compiler verifies the whole codebase on every build.</li>
-  <li><b>Linting</b> — ESLint enforces a consistent, error-free code style.</li>
-  <li><b>End-to-end testing</b> — using Playwright, real user journeys were
-  tested in a real browser (both desktop and 390 px mobile): register → become a
-  donor → admin approval → search → send request → accept → confirm donation →
-  report → admin queue. The production build, type-check and lint all pass
-  cleanly.</li>
-</ul>
-<figure class="shot">
-  <img src="../presentation/screenshots/06-admin-panel.png" alt="Admin panel" />
-  <figcaption>Figure 8: Admin panel — donor approval queue, reports queue and oversight.</figcaption>
-</figure>
-</section>
-
-<!-- ============ 13. RESULTS ============ -->
-<section class="section">
-<h1>13. Results (Screenshots)</h1>
+<h1>12. Results (Screenshots)</h1>
 <p>The platform is fully built and live at
 <b>https://blood-finder-bangladesh.vercel.app</b>. Selected screens are shown
 below.</p>
 <figure class="shot">
-  <img src="../presentation/screenshots/02-donor-search.png" alt="Donor search" />
-  <figcaption>Figure 9: Donor search with blood-group, district and eligibility badges.</figcaption>
+  <img src="shots/donor-search.png" alt="Donor search" />
+  <figcaption>Figure 8: Donor search with blood-group, district and eligibility badges.</figcaption>
 </figure>
 <figure class="shot">
-  <img src="../presentation/screenshots/07-stats-map.png" alt="District map and statistics" />
+  <img src="shots/admin-panel.png" alt="Admin panel" />
+  <figcaption>Figure 9: Admin panel — donor approval queue, reports queue and oversight.</figcaption>
+</figure>
+<figure class="shot">
+  <img src="shots/stats-map.png" alt="District map and statistics" />
   <figcaption>Figure 10: District heat-map and blood-group distribution (rendered on the server).</figcaption>
 </figure>
 <figure class="shot">
-  <img src="../presentation/screenshots/08-home-mobile-390.png" alt="Mobile home" style="max-height:140mm" />
+  <img src="shots/home-mobile.png" alt="Mobile home" style="max-height:150mm" />
   <figcaption>Figure 11: Mobile-first layout — search is visible above the fold at 390 px.</figcaption>
 </figure>
 </section>
 
-<!-- ============ 14. LIMITATIONS + FUTURE ============ -->
+<!-- ============ 13. LIMITATIONS + FUTURE ============ -->
 <section class="section">
-<h1>14. Limitations and Future Work</h1>
+<h1>13. Limitations and Future Work</h1>
 <h2>14.1 Limitations</h2>
 <ul>
   <li>The platform currently includes demo donor data for demonstration; it grows with real users.</li>
@@ -512,9 +496,9 @@ below.</p>
 </ul>
 </section>
 
-<!-- ============ 15. CONCLUSION ============ -->
+<!-- ============ 14. CONCLUSION ============ -->
 <section class="section">
-<h1>15. Conclusion</h1>
+<h1>14. Conclusion</h1>
 <p>Blood Finder takes a real, painful problem — finding safe blood in an
 emergency — and solves it with a single trusted platform that is fast, private
 and free. By removing unreliable middle layers and connecting patients directly
@@ -525,9 +509,9 @@ carries directly into a real, deployable product. The platform is live today and
 ready to grow into a trusted national blood-donor network.</p>
 </section>
 
-<!-- ============ 16. REFERENCES ============ -->
+<!-- ============ 15. REFERENCES ============ -->
 <section class="section">
-<h1>16. References</h1>
+<h1>15. References</h1>
 <ol>
   <li>Next.js Documentation — https://nextjs.org/docs</li>
   <li>React Documentation — https://react.dev</li>

@@ -8,19 +8,20 @@ Submission-ready project report for **Blood Finder** (OOP Lab, RMSTU).
 |------|-----|
 | **Blood-Finder-Lab-Report.pdf** | A4 print-ready report — সরাসরি প্রিন্ট করে জমা দেওয়া যায় |
 | **Blood-Finder-Lab-Report.docx** | একই রিপোর্ট, Word/Google Docs-এ **এডিট করা যায়** |
-| `report.html` | উৎস (দুটো ফাইলই এখান থেকে তৈরি হয়) |
+| `report.html` | PDF-এর উৎস |
 | `diagrams.html` | Mermaid diagram-গুলোর উৎস |
 | `diagrams/*.png` | ৫টি diagram (architecture, use-case, class, ER, sequence) |
-| `build-pdf.mjs` / `build-docx.mjs` | বিল্ড স্ক্রিপ্ট |
-
-> ব্যবহৃত screenshot গুলো `../presentation/screenshots/` থেকে নেওয়া।
+| `shots/*.png` | live সাইটের screenshot (admin-এ ব্যক্তিগত নম্বর mask করা) |
+| `build-pdf.mjs` | report.html → PDF (system Chrome) |
+| `build-docx.mjs` | `docx` লাইব্রেরি দিয়ে Word/Google-Docs-friendly .docx |
 
 ## রিপোর্ট আবার বানাতে (regenerate)
 
-`report.html` এডিট করার পর:
+PDF-এর জন্য `report.html` এডিট করো; .docx-এর কনটেন্ট `build-docx.mjs`-এ
+(Google Docs পরিষ্কার খোলে বলে আলাদা স্ক্রিপ্টে লেখা)।
 
 ```bash
-npm i -D puppeteer-core html-to-docx     # একবার লাগবে
+npm i -D puppeteer-core docx             # একবার লাগবে
 node docs/report/build-pdf.mjs           # → Blood-Finder-Lab-Report.pdf
 node docs/report/build-docx.mjs          # → Blood-Finder-Lab-Report.docx
 ```

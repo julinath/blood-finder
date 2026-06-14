@@ -202,9 +202,31 @@ sequenceDiagram
 
 <script type="module">
   import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
-  mermaid.initialize({ startOnLoad: true, theme: "neutral", securityLevel: "loose",
-    flowchart: { useMaxWidth: false }, er: { useMaxWidth: false },
-    sequence: { useMaxWidth: false }, class: { useMaxWidth: false } });
+  mermaid.initialize({
+    startOnLoad: true, securityLevel: "loose", theme: "base",
+    themeVariables: {
+      fontFamily: "Segoe UI, system-ui, sans-serif",
+      fontSize: "16px",
+      primaryColor: "#fff1f1",
+      primaryBorderColor: "#dc2626",
+      primaryTextColor: "#1f2937",
+      lineColor: "#9aa3af",
+      secondaryColor: "#fef6e7",
+      tertiaryColor: "#eef2f7",
+      noteBkgColor: "#fef9c3",
+      noteBorderColor: "#d4a72c",
+      // class & ER
+      classText: "#1f2937",
+      // sequence
+      actorBkg: "#fff1f1", actorBorder: "#dc2626", actorTextColor: "#7f1d1d",
+      signalColor: "#475569", signalTextColor: "#1f2937",
+      labelBoxBkgColor: "#fff1f1", labelBoxBorderColor: "#dc2626"
+    },
+    flowchart: { useMaxWidth: false, htmlLabels: true, curve: "basis", padding: 14 },
+    er: { useMaxWidth: false },
+    sequence: { useMaxWidth: false, actorMargin: 70, boxMargin: 12 },
+    class: { useMaxWidth: false }
+  });
   window.__mmReady = false;
   await mermaid.run();
   window.__mmReady = true;
