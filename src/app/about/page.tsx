@@ -9,7 +9,7 @@ export const metadata = {
 const TEAM = [
   { name: 'Juli Nath', id: '2401011004' },
   { name: 'Asma Akter', id: '2401011021' },
-  { name: 'Mom Chakraborti', id: '2401011034' },
+  { name: 'Mom Chakraborty', id: '2401011034' },
 ] as const
 
 export default function AboutPage() {

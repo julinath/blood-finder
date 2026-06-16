@@ -104,7 +104,7 @@ const labelVal = (label, lines) => new Paragraph({
 })
 const coverMeta = [
   new Paragraph({ border: { top: { color: 'C9A3A3', size: 8, style: BorderStyle.SINGLE, space: 6 } }, spacing: { after: 160 }, children: [] }),
-  labelVal('Submitted by', ['Juli Nath (ID: 2401011004)', 'Asma Akter (ID: 2401011021)', 'Mom Chakraborti (ID: 2401011034)', 'CSE 11th Batch']),
+  labelVal('Submitted by', ['Juli Nath (ID: 2401011004)', 'Asma Akter (ID: 2401011021)', 'Mom Chakraborty (ID: 2401011034)', 'CSE 11th Batch']),
   labelVal('Submitted to', ['Dhonita Tripura', 'Assistant Professor, Department of CSE, RMSTU']),
   labelVal('Live site', ['https://blood-finder-bangladesh.vercel.app']),
   labelVal('Source code', ['https://github.com/julinath/blood-finder']),

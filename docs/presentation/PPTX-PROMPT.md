@@ -72,7 +72,7 @@ OOP two stacks → Roadmap → Closing). Two points that MUST land clearly:
   their own donation count (anti-fraud).
 
 TITLE SLIDE: Blood Finder + one-line tagline + team with student IDs (Juli Nath
-2401011004, Asma Akter 2401011021, Mom Chakraborti 2401011034) + Supervisor
+2401011004, Asma Akter 2401011021, Mom Chakraborty 2401011034) + Supervisor
 Dhonita Tripura (Assistant Professor, CSE, RMSTU) + course (OOP Lab, CSE 11th
 Batch) + live URL.
 CLOSING SLIDE: "One bag of blood can be someone's whole world." + live URL +

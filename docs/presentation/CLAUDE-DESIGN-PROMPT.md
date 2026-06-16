@@ -40,7 +40,7 @@ product.
 TEAM (put names + student IDs on the title & closing slides):
 - Juli Nath — 2401011004
 - Asma Akter — 2401011021
-- Mom Chakraborti — 2401011034
+- Mom Chakraborty — 2401011034
 Supervisor: Dhonita Tripura — Assistant Professor, CSE, RMSTU
 Course: Object Oriented Programming Lab — CSE 11th Batch, RMSTU
 GitHub: github.com/julinath/blood-finder
