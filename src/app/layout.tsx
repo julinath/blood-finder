@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Hind_Siliguri } from "next/font/google";
 import "./globals.css";
-import Navbar from "@/components/Navbar";
+import Navbar, { type NavbarViewer } from "@/components/Navbar";
 import Flash from "@/components/Flash";
 import Footer from "@/components/Footer";
 import { createClient } from "@/lib/supabase/server";
@@ -41,17 +41,20 @@ export default async function RootLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  let viewer: { id: string; email: string; name: string } | null = null;
+  let viewer: NavbarViewer | null = null;
   if (user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("id", user.id)
-      .maybeSingle();
+    // Resolve the display name and donor status together, so the navbar can show
+    // an active "Become a Donor" CTA only for signed-in users who aren't donors
+    // yet (and a disabled one for those who already are).
+    const [{ data: profile }, { data: donor }] = await Promise.all([
+      supabase.from("profiles").select("full_name").eq("id", user.id).maybeSingle(),
+      supabase.from("donors").select("id").eq("user_id", user.id).maybeSingle(),
+    ]);
     viewer = {
       id: user.id,
       email: user.email ?? "",
       name: profile?.full_name ?? "",
+      isDonor: !!donor,
     };
   }
 

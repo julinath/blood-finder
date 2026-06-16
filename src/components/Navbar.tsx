@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-export type NavbarViewer = { id: string; email: string; name: string }
+export type NavbarViewer = { id: string; email: string; name: string; isDonor: boolean }
 
 export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer | null }) {
   const router = useRouter()
@@ -39,7 +39,9 @@ export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer 
         setViewer((current) =>
           current?.id === session.user.id
             ? current
-            : { id: session.user.id, email: session.user.email ?? '', name: '' },
+            : // Donor status is unknown until the server re-renders; assume not a
+              // donor so the CTA stays usable, then router.refresh() corrects it.
+              { id: session.user.id, email: session.user.email ?? '', name: '', isDonor: false },
         )
       }
     })
@@ -89,7 +91,8 @@ export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer 
         </Link>
 
         {/* Desktop links */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-6">
+          <NavLink href="/">Home</NavLink>
           <Link
             href="/emergency"
             className="text-red-600 hover:text-red-700 text-sm font-semibold transition-colors flex items-center gap-1"
@@ -99,14 +102,17 @@ export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer 
           <NavLink href="/donors">Find Donors</NavLink>
           <NavLink href="/about">About Us</NavLink>
           {user ? (
-            <Link
-              href="/profile"
-              aria-label="My profile"
-              title={fullName || 'My profile'}
-              className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold hover:bg-red-700 transition-colors"
-            >
-              {initial}
-            </Link>
+            <>
+              <BecomeDonorButton isDonor={user.isDonor} />
+              <Link
+                href="/profile"
+                aria-label="My profile"
+                title={fullName || 'My profile'}
+                className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold hover:bg-red-700 transition-colors"
+              >
+                {initial}
+              </Link>
+            </>
           ) : (
             <>
               <NavLink href="/login">Login</NavLink>
@@ -122,7 +128,7 @@ export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer 
 
         {/* Mobile: profile circle + hamburger. Both hit areas are ≥44px —
             the avatar keeps its 36px visual inside a larger touch target. */}
-        <div className="md:hidden flex items-center gap-1">
+        <div className="lg:hidden flex items-center gap-1">
           {user && (
             <Link
               href="/profile"
@@ -164,8 +170,9 @@ export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer 
       {menuOpen && (
         <div
           id="mobile-menu"
-          className="md:hidden border-t border-gray-100 bg-white px-4 py-3 flex flex-col gap-3"
+          className="lg:hidden border-t border-gray-100 bg-white px-4 py-3 flex flex-col gap-3"
         >
+          <MobileLink href="/" onClick={closeMenu}>Home</MobileLink>
           <Link
             href="/emergency"
             onClick={closeMenu}
@@ -177,6 +184,23 @@ export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer 
           <MobileLink href="/about" onClick={closeMenu}>About Us</MobileLink>
           {user ? (
             <>
+              {user.isDonor ? (
+                <span
+                  aria-disabled="true"
+                  className="bg-gray-100 text-gray-400 text-sm font-medium py-2.5 px-4 rounded-lg text-center cursor-not-allowed select-none"
+                >
+                  Become a Donor
+                  <span className="block text-xs font-normal mt-0.5">আপনি ইতিমধ্যে রক্তদাতা</span>
+                </span>
+              ) : (
+                <Link
+                  href="/become-donor"
+                  onClick={closeMenu}
+                  className="bg-red-600 text-white text-sm font-medium py-2.5 px-4 rounded-lg text-center hover:bg-red-700 transition-colors"
+                >
+                  Become a Donor
+                </Link>
+              )}
               <MobileLink href="/profile" onClick={closeMenu}>My Profile</MobileLink>
               <button
                 onClick={() => {
@@ -197,6 +221,29 @@ export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer 
         </div>
       )}
     </nav>
+  )
+}
+
+// Desktop CTA: active red button for non-donors, disabled grey for donors.
+function BecomeDonorButton({ isDonor }: { isDonor: boolean }) {
+  if (isDonor) {
+    return (
+      <span
+        aria-disabled="true"
+        title="আপনি ইতিমধ্যে রক্তদাতা হিসেবে নিবন্ধিত"
+        className="px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-400 cursor-not-allowed select-none"
+      >
+        Become a Donor
+      </span>
+    )
+  }
+  return (
+    <Link
+      href="/become-donor"
+      className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+    >
+      Become a Donor
+    </Link>
   )
 }
 
