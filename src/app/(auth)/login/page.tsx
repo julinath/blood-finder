@@ -1,15 +1,26 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { Suspense, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import GoogleIcon from '@/components/GoogleIcon'
 import { parseAuthIdentifier } from '@/lib/auth-identifier'
 import { FIELD_CLASS } from '@/components/ui/form'
+import { safeNextPath, withFlash } from '@/lib/safe-next'
 
 export default function LoginPage() {
+  // useSearchParams needs a Suspense boundary in the App Router.
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
+  const next = safeNextPath(useSearchParams().get('next'))
   const supabase = useMemo(() => createClient(), [])
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
@@ -38,22 +49,28 @@ export default function LoginPage() {
       setLoading(false)
       return
     }
-    router.push('/profile?flash=login-ok')
+    // Back to where they came from (e.g. /become-donor), else the profile.
+    router.push(withFlash(next ?? '/profile', 'login-ok'))
     router.refresh()
   }
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true)
     setError('')
+    const callback = `${window.location.origin}/auth/callback${
+      next ? `?next=${encodeURIComponent(next)}` : ''
+    }`
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callback },
     })
     if (error) {
       setError('Google সাইন-ইন শুরু করা যায়নি। আবার চেষ্টা করুন।')
       setGoogleLoading(false)
     }
   }
+
+  const registerHref = next ? `/register?next=${encodeURIComponent(next)}` : '/register'
 
   return (
     <div className="min-h-[calc(100vh-64px)] flex items-center justify-center px-4">
@@ -64,6 +81,15 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          {next && (
+            <div className="bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl px-4 py-3 mb-6 text-center">
+              চালিয়ে যেতে আগে লগইন করুন — অথবা নতুন হলে{' '}
+              <Link href={registerHref} className="font-semibold underline">
+                রেজিস্টার
+              </Link>{' '}
+              করুন।
+            </div>
+          )}
           <button
             type="button"
             onClick={handleGoogleLogin}
@@ -131,7 +157,7 @@ export default function LoginPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Don&apos;t have an account?{' '}
-            <Link href="/register" className="text-red-600 font-medium hover:underline">
+            <Link href={registerHref} className="text-red-600 font-medium hover:underline">
               Register
             </Link>
           </p>

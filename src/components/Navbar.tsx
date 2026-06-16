@@ -101,24 +101,25 @@ export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer 
           </Link>
           <NavLink href="/donors">Find Donors</NavLink>
           <NavLink href="/about">About Us</NavLink>
+          {/* Shown to everyone: signed-out visitors get an active CTA too — the
+              link routes through login/register (proxy adds ?next), then back
+              here. Only confirmed donors see it disabled. */}
+          <BecomeDonorButton isDonor={user?.isDonor ?? false} />
           {user ? (
-            <>
-              <BecomeDonorButton isDonor={user.isDonor} />
-              <Link
-                href="/profile"
-                aria-label="My profile"
-                title={fullName || 'My profile'}
-                className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold hover:bg-red-700 transition-colors"
-              >
-                {initial}
-              </Link>
-            </>
+            <Link
+              href="/profile"
+              aria-label="My profile"
+              title={fullName || 'My profile'}
+              className="w-9 h-9 rounded-full bg-red-600 text-white flex items-center justify-center text-sm font-bold hover:bg-red-700 transition-colors"
+            >
+              {initial}
+            </Link>
           ) : (
             <>
               <NavLink href="/login">Login</NavLink>
               <Link
                 href="/register"
-                className="bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors"
+                className="border border-red-600 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
               >
                 Register
               </Link>
@@ -182,25 +183,27 @@ export default function Navbar({ initialViewer }: { initialViewer: NavbarViewer 
           </Link>
           <MobileLink href="/donors" onClick={closeMenu}>Find Donors</MobileLink>
           <MobileLink href="/about" onClick={closeMenu}>About Us</MobileLink>
+          {/* Shown to everyone (active even when signed out — routes through
+              login/register); disabled only for confirmed donors. */}
+          {user?.isDonor ? (
+            <span
+              aria-disabled="true"
+              className="bg-gray-100 text-gray-400 text-sm font-medium py-2.5 px-4 rounded-lg text-center cursor-not-allowed select-none"
+            >
+              Become a Donor
+              <span className="block text-xs font-normal mt-0.5">আপনি ইতিমধ্যে রক্তদাতা</span>
+            </span>
+          ) : (
+            <Link
+              href="/become-donor"
+              onClick={closeMenu}
+              className="bg-red-600 text-white text-sm font-medium py-2.5 px-4 rounded-lg text-center hover:bg-red-700 transition-colors"
+            >
+              Become a Donor
+            </Link>
+          )}
           {user ? (
             <>
-              {user.isDonor ? (
-                <span
-                  aria-disabled="true"
-                  className="bg-gray-100 text-gray-400 text-sm font-medium py-2.5 px-4 rounded-lg text-center cursor-not-allowed select-none"
-                >
-                  Become a Donor
-                  <span className="block text-xs font-normal mt-0.5">আপনি ইতিমধ্যে রক্তদাতা</span>
-                </span>
-              ) : (
-                <Link
-                  href="/become-donor"
-                  onClick={closeMenu}
-                  className="bg-red-600 text-white text-sm font-medium py-2.5 px-4 rounded-lg text-center hover:bg-red-700 transition-colors"
-                >
-                  Become a Donor
-                </Link>
-              )}
               <MobileLink href="/profile" onClick={closeMenu}>My Profile</MobileLink>
               <button
                 onClick={() => {

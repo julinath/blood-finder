@@ -1,18 +1,29 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { Suspense, useState, useMemo } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import GoogleIcon from '@/components/GoogleIcon'
 import { MIN_PASSWORD_LENGTH } from '@/lib/validation'
 import { parseAuthIdentifier } from '@/lib/auth-identifier'
 import { Field, FIELD_CLASS } from '@/components/ui/form'
+import { safeNextPath, withFlash } from '@/lib/safe-next'
 
 type Form = { full_name: string; identifier: string; password: string; confirm: string }
 
 export default function RegisterPage() {
+  // useSearchParams needs a Suspense boundary in the App Router.
+  return (
+    <Suspense fallback={null}>
+      <RegisterForm />
+    </Suspense>
+  )
+}
+
+function RegisterForm() {
   const router = useRouter()
+  const next = safeNextPath(useSearchParams().get('next'))
   const supabase = useMemo(() => createClient(), [])
   const [form, setForm] = useState<Form>({
     full_name: '',
@@ -77,22 +88,28 @@ export default function RegisterPage() {
       return
     }
 
-    router.push('/profile?flash=registered')
+    // Continue to where they were headed (e.g. /become-donor), else profile.
+    router.push(withFlash(next ?? '/profile', 'registered'))
     router.refresh()
   }
 
   const handleGoogleLogin = async () => {
     setGoogleLoading(true)
     setError('')
+    const callback = `${window.location.origin}/auth/callback${
+      next ? `?next=${encodeURIComponent(next)}` : ''
+    }`
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callback },
     })
     if (error) {
       setError('Google সাইন-ইন শুরু করা যায়নি। আবার চেষ্টা করুন।')
       setGoogleLoading(false)
     }
   }
+
+  const loginHref = next ? `/login?next=${encodeURIComponent(next)}` : '/login'
 
   return (
     <div className="min-h-[calc(100vh-64px)] flex items-center justify-center px-4 py-8">
@@ -103,6 +120,15 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+          {next && (
+            <div className="bg-red-50 border border-red-100 text-red-700 text-sm rounded-xl px-4 py-3 mb-6 text-center">
+              চালিয়ে যেতে একটি অ্যাকাউন্ট খুলুন — অথবা আগে থেকে থাকলে{' '}
+              <Link href={loginHref} className="font-semibold underline">
+                লগইন
+              </Link>{' '}
+              করুন।
+            </div>
+          )}
           <button
             type="button"
             onClick={handleGoogleLogin}
@@ -193,7 +219,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-sm text-gray-500 mt-6">
             Already have an account?{' '}
-            <Link href="/login" className="text-red-600 font-medium hover:underline">
+            <Link href={loginHref} className="text-red-600 font-medium hover:underline">
               Sign in
             </Link>
           </p>

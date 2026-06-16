@@ -31,7 +31,12 @@ export async function proxy(request: NextRequest) {
   const path = request.nextUrl.pathname
 
   if (!user && protectedRoutes.some(r => path.startsWith(r))) {
-    return NextResponse.redirect(new URL('/login', request.url))
+    // Remember where they were headed so login/register can send them back
+    // (e.g. a signed-out visitor tapping "Become a Donor" lands on the form
+    // after authenticating, not on /profile).
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('next', path)
+    return NextResponse.redirect(loginUrl)
   }
 
   if (user && authRoutes.some(r => path.startsWith(r))) {
